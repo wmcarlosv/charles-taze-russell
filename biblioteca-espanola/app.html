@@ -986,12 +986,18 @@
     .menu-btn.abierto{background:var(--azul);color:#fff;border-color:var(--azul)}
     .menu-btn.abierto .ico-menu{display:none}
     .menu-btn.abierto .ico-cerrar{display:block}
-    .tabs{display:none;position:absolute;top:calc(100% - 2px);right:0;z-index:45;
+    .tabs{display:none;position:absolute;top:calc(100% + 6px);right:0;z-index:45;
       width:min(340px,94vw);max-height:72vh;overflow:auto;padding:10px;gap:7px;
       background:var(--papel);border:1px solid var(--linea);border-radius:12px;
       grid-template-columns:1fr 1fr;box-shadow:0 24px 48px -20px rgba(20,36,63,.55)}
     .tabs.abierto{display:grid}
     .tabs .tab{font-size:.88em;padding:10px 8px}
+    .menu-btn{position:relative;z-index:47}
+    .menu-cerrar{grid-column:1 / -1;border:0;border-radius:9px;background:var(--azul);color:#fff;
+      font:inherit;font-size:.9em;font-weight:700;padding:11px 12px;cursor:pointer;letter-spacing:.02em}
+    .menu-cerrar:hover{background:var(--azul2)}
+    .menu-fondo{position:fixed;inset:0;z-index:44;background:rgba(12,24,44,.38)}
+    .menu-fondo[hidden]{display:none}
   }
 </style>
 </head>
@@ -1023,7 +1029,9 @@
     <svg class="ico-cerrar" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"
          stroke-linecap="round" aria-hidden="true"><path d="M6 6l12 12M18 6L6 18"/></svg>
   </button>
+  <div class="menu-fondo" id="menu-fondo" hidden></div>
   <div class="tabs" id="menu-tabs">
+    <button class="menu-cerrar" id="menu-cerrar" type="button">✕ Cerrar menú</button>
     <div class="tabs-nav" role="tablist">
     <button class="tab" role="tab" aria-selected="true" data-panel="p-hoy">Hoy</button>
     <button class="tab" role="tab" aria-selected="false" data-panel="p-obras">Obras</button>
@@ -1757,12 +1765,17 @@ pintarCuaderno();
 const menuBtn = document.getElementById('menu-btn');
 const menuTabs = document.getElementById('menu-tabs');
 function menuAbierto(){ return menuTabs.classList.contains('abierto'); }
+const menuFondo = document.getElementById('menu-fondo');
+const menuCerrar = document.getElementById('menu-cerrar');
 function abrirMenu(si){
   menuTabs.classList.toggle('abierto', si);
   menuBtn.classList.toggle('abierto', si);
   menuBtn.setAttribute('aria-expanded', si ? 'true' : 'false');
   menuBtn.setAttribute('aria-label', si ? 'Cerrar menú' : 'Abrir menú');
+  if(menuFondo) menuFondo.hidden = !si || window.innerWidth > 700;
 }
+if(menuCerrar) menuCerrar.onclick = ()=>abrirMenu(false);
+if(menuFondo) menuFondo.onclick = ()=>abrirMenu(false);
 document.addEventListener('click', (e)=>{
   if(!menuAbierto()) return;
   if(!e.target.closest('#menu-tabs') && !e.target.closest('#menu-btn')) abrirMenu(false);
@@ -4692,5 +4705,17 @@ document.addEventListener('DOMContentLoaded', ()=>{
 });
 
 </script>
-</body>
+<script>
+if(location.hash==='#testclose'){
+  setTimeout(function(){
+    abrirMenu(true);
+    var antes=getComputedStyle(document.getElementById('menu-tabs')).display;
+    document.getElementById('menu-btn').click();
+    setTimeout(function(){
+      document.title=JSON.stringify({antes:antes,despues:getComputedStyle(document.getElementById('menu-tabs')).display,
+        clase:document.getElementById('menu-tabs').className,iw:innerWidth});
+    },300);
+  },900);
+}
+</script></body>
 </html>
