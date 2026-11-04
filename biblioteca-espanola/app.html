@@ -2325,7 +2325,7 @@ async function verTema(id){
     sec.innerHTML = '<h4>En La Torre del Vigía</h4><p class="cargando">Buscando en las revistas…</p>';
     c.appendChild(sec);
     traerJSON('/api/buscar?q=' + encodeURIComponent(term) +
-              '&obra=' + encodeURIComponent('La Torre del Vigía') + '&limit=8')
+              '&obra=' + encodeURIComponent('La Torre del Vigía') + '&limit=100')
       .then(rev=>{
         if(!rev.total){
           sec.innerHTML = '<h4>En La Torre del Vigía</h4><p class="pista">Sin coincidencias en las revistas.</p>';
@@ -3813,8 +3813,8 @@ async function pintarHoy(clave){
     ((d.temas && d.temas.length) ? '<p class="hoy-temas"><span>Temas del índice:</span> ' +
       d.temas.map(t=>'<button class="chip tema-chip" data-tema-id="' + t.id + '">' + esc(t.termino) + '</button>').join(' ') + '</p>' : '');
   cont.querySelectorAll('.tema-chip').forEach(b=>b.onclick = () => {
-    document.querySelector('.tab[data-panel="p-palabra"]').click();
-    verTema(parseInt(b.dataset.temaId, 10));
+    const id = parseInt(b.dataset.temaId, 10);
+    abrirTematico().then(()=>verTema(id)).catch(()=>verTema(id));
   });
 
   const devDia = diaSemanaDe(d);
