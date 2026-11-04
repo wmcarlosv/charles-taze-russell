@@ -96,6 +96,24 @@ python3 asistente.py
 No se incluyen el audio narrado (2,9 GB), la caché de voz ni los
 instaladores: se regeneran o se generan aparte.
 
+## Audio narrado (2,9 GB)
+
+El audio son 1.189 archivos MP3. No cabe en el repositorio, así que está
+en la publicación **audio-v1**:
+
+https://github.com/wmcarlosv/charles-taze-russell/releases/tag/audio-v1
+
+Descarga `audio-parte1.tar` y `audio-parte2.tar` y descomprímelos dentro
+de `biblioteca-espanola/`:
+
+```bash
+tar -xf audio-parte1.tar
+tar -xf audio-parte2.tar
+```
+
+Quedan en `biblioteca-espanola/audio/` y el botón «Escuchar capítulo» los
+usa directamente.
+
 ## Créditos
 
 Textos originales de Charles Taze Russell (1879–1916), de dominio público.
