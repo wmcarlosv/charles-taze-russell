@@ -1,0 +1,18 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 900 380" font-family="Georgia, 'Times New Roman', serif">
+  <rect width="900" height="380" fill="#ffffff"/>
+  <text x="450" y="30" text-anchor="middle" font-size="20" font-weight="bold" fill="#1c2430">GRANDES ÉPOCAS LLAMADAS «MUNDOS»</text>
+  <line x1="40" y1="300" x2="880" y2="300" stroke="#1c2430" stroke-width="2"/>
+  <line x1="40" y1="300" x2="40" y2="90" stroke="#1c2430" stroke-width="1"/>
+  <line x1="240" y1="300" x2="240" y2="70" stroke="#1c2430" stroke-width="1"/>
+  <line x1="680" y1="300" x2="680" y2="70" stroke="#1c2430" stroke-width="1"/>
+  <path d="M40 300 A100 100 0 0 1 240 300" fill="none" stroke="#1c2430" stroke-width="2"/>
+  <path d="M240 300 A220 220 0 0 1 680 300" fill="none" stroke="#1c2430" stroke-width="2"/>
+  <path d="M680 300 A100 100 0 0 1 880 300" fill="none" stroke="#1c2430" stroke-width="2"/>
+  <text x="140" y="277" text-anchor="middle" font-size="15" fill="#1c2430">MUNDO QUE FUE</text>
+  <text x="460" y="215" text-anchor="middle" font-size="17" fill="#1c2430">EL PRESENTE MUNDO MALO</text>
+  <text x="780" y="252" text-anchor="middle" font-size="14" fill="#1c2430">EL MUNDO</text>
+  <text x="780" y="269" text-anchor="middle" font-size="14" fill="#1c2430">VENIDERO</text>
+  <text x="30" y="292" text-anchor="start" font-size="13" fill="#444" transform="rotate(-90 30 292)">Creación</text>
+  <text x="232" y="290" text-anchor="start" font-size="13" fill="#444" transform="rotate(-90 232 290)">El Diluvio</text>
+  <text x="672" y="290" text-anchor="start" font-size="13" fill="#444" transform="rotate(-90 672 290)">El Reino de Dios establecido</text>
+</svg>

@@ -79,6 +79,23 @@ biblioteca española (`biblioteca-ia`), con sus referencias a la
 Reina-Valera 1960 para que se puedan pulsar. `sincronizar_torre.sh` lo
 repite cada cinco minutos mientras la traducción avanza.
 
+## Biblioteca española (puerto 8099)
+
+La carpeta `biblioteca-espanola/` contiene la aplicación completa
+(interfaz, servidor, láminas y textos auxiliares), la misma que se abre
+en `http://127.0.0.1:8099/`.
+
+La base de datos va comprimida en `datos/biblioteca-espanola.db.gz`:
+
+```bash
+gunzip datos/biblioteca-espanola.db.gz -c > biblioteca-espanola/biblioteca.db
+cd biblioteca-espanola
+python3 asistente.py
+```
+
+No se incluyen el audio narrado (2,9 GB), la caché de voz ni los
+instaladores: se regeneran o se generan aparte.
+
 ## Créditos
 
 Textos originales de Charles Taze Russell (1879–1916), de dominio público.

@@ -1,0 +1,26 @@
+{
+  "name": "Estudios de las Escrituras de C. T. Russell",
+  "short_name": "Estudios",
+  "description": "Biblioteca de investigación bíblica: seis tomos, Sombras del Tabernáculo, índice temático y Mapa de las Edades.",
+  "lang": "es",
+  "start_url": "/",
+  "scope": "/",
+  "display": "standalone",
+  "orientation": "any",
+  "background_color": "#f7f3e8",
+  "theme_color": "#1d3a6b",
+  "icons": [
+    {
+      "src": "/russell-192.png",
+      "sizes": "192x192",
+      "type": "image/png",
+      "purpose": "any"
+    },
+    {
+      "src": "/russell-512.png",
+      "sizes": "512x512",
+      "type": "image/png",
+      "purpose": "any"
+    }
+  ]
+}
