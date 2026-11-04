@@ -842,6 +842,9 @@
   #progreso-lectura.visible{opacity:1;background:rgba(29,58,107,.10)}
   #progreso-lectura i{display:block;height:100%;width:0;background:linear-gradient(90deg,#946a1d,#d9b85c,#f0d58c)}
   .caps{font-weight:700;color:#0d0b07;letter-spacing:.012em}
+  .marca-reprint{color:#b3261e;font-weight:700;font-size:.8em;letter-spacing:.05em;
+    margin:1.1em 0 .45em;padding-top:.5em;border-top:1px solid #e6d5a9;font-variant:small-caps}
+  html[data-tema="noche"] .marca-reprint{color:#ff8a80;border-top-color:#3b4350}
   #fab-indice{position:fixed;right:18px;bottom:18px;z-index:70;border:1px solid rgba(217,184,92,.65);
     background:#14243f;color:#f3e6c6;border-radius:22px;padding:9px 15px;font:inherit;font-size:.84em;
     cursor:pointer;box-shadow:0 8px 20px rgba(0,0,0,.25);opacity:0;pointer-events:none;
@@ -3526,6 +3529,14 @@ function bloque(texto, b, citas){
   const crudo = texto.slice(b.ini, b.fin);
   const mi = crudo.trim().match(/^\[\[img:([^|\]]+)\|?([^\]]*)\]\]$/);
   if(mi){ return '<figure class="figura"><img loading="lazy" src="/img/'+encodeURIComponent(mi[1])+'" alt="'+esc(mi[2]||'')+'">'+(mi[2]?'<figcaption>'+esc(mi[2])+'</figcaption>':'')+'</figure>'; }
+  const mp = crudo.trim().match(/^\[(R\d+ : page \d+)\]$/);
+  if(mp){
+    window._marcasVistas = window._marcasVistas || {};
+    const k = mp[1];
+    const n = (window._marcasVistas[k] = (window._marcasVistas[k] || 0) + 1);
+    const id = k.replace(/\s*:\s*/, '-').replace(/\s+/g, '-') + (n > 1 ? '-' + n : '');
+    return '<p class="marca-reprint" id="' + id + '">[' + esc(k) + ']</p>';
+  }
   if(crudo.trim().startsWith('## ')){
     const t = crudo.trim().slice(3);
     const cl = /^DIAGRAMA$/i.test(t.trim()) ? ' class="centrado"' : '';
