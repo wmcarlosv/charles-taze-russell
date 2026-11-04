@@ -31,15 +31,23 @@ Biblioteca digital bilingüe de las obras de Charles Taze Russell:
 
 ## Crear la base de datos
 
-Los PDFs se leen de las rutas indicadas al principio de `importar.py`
-(`TOWERS`, `MANNA`, `TXT`). Ajusta esas rutas y ejecuta:
+Hay una base ya hecha y comprimida en `datos/biblioteca.db.gz` (unos 63 MB):
+incluye las nueve obras, las 432 revistas y la caché de traducciones.
+Para usarla:
+
+```bash
+gunzip datos/biblioteca.db.gz        # crea biblioteca.db
+```
+
+Si prefieres generarla desde los PDFs, las rutas se indican al principio de
+`importar.py` (`TOWERS`, `MANNA`, `TXT`). Ajusta esas rutas y ejecuta:
 
 ```bash
 python3 importar.py
 ```
 
 Genera `biblioteca.db` con las obras, las páginas, las citas y la Biblia.
-La base no se guarda en el repositorio porque ocupa más de 100 MB.
+La base normal no se guarda en el repositorio; la comprimida sí.
 
 ## Abrir la biblioteca
 
