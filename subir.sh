@@ -25,6 +25,6 @@ else:
 porcelain.push(repo, 'https://github.com/wmcarlosv/charles-taze-russell.git',
                refspecs=[b'refs/heads/master:refs/heads/main'],
                username='x-access-token', password=token,
-               outstream=io.StringIO(), errstream=io.StringIO())
+               outstream=io.BytesIO(), errstream=io.BytesIO())
 print('subido a main')
 PY
