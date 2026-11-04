@@ -1000,6 +1000,26 @@
     .menu-fondo{position:fixed;inset:0;z-index:44;background:rgba(12,24,44,.38)}
     .menu-fondo[hidden]{display:none}
   }
+
+  /* ===== Reproductor de lectura ===== */
+  .tts-barra{position:fixed;left:50%;bottom:14px;transform:translateX(-50%);z-index:80;
+    width:min(620px,96vw);background:linear-gradient(135deg,#14243f,#1d3a6b);
+    border:1px solid rgba(201,162,39,.55);border-radius:14px;color:#f7efd9;
+    box-shadow:0 18px 40px -18px rgba(0,0,0,.7);padding:10px 14px 8px}
+  .tts-barra[hidden]{display:none}
+  .tts-fila{display:flex;align-items:center;justify-content:space-between;gap:10px;margin:0 0 6px}
+  .tts-titulo{font-size:.82em;letter-spacing:.03em;color:#f1e5c7;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+  .tts-parte{font-size:.72em;color:#d8c79c;white-space:nowrap}
+  .tts-prog{height:4px;background:rgba(255,255,255,.18);border-radius:3px;overflow:hidden;margin:0 0 8px}
+  .tts-prog i{display:block;height:100%;width:0;background:var(--oro);transition:width .2s linear}
+  .tts-botones{display:flex;align-items:center;justify-content:center;gap:10px}
+  .tts-botones button{border:1px solid rgba(255,255,255,.28);background:rgba(255,255,255,.06);
+    color:#f7efd9;border-radius:11px;width:46px;height:40px;font-size:1.05em;cursor:pointer;line-height:1}
+  .tts-botones button:hover{background:rgba(255,255,255,.16)}
+  .tts-botones #tts-stop{background:rgba(201,162,39,.22);border-color:rgba(201,162,39,.6);margin-left:8px}
+  .tts-botones #tts-pausa{width:56px;background:var(--oro);color:#14243f;border-color:var(--oro);font-weight:700}
+  .tts-botones #tts-pausa:hover{background:#efd489}
+  @media(max-width:520px){.tts-barra{bottom:8px;padding:8px 10px 6px}.tts-botones button{width:42px;height:38px}}
 </style>
 </head>
 <body>
@@ -3972,6 +3992,9 @@ function aplicarGanancia(v, guardar){
 
 function pararAudio(){
   ttsToken++;
+  ttsEstado = null;
+  const barra = document.getElementById('tts-barra');
+  if(barra) barra.hidden = true;
   if(ttsAudio){ try{ ttsAudio.pause(); }catch(e){} ttsAudio = null; }
   if(ttsUrl){ try{ URL.revokeObjectURL(ttsUrl); }catch(e){} ttsUrl = null; }
   if('speechSynthesis' in window){ try{ window.speechSynthesis.cancel(); }catch(e){} }
@@ -4209,44 +4232,124 @@ function reproducirBlobVoz(blob, tok, btn){
   });
 }
 
-async function escucharTexto(texto, btn, etiqueta){
-  if(btn && btn.dataset.leyendo === '1'){ pararAudio(); return; }
+let ttsEstado = null;
+
+function ttsBarra(mostrar, titulo){
+  const b = document.getElementById('tts-barra');
+  if(!b) return;
+  b.hidden = !mostrar;
+  if(mostrar && titulo) document.getElementById('tts-titulo').textContent = titulo;
+}
+
+function ttsPintar(){
+  const e = ttsEstado;
+  if(!e) return;
+  const parte = document.getElementById('tts-parte');
+  if(parte) parte.textContent = e.partes.length > 1 ? (e.i + 1) + ' / ' + e.partes.length : '';
+  const pausa = document.getElementById('tts-pausa');
+  if(pausa){ pausa.textContent = e.pausado ? '▶' : '⏸'; pausa.title = e.pausado ? 'Continuar' : 'Pausa'; }
+  const prog = document.getElementById('tts-prog');
+  if(prog){
+    const a = e.audio;
+    prog.style.width = (a && a.duration ? Math.min(100, (a.currentTime / a.duration) * 100) : 0) + '%';
+  }
+}
+
+async function ttsIr(i){
+  const e = ttsEstado;
+  if(!e) return;
+  if(i < 0) i = 0;
+  if(i >= e.partes.length){ ttsDetener(); return; }
+  e.i = i; e.pausado = false; ttsPintar();
+  let blob = null;
+  try{
+    if(e.pref && e.pref.i === i){ blob = await e.pref.p; e.pref = null; }
+    else blob = await pedirTTS(e.partes[i]);
+  }catch(err){ blob = null; }
+  if(!e || e.tok !== ttsToken) return;
+  if(!blob){
+    ttsBarra(false); ttsEstado = null;
+    if(e.btn) e.btn.dataset.leyendo = '0';
+    return hablarNavegador(e.partes.slice(i).join(' '), e.btn, e.etiqueta);
+  }
+  if(i + 1 < e.partes.length){
+    e.pref = {i: i + 1, p: pedirTTS(e.partes[i + 1])};
+  }
+  if(e.audio){ try{ e.audio.pause(); }catch(err){} }
+  if(ttsUrl){ try{ URL.revokeObjectURL(ttsUrl); }catch(err){} ttsUrl = null; }
+  const url = URL.createObjectURL(blob);
+  const audio = new Audio(url);
+  e.audio = audio; ttsAudio = audio; ttsUrl = url;
+  conectarAudio(audio);
+  audio.ontimeupdate = ttsPintar;
+  audio.onended = ()=>{ if(e.tok === ttsToken) ttsIr(i + 1); };
+  audio.onerror = ()=>{ if(e.tok === ttsToken) ttsIr(i + 1); };
+  reanudarAudioCtx();
+  try{ await audio.play(); }catch(err){}
+  ttsPintar();
+}
+
+function ttsSaltar(seg){
+  const e = ttsEstado;
+  if(!e || !e.audio) return;
+  const a = e.audio;
+  if(seg < 0 && a.currentTime > 3){
+    a.currentTime = Math.max(0, a.currentTime + seg); ttsPintar(); return;
+  }
+  if(seg > 0 && (!a.duration || a.duration - a.currentTime > 3)){
+    a.currentTime = a.duration ? Math.min(a.duration, a.currentTime + seg) : (a.currentTime + seg);
+    ttsPintar(); return;
+  }
+  ttsIr(e.i + (seg > 0 ? 1 : -1));
+}
+
+function ttsPausa(){
+  const e = ttsEstado;
+  if(!e || !e.audio) return;
+  if(e.audio.paused){ e.audio.play().catch(()=>{}); e.pausado = false; }
+  else { e.audio.pause(); e.pausado = true; }
+  ttsPintar();
+}
+
+function ttsDetener(){
+  ttsEstado = null;
   pararAudio();
+}
+
+async function escucharTexto(texto, btn, etiqueta){
+  if(ttsEstado && btn && ttsEstado.btn === btn){ ttsDetener(); return; }
+  ttsDetener();
   texto = textoParaVoz(limpiarTextoVoz(texto));
   if(!texto) return;
   const et = etiqueta || 'Escuchar';
+  const partes = dividirParaVoz(texto, 3200);
   const tok = ++ttsToken;
+  ttsEstado = {partes: partes, i: 0, tok: tok, btn: btn, etiqueta: et,
+               pausado: false, audio: null, pref: null};
   if(btn){
     btn.dataset.leyendo = '1';
     btn.dataset.etiqueta = et;
-    btn.textContent = 'Preparando…';
+    btn.textContent = 'Detener';
   }
-  const partes = dividirParaVoz(texto, 3200);
-  let siguiente = null;
-  for(let i = 0; i < partes.length; i++){
-    if(tok !== ttsToken) return;
-    let blob = null;
-    try{ blob = siguiente ? await siguiente : await pedirTTS(partes[i]); }
-    catch(e){ blob = null; }
-    if(tok !== ttsToken) return;
-    if(!blob){
-      // Sin conexión o sin edge-tts: seguir con la voz del navegador.
-      if(btn){ btn.dataset.leyendo = '0'; }
-      return hablarNavegador(partes.slice(i).join(' '), btn, et);
-    }
-    if(i + 1 < partes.length) siguiente = pedirTTS(partes[i + 1]);
-    if(btn && tok === ttsToken){
-      btn.textContent = partes.length > 1 ? `Detener · ${i + 1}/${partes.length}` : 'Detener';
-    }
-    const bien = await reproducirBlobVoz(blob, tok, btn);
-    if(tok !== ttsToken) return;
-    if(!bien && i + 1 < partes.length){ siguiente = null; }
-  }
-  if(btn && btn.isConnected && tok === ttsToken){
-    btn.dataset.leyendo = '0';
-    btn.textContent = et;
-  }
+  const h2 = document.querySelector('#pagina h2');
+  const titulo = (h2 && h2.textContent.trim()) || et;
+  ttsBarra(true, titulo);
+  ttsPintar();
+  await ttsIr(0);
 }
+
+function ttsConectar(){
+  const atras = document.getElementById('tts-atras');
+  const adelante = document.getElementById('tts-adelante');
+  const pausa = document.getElementById('tts-pausa');
+  const stop = document.getElementById('tts-stop');
+  if(atras) atras.onclick = ()=>ttsSaltar(-15);
+  if(adelante) adelante.onclick = ()=>ttsSaltar(15);
+  if(pausa) pausa.onclick = ttsPausa;
+  if(stop) stop.onclick = ttsDetener;
+}
+if(document.readyState === 'loading') document.addEventListener('DOMContentLoaded', ttsConectar);
+else ttsConectar();
 
 async function hablarNavegador(texto, btn, etiqueta){
   if(!('speechSynthesis' in window) || !('SpeechSynthesisUtterance' in window)){
@@ -4718,5 +4821,16 @@ if(location.hash==='#testclose'){
     },300);
   },900);
 }
-</script></body>
+</script>
+<div id="tts-barra" class="tts-barra" hidden role="region" aria-label="Reproductor de lectura">
+  <div class="tts-fila"><span class="tts-titulo" id="tts-titulo">Lectura</span><span class="tts-parte" id="tts-parte"></span></div>
+  <div class="tts-prog"><i id="tts-prog"></i></div>
+  <div class="tts-botones">
+    <button type="button" id="tts-atras" title="Atrás 15 segundos" aria-label="Atrás">⏪</button>
+    <button type="button" id="tts-pausa" title="Pausa" aria-label="Pausa">⏸</button>
+    <button type="button" id="tts-adelante" title="Adelante 15 segundos" aria-label="Adelante">⏩</button>
+    <button type="button" id="tts-stop" title="Detener la lectura" aria-label="Detener">⏹</button>
+  </div>
+</div>
+</body>
 </html>
