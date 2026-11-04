@@ -854,6 +854,8 @@
   .tema-rev b{color:var(--azul);font-size:.92em}
   .tema-rev-marca{display:inline-block;margin-left:8px;color:#b3261e;font-weight:700;font-size:.85em}
   .tema-rev-ext{display:block;margin-top:3px;color:var(--gris);font-size:.86em;line-height:1.35}
+  .cita-resaltada{background:#fff3a8;border-radius:3px;box-shadow:0 0 0 4px #fff3a8}
+  html[data-tema="noche"] .cita-resaltada{background:#5b5220;box-shadow:0 0 0 4px #5b5220;color:#f6eed8}
   .marca-reprint{color:#b3261e;font-weight:700;font-size:.8em;letter-spacing:.05em;
     margin:1.1em 0 .45em;padding-top:.5em;border-top:1px solid #e6d5a9;font-variant:small-caps}
   html[data-tema="noche"] .marca-reprint{color:#ff8a80;border-top-color:#3b4350}
@@ -3140,14 +3142,17 @@ async function abrirComentariosVerso(libro, cap, v, texto){
     lista.innerHTML = '<p class="pista">Este versículo no tiene comentarios en la biblioteca.</p>';
     return;
   }
-  lista.innerHTML = d.refs.map(r=>`<button class="cv-item" data-pid="${r.id}" data-marca="${esc(r.marca||'')}">
+  lista.innerHTML = d.refs.map(r=>`<button class="cv-item" data-pid="${r.id}" data-marca="${esc(r.marca||'')}" data-posiciones='${JSON.stringify(r.posiciones||[])}'>
       <span class="cv-pag">${r.marca ? esc(r.marca) : 'p. ' + r.pagina}</span>
       <span class="cv-obra">${esc(r.obra)}${r.volumen ? ' · Tomo ' + r.volumen : ''}</span>
-      <span class="cv-tit">${esc(r.titulo || r.ref || '')}</span>
+      <span class="cv-tit">${esc(r.titulo || r.ref || '')}${(r.posiciones && r.posiciones.length>1) ? ' · ' + r.posiciones.length + ' citas' : ''}</span>
     </button>`).join('');
   lista.querySelectorAll('.cv-item').forEach(b=>b.onclick = () => {
     window._refActual = {libro, cap, v1:v, v2:v};
-    window._marcaDestino = b.dataset.marca || null;
+    let posiciones = [];
+    try{ posiciones = JSON.parse(b.dataset.posiciones || '[]'); }catch(e){}
+    window._citasDestino = posiciones;
+    window._marcaDestino = posiciones.length ? null : (b.dataset.marca || null);
     cerrarComentariosVerso();
     abrirPagina(parseInt(b.dataset.pid,10), libro + ' ' + cap + ':' + v, false);
   });
@@ -3364,6 +3369,27 @@ async function abrirPagina(id, termino, conRef){
         }
       }
     }, 450);
+  }
+  if(window._citasDestino && window._citasDestino.length){
+    const posiciones = window._citasDestino; window._citasDestino = null;
+    const bs = window._bloques || [];
+    setTimeout(()=>{
+      const els = document.querySelectorAll('#lector-texto > *');
+      let primero = null;
+      posiciones.forEach(pos=>{
+        let i = bs.findIndex(b=>pos >= b.ini && pos < b.fin);
+        if(i < 0) i = bs.findIndex(b=>b.ini >= pos);
+        if(i >= 0 && els[i]){
+          els[i].classList.add('cita-resaltada');
+          if(!primero) primero = els[i];
+        }
+      });
+      if(primero){
+        const l = document.getElementById('lector');
+        const a = primero.getBoundingClientRect(), r = l.getBoundingClientRect();
+        l.scrollTop += (a.top - r.top) - Math.max(40, r.height / 3);
+      }
+    }, 500);
   }
   if(window._textoDestino){
     const frase = window._textoDestino; window._textoDestino = null;

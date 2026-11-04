@@ -241,27 +241,30 @@ def biblia_comentarios(libro, cap, verso):
         'ORDER BY p.volumen, p.pagina, p.id',
         (libro, cap, verso, verso)).fetchall()
     marcas = {}
-    vistos = set()
-    refs = []
+    refs = {}
+    orden = []
     for f in filas:
-        if f['id'] in vistos:
-            continue
-        vistos.add(f['id'])
-        marca = ''
-        if (f['titulo_obra'] or '') == 'La Torre del Vigía':
-            if f['id'] not in marcas:
-                t = con.execute('SELECT texto FROM paginas WHERE id=?', (f['id'],)).fetchone()
-                marcas[f['id']] = t['texto'] if t else ''
-            t = marcas[f['id']]
-            ms = re.findall(r'\[(R\d+ : page \d+)\]', t[:f['inicio'] or 0])
+        if f['id'] not in refs:
+            refs[f['id']] = {'id': f['id'], 'titulo': f['titulo'] or '',
+                             'obra': f['titulo_obra'] or f['titulo'] or '',
+                             'volumen': f['volumen'], 'pagina': f['pagina'],
+                             'ref': f['ref_texto'] or '', 'marca': '',
+                             'posiciones': []}
+            orden.append(f['id'])
+        refs[f['id']]['posiciones'].append(f['inicio'] or 0)
+    for pid in orden:
+        r = refs[pid]
+        if r['obra'] == 'La Torre del Vigía':
+            if pid not in marcas:
+                t = con.execute('SELECT texto FROM paginas WHERE id=?', (pid,)).fetchone()
+                marcas[pid] = t['texto'] if t else ''
+            t = marcas[pid]
+            ms = re.findall(r'\[(R\d+ : page \d+)\]', t[:min(r['posiciones'])])
             if ms:
-                marca = ms[-1]
-        refs.append({'id': f['id'], 'titulo': f['titulo'] or '',
-                     'obra': f['titulo_obra'] or f['titulo'] or '',
-                     'volumen': f['volumen'], 'pagina': f['pagina'],
-                     'ref': f['ref_texto'] or '', 'marca': marca})
+                r['marca'] = ms[-1]
     con.close()
-    return {'libro': libro, 'capitulo': cap, 'versiculo': verso, 'refs': refs}
+    return {'libro': libro, 'capitulo': cap, 'versiculo': verso,
+            'refs': [refs[i] for i in orden]}
 
 def biblia_buscar(q, libro=None, limite=40, offset=0):
     fq = fts_query(q)
