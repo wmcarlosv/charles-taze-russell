@@ -521,19 +521,6 @@
   a.ref:hover{background:#eef2fa}
   .cargando{color:var(--gris);font-size:.9em;padding:10px 2px}
   footer{max-width:1080px;margin:0 auto;padding:0 22px 30px;font-size:.78em;color:var(--gris)}
-  @media (max-width:700px){
-    .menu-btn{display:flex;align-items:center;justify-content:center;gap:9px;width:100%;
-      border:1px solid var(--linea);background:var(--papel2);color:var(--azul);
-      border-radius:10px;padding:12px 14px;font:inherit;font-size:1em;font-weight:600;
-      cursor:pointer;letter-spacing:.02em}
-    .menu-btn .menu-ico{font-size:1.15em;line-height:1}
-    .menu-btn.abierto{background:var(--azul);color:#fff;border-color:var(--azul)}
-    .tabs{display:none}
-    .tabs.abierto{display:grid;grid-template-columns:repeat(2,minmax(0,1fr))}
-  }
-  @media (max-width:700px) and (min-width:461px){
-    .tabs.abierto{grid-template-columns:repeat(3,minmax(0,1fr))}
-  }
   @media (max-width:640px){
     body{font-size:16px} .hoja{padding:22px 20px 26px} form.busca{flex-direction:column}
     button.accion{padding:12px}
@@ -987,6 +974,25 @@
     .bvers.comentado .bnum{transition:none}
     .bvers.comentado:hover .bnum{transform:none}
   }
+  /* ===== Menú hamburguesa en el móvil ===== */
+  @media (max-width:700px){
+    .barra-fija{position:relative;top:auto}
+    .menu-btn{display:flex;align-items:center;justify-content:center;width:48px;height:48px;
+      margin:0 0 8px auto;padding:0;border:1px solid var(--linea);border-radius:12px;
+      background:var(--papel2);color:var(--azul);cursor:pointer;
+      box-shadow:0 8px 18px -16px rgba(20,36,63,.8)}
+    .menu-btn svg{width:24px;height:24px}
+    .menu-btn .ico-cerrar{display:none}
+    .menu-btn.abierto{background:var(--azul);color:#fff;border-color:var(--azul)}
+    .menu-btn.abierto .ico-menu{display:none}
+    .menu-btn.abierto .ico-cerrar{display:block}
+    .tabs{display:none;position:absolute;top:calc(100% - 2px);right:0;z-index:45;
+      width:min(340px,94vw);max-height:72vh;overflow:auto;padding:10px;gap:7px;
+      background:var(--papel);border:1px solid var(--linea);border-radius:12px;
+      grid-template-columns:1fr 1fr;box-shadow:0 24px 48px -20px rgba(20,36,63,.55)}
+    .tabs.abierto{display:grid}
+    .tabs .tab{font-size:.88em;padding:10px 8px}
+  }
 </style>
 </head>
 <body>
@@ -1010,8 +1016,12 @@
     <span class="vb-texto">Volver a la lectura anterior: <b id="volver-titulo">…</b> <span class="vb-obra" id="volver-obra"></span></span>
     <button type="button" id="volver-btn">← Volver a la lectura</button>
   </div>
-  <button class="menu-btn" id="menu-btn" type="button" aria-expanded="false" aria-controls="menu-tabs">
-    <span class="menu-ico" aria-hidden="true">☰</span> Menú
+  <button class="menu-btn" id="menu-btn" type="button" aria-expanded="false"
+          aria-controls="menu-tabs" aria-label="Abrir menú" title="Menú">
+    <svg class="ico-menu" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"
+         stroke-linecap="round" aria-hidden="true"><path d="M4 7h16M4 12h16M4 17h16"/></svg>
+    <svg class="ico-cerrar" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"
+         stroke-linecap="round" aria-hidden="true"><path d="M6 6l12 12M18 6L6 18"/></svg>
   </button>
   <div class="tabs" id="menu-tabs">
     <div class="tabs-nav" role="tablist">
@@ -1751,9 +1761,15 @@ function abrirMenu(si){
   menuTabs.classList.toggle('abierto', si);
   menuBtn.classList.toggle('abierto', si);
   menuBtn.setAttribute('aria-expanded', si ? 'true' : 'false');
-  menuBtn.innerHTML = si ? '<span class="menu-ico" aria-hidden="true">✕</span> Cerrar'
-                         : '<span class="menu-ico" aria-hidden="true">☰</span> Menú';
+  menuBtn.setAttribute('aria-label', si ? 'Cerrar menú' : 'Abrir menú');
 }
+document.addEventListener('click', (e)=>{
+  if(!menuAbierto()) return;
+  if(!e.target.closest('#menu-tabs') && !e.target.closest('#menu-btn')) abrirMenu(false);
+});
+document.addEventListener('keydown', (e)=>{
+  if(e.key === 'Escape' && menuAbierto()) abrirMenu(false);
+});
 if(menuBtn) menuBtn.onclick = ()=>abrirMenu(!menuAbierto());
 document.querySelectorAll('.tab').forEach(t=>{
   t.addEventListener('click', ()=>{ if(window.innerWidth <= 700 && menuAbierto()) abrirMenu(false); });
