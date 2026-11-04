@@ -27,6 +27,7 @@ Sitio público: <https://charlestazerussell.online/>
 
 - Python 3.8 o superior con SQLite.
 - Para el audio, los archivos MP3 del release `audio-v1`.
+- Para narrar texto nuevo, `edge-tts` (ver más abajo).
 
 ## Base de datos
 
@@ -57,6 +58,35 @@ tar -xf audio-parte2.tar
 ```
 
 Quedan en `biblioteca-espanola/audio/` (1.189 archivos, 66 libros, 2,9 GB).
+
+## Texto a voz (edge-tts)
+
+La narración de cualquier texto usa **edge-tts**, las voces neuronales de
+Microsoft. Se instala con:
+
+```bash
+pip install edge-tts
+```
+
+o, si el sistema lo bloquea:
+
+```bash
+pip install --user --break-system-packages edge-tts
+```
+
+Cómo funciona:
+
+- El botón **«Escuchar capítulo»** envía el texto a `POST /api/tts`.
+- El servidor genera el MP3 con la voz `es-MX-JorgeNeural` y, si no está,
+  con `es-ES-AlvaroNeural`, `es-AR-TomasNeural`, etc.
+- El MP3 se guarda en `tts-cache/`, identificado por un hash del texto y
+  de la voz: al repetir el mismo texto se sirve al instante.
+- Los capítulos largos se parten en tramos y el reproductor precarga el
+  siguiente.
+- El volumen se ajusta entre el 50 % y el 300 % en el reproductor; el
+  volumen del sistema sigue mandando.
+- Si falta `edge-tts` o no hay conexión, la biblioteca sigue funcionando
+  y el lector muestra el aviso correspondiente.
 
 ## Despliegue web
 

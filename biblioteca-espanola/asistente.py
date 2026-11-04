@@ -865,7 +865,7 @@ class Manejador(BaseHTTPRequestHandler):
                 voz = VOCES_EDGE[0]
             ruta_mp3 = _tts_archivo(texto, voz)
             if not ruta_mp3:
-                return self._json({'error': 'voz no disponible (¿sin conexión?)'}, 503)
+                return self._json({'error': 'texto a voz no disponible: instala edge-tts y revisa la conexión'}, 503)
             return self._audio(ruta_mp3, 'audio/mpeg')
         except Exception as e:
             return self._json({'error': str(e)}, 500)

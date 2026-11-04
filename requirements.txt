@@ -1,0 +1,4 @@
+# Dependencias de la biblioteca
+# El servidor y las dos interfaces usan sólo la biblioteca estándar,
+# salvo la narración, que necesita edge-tts.
+edge-tts>=7.0
