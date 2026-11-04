@@ -3775,27 +3775,16 @@ async function pintarHoy(clave){
 
   const ref = d.referencia_html || esc(d.referencia);
   const cita = d.cita_html || esc(d.cita);
-  const enlaceRevista = d.revista_pid
-    ? '<p style="margin:8px 0 0"><button class="link" id="hoy-revista" data-pid="' + d.revista_pid +
-      '" data-marca="' + esc(d.revista_marca || '') + '">Leer el artículo completo en La Torre del Vigía' +
-      (d.revista_marca ? ' · [' + esc(d.revista_marca) + ']' : '') + '</button></p>' : '';
   cont.innerHTML = '<div class="hoy-ref-titulo">' + ref + '</div>' +
     '<p class="hoy-cita">“' + cita + '”</p>' +
     '<div class="hoy-texto">' + htmlParrafos(d.parrafos, d.parrafos_html) + '</div>' +
     '<p class="hoy-fuente">' + (d.fuente ? 'Fuente: ' + esc(d.fuente) : 'El PDF no imprime fuente para este día.') + '</p>' +
-    enlaceRevista +
     ((d.temas && d.temas.length) ? '<p class="hoy-temas"><span>Temas del índice:</span> ' +
       d.temas.map(t=>'<button class="chip tema-chip" data-tema-id="' + t.id + '">' + esc(t.termino) + '</button>').join(' ') + '</p>' : '');
   cont.querySelectorAll('.tema-chip').forEach(b=>b.onclick = () => {
     document.querySelector('.tab[data-panel="p-palabra"]').click();
     verTema(parseInt(b.dataset.temaId, 10));
   });
-  const btnRev = document.getElementById('hoy-revista');
-  if(btnRev) btnRev.onclick = () => {
-    window._marcaDestino = btnRev.dataset.marca || null;
-    window._textoDestino = d.revista_prev || null;
-    abrirPagina(parseInt(btnRev.dataset.pid,10), d.referencia || null, false);
-  };
 
   const devDia = diaSemanaDe(d);
   const dev = (MANA.devociones_matutinas || []).find(x => x.dia_semana === devDia)
