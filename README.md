@@ -1,118 +1,68 @@
-# Pastor Russell Library
+# Estudios de las Escrituras de C. T. Russell
 
-Biblioteca digital bilingüe de las obras de Charles Taze Russell:
+Biblioteca digital en español de las obras de Charles Taze Russell:
 
 - **Estudios de las Escrituras**, seis tomos.
 - **Sombras del Tabernáculo**.
-- **The Watch Tower / La Torre del Vigía**, 432 números de julio de 1879 a diciembre de 1916, sólo con los artículos de estudio.
-- **Daily Heavenly Manna**, 366 lecturas diarias.
-- Biblia **King James** en inglés y **Reina-Valera 1960** en la biblioteca española.
-- Referencias bíblicas pulsables y traducción al español bajo demanda.
+- **Foto-Drama de la Creación**: 102 capítulos y 378 láminas.
+- **Biblia Reina-Valera 1960** con referencias y comentarios.
+- **Maná diario** y **Devociones Matutinas**.
+- **Audio narrado** de la Biblia: 1.189 capítulos.
+
+Sitio público: <https://charlestazerussell.online/>
 
 ## Estructura
 
 | Archivo | Para qué sirve |
 | --- | --- |
-| `app.html` | Interfaz: biblioteca, lector, Biblia, buscador y traducción. |
-| `asistente.py` | Servidor local (puerto 8100) y API de traducción con caché. |
-| `importar.py` | Genera `biblioteca.db` desde los PDFs, descarga la KJV y detecta citas. |
-| `revistas.py` | Selecciona sólo los artículos de estudio de The Watch Tower. |
-| `pulir.py` | Limpieza editorial del texto extraído de los PDFs. |
-| `traducir_torre.py` | Traduce los 432 números al español y los guarda en caché. |
-| `insertar_torre_es.py` | Copia los números traducidos y sus citas a la biblioteca española. |
-| `sincronizar_torre.sh` | Sincronización periódica con la biblioteca española. |
-| `despliegue-web/` | Configuración de Caddy y systemd para publicarla. |
+| `biblioteca-espanola/app.html` | Interfaz: lector, Biblia, Foto-Drama, buscador, Maná y audio. |
+| `biblioteca-espanola/asistente.py` | Servidor local (puerto 8099) y API. |
+| `biblioteca-espanola/manifest.json` | Manifiesto PWA. |
+| `datos/biblioteca-espanola.db.gz` | Base de datos comprimida. |
+| `biblioteca-espanola/audio/` | Audio narrado (no incluido en git). |
+| `subir.sh` | Publica los cambios del repositorio. |
+| `subir_audio.py` | Publica el audio como adjuntos del release. |
 
 ## Requisitos
 
-- Python 3 y SQLite.
-- `pdftotext` (poppler-utils) para extraer el texto de los PDFs.
-- Los PDFs originales de las obras y de las revistas.
+- Python 3.8 o superior con SQLite.
+- Para el audio, los archivos MP3 del release `audio-v1`.
 
-## Crear la base de datos
-
-Hay una base ya hecha y comprimida en `datos/biblioteca.db.gz` (unos 63 MB):
-incluye las nueve obras, las 432 revistas y la caché de traducciones.
-Para usarla:
+## Base de datos
 
 ```bash
-gunzip datos/biblioteca.db.gz        # crea biblioteca.db
+gunzip -c datos/biblioteca-espanola.db.gz > biblioteca-espanola/biblioteca.db
 ```
-
-Si prefieres generarla desde los PDFs, las rutas se indican al principio de
-`importar.py` (`TOWERS`, `MANNA`, `TXT`). Ajusta esas rutas y ejecuta:
-
-```bash
-python3 importar.py
-```
-
-Genera `biblioteca.db` con las obras, las páginas, las citas y la Biblia.
-La base normal no se guarda en el repositorio; la comprimida sí.
 
 ## Abrir la biblioteca
 
 ```bash
-python3 asistente.py
-```
-
-Luego abre `http://127.0.0.1:8100/`.
-
-En el escritorio, `iniciar.sh` arranca el servidor y abre el navegador.
-
-## Traducción al español
-
-- El servidor traduce por párrafos y guarda el resultado en la tabla
-  `traducciones` (caché por hash del texto).
-- Si existe el archivo `deepl.key` con una clave de DeepL, se usa DeepL;
-  si no, Google Translate. Si DeepL falla, vuelve a Google.
-- `traducir_torre.py` traduce los 432 números completos, con reanudación
-  automática: lo ya traducido no se repite.
-
-```bash
-python3 traducir_torre.py
-```
-
-## Biblioteca española
-
-`insertar_torre_es.py` copia los números traducidos a la base de la
-biblioteca española (`biblioteca-ia`), con sus referencias a la
-Reina-Valera 1960 para que se puedan pulsar. `sincronizar_torre.sh` lo
-repite cada cinco minutos mientras la traducción avanza.
-
-## Biblioteca española (puerto 8099)
-
-La carpeta `biblioteca-espanola/` contiene la aplicación completa
-(interfaz, servidor, láminas y textos auxiliares), la misma que se abre
-en `http://127.0.0.1:8099/`.
-
-La base de datos va comprimida en `datos/biblioteca-espanola.db.gz`:
-
-```bash
-gunzip datos/biblioteca-espanola.db.gz -c > biblioteca-espanola/biblioteca.db
 cd biblioteca-espanola
 python3 asistente.py
 ```
 
-No se incluyen el audio narrado (2,9 GB), la caché de voz ni los
-instaladores: se regeneran o se generan aparte.
+Abre <http://127.0.0.1:8099/>.
 
-## Audio narrado (2,9 GB)
+## Audio
 
-El audio son 1.189 archivos MP3. No cabe en el repositorio, así que está
-en la publicación **audio-v1**:
+El audio no se guarda en el repositorio. Descarga las dos partes del release:
 
-https://github.com/wmcarlosv/charles-taze-russell/releases/tag/audio-v1
+<https://github.com/wmcarlosv/charles-taze-russell/releases/tag/audio-v1>
 
-Descarga `audio-parte1.tar` y `audio-parte2.tar` y descomprímelos dentro
-de `biblioteca-espanola/`:
+y descomprímelas dentro de `biblioteca-espanola/`:
 
 ```bash
 tar -xf audio-parte1.tar
 tar -xf audio-parte2.tar
 ```
 
-Quedan en `biblioteca-espanola/audio/` y el botón «Escuchar capítulo» los
-usa directamente.
+Quedan en `biblioteca-espanola/audio/` (1.189 archivos, 66 libros, 2,9 GB).
+
+## Despliegue web
+
+En el servidor, la aplicación escucha solo en `127.0.0.1:8099` y Apache la
+publica con HTTPS en la raíz del dominio. El servicio systemd es
+`biblioteca-espanola.service`.
 
 ## Créditos
 

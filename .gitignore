@@ -1,14 +1,15 @@
 biblioteca.db
 biblioteca.db-shm
 biblioteca.db-wal
-texto/
-kjv/
 __pycache__/
 *.pyc
 *.log
-deepl.key
 .venv/
 venv/
-muestra-enero-1900.html
-muestra-revistas.html
-.envio/
+
+# Audio y datos generados en tiempo de ejecución (no van al repositorio)
+biblioteca-espanola/audio/
+biblioteca-espanola/respaldos/
+biblioteca-espanola/tts-cache/
+biblioteca-espanola/vendor/
+audio-parte*.tar
