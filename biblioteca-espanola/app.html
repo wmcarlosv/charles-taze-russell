@@ -66,6 +66,7 @@
         transition:box-shadow .18s,border-color .18s}
   .barra-fija.pegado{box-shadow:0 10px 18px -14px rgba(0,0,0,.55);border-bottom-color:var(--linea)}
   .tabs{display:grid;grid-template-columns:repeat(7,minmax(0,1fr));gap:8px;margin:0}
+  .menu-btn{display:none}
   .tabs-nav{display:contents}
   .volver-barra{display:none;align-items:center;gap:10px;background:#eef2fa;border:1px solid #c9d6ea;
         border-radius:8px;padding:6px 10px;margin:0 0 9px;font-size:.88em;color:#233c63;line-height:1.3}
@@ -520,14 +521,28 @@
   a.ref:hover{background:#eef2fa}
   .cargando{color:var(--gris);font-size:.9em;padding:10px 2px}
   footer{max-width:1080px;margin:0 auto;padding:0 22px 30px;font-size:.78em;color:var(--gris)}
+  @media (max-width:700px){
+    .menu-btn{display:flex;align-items:center;justify-content:center;gap:9px;width:100%;
+      border:1px solid var(--linea);background:var(--papel2);color:var(--azul);
+      border-radius:10px;padding:12px 14px;font:inherit;font-size:1em;font-weight:600;
+      cursor:pointer;letter-spacing:.02em}
+    .menu-btn .menu-ico{font-size:1.15em;line-height:1}
+    .menu-btn.abierto{background:var(--azul);color:#fff;border-color:var(--azul)}
+    .tabs{display:none}
+    .tabs.abierto{display:grid;grid-template-columns:repeat(2,minmax(0,1fr))}
+  }
+  @media (max-width:700px) and (min-width:461px){
+    .tabs.abierto{grid-template-columns:repeat(3,minmax(0,1fr))}
+  }
   @media (max-width:640px){
     body{font-size:16px} .hoja{padding:22px 20px 26px} form.busca{flex-direction:column}
     button.accion{padding:12px}
-    header{padding:12px 12px 12px}
-    .cab{gap:8px}
-    .logo,.retrato{width:62px;height:62px;border-width:2px}
-    .cab-titulo .sub{font-size:1.12em !important;line-height:1.2 !important;letter-spacing:.02em !important}
-    .credito{font-size:.78em;margin-top:5px;letter-spacing:.03em}
+    header{padding:9px 10px 9px}
+    .cab{gap:7px}
+    .logo,.retrato{width:52px;height:52px;border-width:2px}
+    .cab-titulo .sub{font-size:1.04em !important;line-height:1.14 !important;letter-spacing:.01em !important}
+    .credito{font-size:.62em;margin-top:2px;letter-spacing:.02em;line-height:1.25}
+    .credito::before{display:none}
   }
   /* Mapa de las Edades */
   .mapa{display:block}
@@ -995,7 +1010,10 @@
     <span class="vb-texto">Volver a la lectura anterior: <b id="volver-titulo">…</b> <span class="vb-obra" id="volver-obra"></span></span>
     <button type="button" id="volver-btn">← Volver a la lectura</button>
   </div>
-  <div class="tabs">
+  <button class="menu-btn" id="menu-btn" type="button" aria-expanded="false" aria-controls="menu-tabs">
+    <span class="menu-ico" aria-hidden="true">☰</span> Menú
+  </button>
+  <div class="tabs" id="menu-tabs">
     <div class="tabs-nav" role="tablist">
     <button class="tab" role="tab" aria-selected="true" data-panel="p-hoy">Hoy</button>
     <button class="tab" role="tab" aria-selected="false" data-panel="p-obras">Obras</button>
@@ -1725,6 +1743,22 @@ mapaInit();
 
 document.querySelector('.tab[data-panel="p-cuaderno"]').addEventListener('click', pintarCuaderno);
 pintarCuaderno();
+
+const menuBtn = document.getElementById('menu-btn');
+const menuTabs = document.getElementById('menu-tabs');
+function menuAbierto(){ return menuTabs.classList.contains('abierto'); }
+function abrirMenu(si){
+  menuTabs.classList.toggle('abierto', si);
+  menuBtn.classList.toggle('abierto', si);
+  menuBtn.setAttribute('aria-expanded', si ? 'true' : 'false');
+  menuBtn.innerHTML = si ? '<span class="menu-ico" aria-hidden="true">✕</span> Cerrar'
+                         : '<span class="menu-ico" aria-hidden="true">☰</span> Menú';
+}
+if(menuBtn) menuBtn.onclick = ()=>abrirMenu(!menuAbierto());
+document.querySelectorAll('.tab').forEach(t=>{
+  t.addEventListener('click', ()=>{ if(window.innerWidth <= 700 && menuAbierto()) abrirMenu(false); });
+});
+if(location.hash === '#menu') abrirMenu(true);
 
 document.querySelectorAll('.tab').forEach(t=>{
   if(!t.dataset.panel) return;   // pestañas especiales (guía) conservan su propio onclick
