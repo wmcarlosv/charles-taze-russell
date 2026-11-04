@@ -3067,7 +3067,7 @@ async function abrirComentariosVerso(libro, cap, v, texto){
     window._refActual = {libro, cap, v1:v, v2:v};
     window._marcaDestino = b.dataset.marca || null;
     cerrarComentariosVerso();
-    abrirPagina(parseInt(b.dataset.pid,10), null, false);
+    abrirPagina(parseInt(b.dataset.pid,10), libro + ' ' + cap + ':' + v, false);
   });
 }
 
@@ -3743,7 +3743,7 @@ async function pintarHoy(clave){
   const btnRev = document.getElementById('hoy-revista');
   if(btnRev) btnRev.onclick = () => {
     window._marcaDestino = btnRev.dataset.marca || null;
-    abrirPagina(parseInt(btnRev.dataset.pid,10), null, false);
+    abrirPagina(parseInt(btnRev.dataset.pid,10), d.referencia || null, false);
   };
 
   const devDia = diaSemanaDe(d);
