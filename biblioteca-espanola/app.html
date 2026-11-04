@@ -842,6 +842,15 @@
   #progreso-lectura.visible{opacity:1;background:rgba(29,58,107,.10)}
   #progreso-lectura i{display:block;height:100%;width:0;background:linear-gradient(90deg,#946a1d,#d9b85c,#f0d58c)}
   .caps{font-weight:700;color:#0d0b07;letter-spacing:.012em}
+  .tema-revistas{margin:18px 0 0;border-top:1px solid var(--linea);padding-top:12px}
+  .tema-revistas h4{margin:0 0 8px;color:var(--azul);font-size:.95em;letter-spacing:.03em}
+  .tema-revistas h4 span{color:var(--oro);font-size:.85em}
+  .tema-rev{display:block;width:100%;text-align:left;border:1px solid var(--linea);background:#fffdf7;
+    border-radius:8px;padding:9px 11px;margin:0 0 7px;font:inherit;font-size:.9em;color:var(--tinta);cursor:pointer}
+  .tema-rev:hover{background:#fbf3df;border-color:var(--oro)}
+  .tema-rev b{color:var(--azul);font-size:.92em}
+  .tema-rev-marca{display:inline-block;margin-left:8px;color:#b3261e;font-weight:700;font-size:.85em}
+  .tema-rev-ext{display:block;margin-top:3px;color:var(--gris);font-size:.86em;line-height:1.35}
   .marca-reprint{color:#b3261e;font-weight:700;font-size:.8em;letter-spacing:.05em;
     margin:1.1em 0 .45em;padding-top:.5em;border-top:1px solid #e6d5a9;font-variant:small-caps}
   html[data-tema="noche"] .marca-reprint{color:#ff8a80;border-top-color:#3b4350}
@@ -1832,6 +1841,8 @@ document.querySelectorAll('.tab').forEach(t=>{
     } else {
       window.scrollTo({top:0, behavior:'smooth'});
     }
+    if(t.dataset.panel === 'p-palabra' && !document.querySelector('#temas-lista .tema-item')
+       && typeof listarTemas === 'function') listarTemas('','');
     const i=$('#'+t.dataset.panel).querySelector('input'); if(i) i.focus();
   };
 });
@@ -2275,15 +2286,26 @@ async function verTema(id){
   c.innerHTML = temaHTML(d, false);
   const term = d.termino_es || d.termino;
   if(term){
-    c.insertAdjacentHTML('beforeend',
-      '<p style="margin:14px 0 0"><button class="chip" id="tema-revistas">Buscar «' +
-      esc(term) + '» en La Torre del Vigía</button></p>');
-    const br = document.getElementById('tema-revistas');
-    if(br) br.onclick = ()=>{
-      document.querySelector('.tab[data-panel="p-palabra"]').click();
-      document.getElementById('q-palabra').value = term;
-      buscarPalabra(term, 'La Torre del Vigía');
-    };
+    const sec = document.createElement('section');
+    sec.className = 'tema-revistas';
+    sec.innerHTML = '<h4>En La Torre del Vigía</h4><p class="cargando">Buscando en las revistas…</p>';
+    c.appendChild(sec);
+    traerJSON('/api/buscar?q=' + encodeURIComponent(term) +
+              '&obra=' + encodeURIComponent('La Torre del Vigía') + '&limite=8')
+      .then(rev=>{
+        if(!rev.total){
+          sec.innerHTML = '<h4>En La Torre del Vigía</h4><p class="pista">Sin coincidencias en las revistas.</p>';
+          return;
+        }
+        sec.innerHTML = '<h4>En La Torre del Vigía <span>' + rev.total + '</span></h4>' +
+          rev.resultados.map(r=>'<button class="tref tema-rev" data-pid="' + r.id +
+            '" data-marca="' + esc(r.marca || '') + '" data-term="' + esc(term) + '">' +
+            '<b>' + esc(r.titulo || '') + '</b>' +
+            '<span class="tema-rev-marca">' + esc(r.marca || ('p. ' + r.pagina)) + '</span>' +
+            '<span class="tema-rev-ext">' + esc((r.extracto || '').replace(/^…\s*/, '')).slice(0, 140) + '…</span>' +
+            '</button>').join('');
+      })
+      .catch(()=>{ sec.innerHTML = '<h4>En La Torre del Vigía</h4><p class="pista">No se pudo buscar.</p>'; });
   }
   document.getElementById('tema-detalle').scrollIntoView({block:'nearest'});
 }
@@ -2297,7 +2319,7 @@ document.addEventListener('click', e=>{
   window._temaDestino = (window._temaActual && (window._temaActual.termino_es || window._temaActual.termino)) || null;
   if(a.dataset.pos !== undefined) window._posDestino = parseInt(a.dataset.pos,10);
   else window._marcaDestino = a.dataset.marca;
-  abrirPagina(parseInt(a.dataset.pid,10));
+  abrirPagina(parseInt(a.dataset.pid,10), a.dataset.term || null);
 });
 
 function tarjetaObra(x){
