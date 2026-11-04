@@ -1301,6 +1301,7 @@
       <aside id="temas-lista"><p class="cargando" style="padding:12px">Cargando…</p></aside>
       <article id="tema-detalle"><div class="vacio">Elige una voz del índice.</div></article>
     </div>
+    <div id="temas-revistas" class="tema-revistas" hidden></div>
   </section>
 
   <section class="panel" id="p-cuaderno">
@@ -2221,6 +2222,36 @@ async function listarTemas(q, letra){
   try{ d = await traerJSON('/api/temas?q='+encodeURIComponent(q||'')+'&letra='+encodeURIComponent(temasLetra)); }
   catch(e){ l.innerHTML = '<p class="vacio" style="padding:12px">No se pudo cargar la lista de voces. Revisa la conexión.</p>'; return; }
   const items = d.items || [];
+  const contRev = document.getElementById('temas-revistas');
+  if(contRev){
+    const texto = (q || '').trim();
+    if(texto.length >= 3){
+      contRev.hidden = false;
+      contRev.innerHTML = '<h4>En las revistas</h4><p class="cargando">Buscando…</p>';
+      const tok = window._temasRevTok = (window._temasRevTok || 0) + 1;
+      fetch('/api/buscar?q=' + encodeURIComponent(texto) + '&obra=' +
+            encodeURIComponent('La Torre del Vigía') + '&limit=6')
+        .then(r=>r.json())
+        .then(rev=>{
+          if(tok !== window._temasRevTok) return;
+          if(!rev.total){
+            contRev.innerHTML = '<h4>En las revistas</h4><p class="pista">Sin coincidencias.</p>';
+            return;
+          }
+          contRev.innerHTML = '<h4>En las revistas <span>' + rev.total + '</span></h4>' +
+            rev.resultados.map(r=>'<button class="tref tema-rev" data-pid="' + r.id +
+              '" data-marca="' + esc(r.marca || '') + '" data-term="' + esc(texto) + '">' +
+              '<b>' + esc(r.titulo || '') + '</b>' +
+              '<span class="tema-rev-marca">' + esc(r.marca || ('p. ' + r.pagina)) + '</span>' +
+              '<span class="tema-rev-ext">' + esc((r.extracto || '').replace(/^…\s*/, '')).slice(0, 140) + '…</span>' +
+              '</button>').join('');
+        })
+        .catch(()=>{ contRev.innerHTML = '<h4>En las revistas</h4><p class="pista">No se pudo buscar.</p>'; });
+    } else {
+      contRev.hidden = true;
+      contRev.innerHTML = '';
+    }
+  }
   l.innerHTML = items.length ? items.map(x=>{
     const es = x.termino_es || x.termino;
     const en = (x.termino_es && x.termino_es !== x.termino) ? `<span class="tl-en">${esc(x.termino)}</span>` : '';
@@ -2294,7 +2325,7 @@ async function verTema(id){
     sec.innerHTML = '<h4>En La Torre del Vigía</h4><p class="cargando">Buscando en las revistas…</p>';
     c.appendChild(sec);
     traerJSON('/api/buscar?q=' + encodeURIComponent(term) +
-              '&obra=' + encodeURIComponent('La Torre del Vigía') + '&limite=8')
+              '&obra=' + encodeURIComponent('La Torre del Vigía') + '&limit=8')
       .then(rev=>{
         if(!rev.total){
           sec.innerHTML = '<h4>En La Torre del Vigía</h4><p class="pista">Sin coincidencias en las revistas.</p>';
