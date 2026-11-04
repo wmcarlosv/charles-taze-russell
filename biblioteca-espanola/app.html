@@ -842,6 +842,9 @@
   #progreso-lectura.visible{opacity:1;background:rgba(29,58,107,.10)}
   #progreso-lectura i{display:block;height:100%;width:0;background:linear-gradient(90deg,#946a1d,#d9b85c,#f0d58c)}
   .caps{font-weight:700;color:#0d0b07;letter-spacing:.012em}
+  .hoy-temas{margin:9px 0 0;font-size:.8em;color:var(--gris);display:flex;flex-wrap:wrap;gap:6px;align-items:center}
+  .hoy-temas span{letter-spacing:.08em;text-transform:uppercase;font-size:.86em}
+  .hoy-temas .chip{font-size:.95em;padding:4px 9px}
   .tema-revistas{margin:18px 0 0;border-top:1px solid var(--linea);padding-top:12px}
   .tema-revistas h4{margin:0 0 8px;color:var(--azul);font-size:.95em;letter-spacing:.03em}
   .tema-revistas h4 span{color:var(--oro);font-size:.85em}
@@ -3780,7 +3783,13 @@ async function pintarHoy(clave){
     '<p class="hoy-cita">“' + cita + '”</p>' +
     '<div class="hoy-texto">' + htmlParrafos(d.parrafos, d.parrafos_html) + '</div>' +
     '<p class="hoy-fuente">' + (d.fuente ? 'Fuente: ' + esc(d.fuente) : 'El PDF no imprime fuente para este día.') + '</p>' +
-    enlaceRevista;
+    enlaceRevista +
+    ((d.temas && d.temas.length) ? '<p class="hoy-temas"><span>Temas del índice:</span> ' +
+      d.temas.map(t=>'<button class="chip tema-chip" data-tema-id="' + t.id + '">' + esc(t.termino) + '</button>').join(' ') + '</p>' : '');
+  cont.querySelectorAll('.tema-chip').forEach(b=>b.onclick = () => {
+    document.querySelector('.tab[data-panel="p-palabra"]').click();
+    verTema(parseInt(b.dataset.temaId, 10));
+  });
   const btnRev = document.getElementById('hoy-revista');
   if(btnRev) btnRev.onclick = () => {
     window._marcaDestino = btnRev.dataset.marca || null;
