@@ -842,10 +842,6 @@
   #progreso-lectura.visible{opacity:1;background:rgba(29,58,107,.10)}
   #progreso-lectura i{display:block;height:100%;width:0;background:linear-gradient(90deg,#946a1d,#d9b85c,#f0d58c)}
   .caps{font-weight:700;color:#0d0b07;letter-spacing:.012em}
-  .mana-revista{margin:14px 0 0;padding:11px 14px;background:#fbf6e8;border:1px solid #e6d5a9;
-    border-left:4px solid var(--oro);border-radius:7px}
-  .mana-revista .mr-tit{margin:0 0 5px;font-size:.66em;letter-spacing:.14em;text-transform:uppercase;color:#8f6d1c;font-weight:700}
-  .mana-revista .mr-txt{margin:0;font-size:.9em;line-height:1.55;color:#4a4335;font-style:italic}
   .tema-revistas{margin:18px 0 0;border-top:1px solid var(--linea);padding-top:12px}
   .tema-revistas h4{margin:0 0 8px;color:var(--azul);font-size:.95em;letter-spacing:.03em}
   .tema-revistas h4 span{color:var(--oro);font-size:.85em}
@@ -3784,9 +3780,7 @@ async function pintarHoy(clave){
     '<p class="hoy-cita">“' + cita + '”</p>' +
     '<div class="hoy-texto">' + htmlParrafos(d.parrafos, d.parrafos_html) + '</div>' +
     '<p class="hoy-fuente">' + (d.fuente ? 'Fuente: ' + esc(d.fuente) : 'El PDF no imprime fuente para este día.') + '</p>' +
-    enlaceRevista +
-    (d.revista_texto ? '<div class="mana-revista"><p class="mr-tit">Así aparece en la revista</p><p class="mr-txt">' +
-      esc(d.revista_texto.slice(0, 700)) + (d.revista_texto.length > 700 ? '…' : '') + '</p></div>' : '');
+    enlaceRevista;
   const btnRev = document.getElementById('hoy-revista');
   if(btnRev) btnRev.onclick = () => {
     window._marcaDestino = btnRev.dataset.marca || null;
