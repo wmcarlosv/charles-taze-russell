@@ -2213,6 +2213,56 @@ async function abrirTematico(){
   }
 }
 
+let revIdx = {q: '', offset: 0, total: 0, tok: 0};
+
+function revistasIndice(texto){
+  const cont = document.getElementById('temas-revistas');
+  if(!cont) return;
+  cont.hidden = false;
+  revIdx = {q: texto, offset: 0, total: 0, tok: (revIdx.tok || 0) + 1};
+  cont.innerHTML = '<h4>En las revistas</h4><p class="cargando">Buscando…</p>';
+  revistasIndicePagina(true);
+}
+
+function revistasIndicePagina(primera){
+  const cont = document.getElementById('temas-revistas');
+  if(!cont) return;
+  const tok = revIdx.tok;
+  const url = '/api/buscar?q=' + encodeURIComponent(revIdx.q) + '&obra=' +
+              encodeURIComponent('La Torre del Vigía') + '&limit=10&offset=' + revIdx.offset;
+  fetch(url).then(r=>r.json()).then(d=>{
+    if(tok !== revIdx.tok) return;
+    revIdx.total = d.total;
+    const items = d.resultados.map(r=>'<button class="tref tema-rev" data-pid="' + r.id +
+      '" data-marca="' + esc(r.marca || '') + '" data-term="' + esc(revIdx.q) + '">' +
+      '<b>' + esc(r.titulo || '') + '</b>' +
+      '<span class="tema-rev-marca">' + esc(r.marca || ('p. ' + r.pagina)) + '</span>' +
+      '<span class="tema-rev-ext">' + esc((r.extracto || '').replace(/^…\s*/, '')).slice(0, 140) + '…</span>' +
+      '</button>').join('');
+    if(primera){
+      cont.innerHTML = '<h4>En las revistas <span>' + d.total + '</span></h4>' +
+        '<div id="temas-rev-lista">' + items + '</div>';
+    } else {
+      const lista = document.getElementById('temas-rev-lista');
+      if(lista) lista.insertAdjacentHTML('beforeend', items);
+    }
+    revIdx.offset += d.resultados.length;
+    const viejo = document.getElementById('temas-rev-mas');
+    if(viejo) viejo.remove();
+    if(revIdx.offset < d.total && d.resultados.length){
+      const b = document.createElement('button');
+      b.className = 'chip';
+      b.id = 'temas-rev-mas';
+      b.style.marginTop = '4px';
+      b.textContent = 'Ver más (' + revIdx.offset + ' de ' + d.total + ')';
+      b.onclick = ()=>revistasIndicePagina(false);
+      cont.appendChild(b);
+    }
+  }).catch(()=>{
+    if(tok === revIdx.tok) cont.innerHTML = '<h4>En las revistas</h4><p class="pista">No se pudo buscar.</p>';
+  });
+}
+
 async function listarTemas(q, letra){
   temasLetra = letra || '';
   document.querySelectorAll('#temas-letras .chip').forEach(b=>b.classList.toggle('activo', (b.dataset.letra||'')===temasLetra));
@@ -2225,32 +2275,8 @@ async function listarTemas(q, letra){
   const contRev = document.getElementById('temas-revistas');
   if(contRev){
     const texto = (q || '').trim();
-    if(texto.length >= 3){
-      contRev.hidden = false;
-      contRev.innerHTML = '<h4>En las revistas</h4><p class="cargando">Buscando…</p>';
-      const tok = window._temasRevTok = (window._temasRevTok || 0) + 1;
-      fetch('/api/buscar?q=' + encodeURIComponent(texto) + '&obra=' +
-            encodeURIComponent('La Torre del Vigía') + '&limit=6')
-        .then(r=>r.json())
-        .then(rev=>{
-          if(tok !== window._temasRevTok) return;
-          if(!rev.total){
-            contRev.innerHTML = '<h4>En las revistas</h4><p class="pista">Sin coincidencias.</p>';
-            return;
-          }
-          contRev.innerHTML = '<h4>En las revistas <span>' + rev.total + '</span></h4>' +
-            rev.resultados.map(r=>'<button class="tref tema-rev" data-pid="' + r.id +
-              '" data-marca="' + esc(r.marca || '') + '" data-term="' + esc(texto) + '">' +
-              '<b>' + esc(r.titulo || '') + '</b>' +
-              '<span class="tema-rev-marca">' + esc(r.marca || ('p. ' + r.pagina)) + '</span>' +
-              '<span class="tema-rev-ext">' + esc((r.extracto || '').replace(/^…\s*/, '')).slice(0, 140) + '…</span>' +
-              '</button>').join('');
-        })
-        .catch(()=>{ contRev.innerHTML = '<h4>En las revistas</h4><p class="pista">No se pudo buscar.</p>'; });
-    } else {
-      contRev.hidden = true;
-      contRev.innerHTML = '';
-    }
+    if(texto.length >= 3) revistasIndice(texto);
+    else { contRev.hidden = true; contRev.innerHTML = ''; }
   }
   l.innerHTML = items.length ? items.map(x=>{
     const es = x.termino_es || x.termino;
