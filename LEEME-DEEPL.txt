@@ -1,0 +1,17 @@
+TRADUCCIÓN CON DEEPL
+====================
+
+La biblioteca usa Google Translate como motor de respaldo.
+Para activar DeepL:
+
+1. Crea una cuenta en https://www.deepl.com/pro-api
+2. Copia tu clave de API (las gratuitas terminan en ":fx").
+3. Crea un archivo llamado  deepl.key  en esta misma carpeta.
+4. Pega la clave dentro del archivo, sola, sin espacios.
+5. Cierra y vuelve a abrir la biblioteca.
+
+Si DeepL falla o se agota la cuota, la biblioteca vuelve
+automáticamente a Google Translate.
+
+La clave no se muestra en la página ni se envía al navegador:
+solo la usa el servidor local.

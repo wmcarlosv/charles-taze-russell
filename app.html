@@ -1,0 +1,516 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Pastor Russell Library</title>
+<style>
+  :root{
+    --navy:#14243f; --navy2:#1d3a6b; --gold:#c9a227; --gold2:#e4c979;
+    --parch:#f7f0df; --paper:#fffdf7; --ink:#2c2a26; --muted:#7b6f58;
+    --line:#e3d6b8; --soft:#f1e8d4; --red:#8a3a2a;
+  }
+  *{box-sizing:border-box}
+  html,body{margin:0;padding:0}
+  body{font-family:Georgia,"Times New Roman",serif;background:var(--parch);color:var(--ink)}
+  a{color:var(--navy2)}
+  .top{background:radial-gradient(1200px 300px at 50% -120px, rgba(201,162,39,.28), transparent 70%),linear-gradient(135deg,#101d33,#14243f 55%,#1d3a6b);color:#f7efd9;border-bottom:3px solid var(--gold)}
+  .top-in{max-width:1420px;margin:0 auto;padding:18px 34px 14px;display:flex;align-items:center;gap:18px}
+  .seal{width:54px;height:54px;border-radius:50%;border:2px solid rgba(228,201,121,.75);display:grid;place-items:center;flex:0 0 auto;background:rgba(255,255,255,.04)}
+  .seal svg{width:31px;height:31px;color:var(--gold2)}
+  .brand h1{margin:0;font-size:1.34em;letter-spacing:.055em;font-weight:700}
+  .brand p{margin:3px 0 0;font-size:.78em;letter-spacing:.13em;text-transform:uppercase;color:#d8c79c}
+  .top-sp{flex:1}
+  .lang{display:flex;align-items:center;gap:4px;background:rgba(255,255,255,.07);border:1px solid rgba(228,201,121,.35);border-radius:20px;padding:3px}
+  .lang button{border:0;background:transparent;color:#e9dcc0;font:inherit;font-size:.76em;letter-spacing:.04em;padding:5px 11px;border-radius:16px;cursor:pointer}
+  .lang button.on{background:var(--gold);color:#14243f;font-weight:700}
+  .tabs{background:#fffaf0;border-bottom:1px solid var(--line)}
+  .tabs-in{max-width:1420px;margin:0 auto;padding:0 34px;display:flex;gap:26px}
+  .tab{border:0;background:none;font:inherit;font-size:.84em;letter-spacing:.06em;text-transform:uppercase;color:#6c604a;padding:13px 2px 11px;cursor:pointer;border-bottom:3px solid transparent}
+  .tab.on{color:var(--navy);border-bottom-color:var(--gold);font-weight:700}
+  .shell{max-width:1420px;margin:0 auto;padding:22px 34px 40px}
+  .view{display:none}
+  .view.on{display:block}
+  .crumb{font-size:.76em;letter-spacing:.05em;color:var(--muted);margin:0 0 14px}
+  .crumb b{color:var(--navy)}
+  .cols{display:grid;grid-template-columns:250px minmax(0,1fr) minmax(0,.96fr);gap:22px;align-items:start}
+  .cols.only-en{grid-template-columns:250px minmax(0,1fr)}
+  .cols.only-es{grid-template-columns:250px minmax(0,1fr)}
+  .side{position:sticky;top:18px}
+  .cover{height:144px;border-radius:4px;background:linear-gradient(145deg,#1d3a6b,#14243f 70%);border:1px solid #0d1728;box-shadow:0 14px 30px -18px rgba(0,0,0,.7);position:relative;color:#f2e4bd;padding:13px 14px;overflow:hidden;cursor:pointer}
+  .cover:before{content:"";position:absolute;inset:7px;border:1px solid rgba(201,162,39,.55);border-radius:2px}
+  .cover:after{content:"";position:absolute;left:0;right:0;bottom:0;height:34px;background:linear-gradient(0deg,rgba(201,162,39,.22),transparent)}
+  .cover .cv-s{font-size:.58em;letter-spacing:.22em;text-transform:uppercase;color:var(--gold2);position:relative}
+  .cover .cv-t{font-size:1.05em;line-height:1.18;margin-top:7px;position:relative;max-width:150px}
+  .cover .cv-a{position:absolute;bottom:13px;left:14px;font-size:.58em;letter-spacing:.12em;color:#cdbb92}
+  .side h4{margin:18px 0 8px;font-size:.64em;letter-spacing:.17em;text-transform:uppercase;color:#9b7b25;font-weight:700}
+  .toc{list-style:none;margin:0;padding:0;border-left:2px solid #e2d3ae}
+  .toc li{margin:0}
+  .toc a{display:block;text-decoration:none;color:#5e5544;font-size:.83em;line-height:1.3;padding:7px 10px 7px 13px;border-left:3px solid transparent;margin-left:-2px}
+  .toc a:hover{background:#fbf5e5;color:var(--navy)}
+  .toc a.on{color:var(--navy);font-weight:700;border-left-color:var(--gold);background:#fffaf0}
+  .toc .num{color:#ad8c36;font-size:.75em;margin-right:5px}
+  .toc select{width:100%;padding:6px 8px;border:1px solid var(--line);border-radius:5px;background:#fff;font:inherit;font-size:.84em;color:var(--navy)}
+  .read{background:var(--paper);border:1px solid var(--line);border-radius:6px;box-shadow:0 16px 40px -34px rgba(0,0,0,.55);padding:30px 38px 34px;min-height:720px}
+  .kicker{font-size:.62em;letter-spacing:.2em;text-transform:uppercase;color:#a3822c;font-weight:700;margin:0 0 8px}
+  .read h2{font-size:1.72em;line-height:1.15;margin:0 0 8px;color:var(--navy);font-weight:700}
+  .meta{display:flex;flex-wrap:wrap;gap:7px 10px;font-size:.69em;letter-spacing:.09em;text-transform:uppercase;color:#96886e;margin:0 0 18px}
+  .meta i{color:#c3b291;font-style:normal}
+  .read p{font-size:1.02em;line-height:1.78;margin:0 0 1.05em;text-align:justify}
+  .read p.lead:first-letter{float:left;font-size:3.15em;line-height:.82;padding:6px 8px 0 0;color:var(--navy);font-weight:700;text-transform:uppercase}
+  .caps{font-weight:700;color:#0f0d09;letter-spacing:.012em}
+  .ref{color:var(--navy2);text-decoration:none;border-bottom:1px dotted #b58a2b;cursor:pointer;padding:0 1px}
+  .ref:hover{background:#fbf0c8}
+  .translate-bar{display:flex;align-items:center;gap:10px;flex-wrap:wrap;margin:0 0 16px;padding:10px 12px;background:#fbf5e5;border:1px solid #eadcb8;border-radius:5px}
+  .tr-btn{display:inline-flex;align-items:center;gap:7px;border:1px solid var(--gold);background:var(--navy);color:#f7eed6;border-radius:18px;padding:7px 14px;font:inherit;font-size:.78em;cursor:pointer}
+  .tr-btn:hover{background:var(--navy2)}
+  .tr-btn:disabled{opacity:.6;cursor:wait}
+  .tr-note{font-size:.7em;color:#8d7b58;line-height:1.3}
+  .trans{background:linear-gradient(180deg,#fffdf8,#faf4e4);border:1px solid #e6d5a9;border-top:4px solid var(--gold);border-radius:6px;padding:22px 26px 24px;box-shadow:0 16px 40px -34px rgba(0,0,0,.5);min-height:720px}
+  .trans h3{margin:0;color:#8f6d1c;font-size:.66em;letter-spacing:.2em;text-transform:uppercase}
+  .trans h2{font-size:1.35em;line-height:1.2;margin:8px 0 4px;color:var(--navy)}
+  .trans .sub{font-size:.72em;color:#8d7b58;margin:0 0 18px}
+  .trans p{font-size:.99em;line-height:1.75;margin:0 0 1em;color:#3a3328;text-align:justify}
+  .trans .chip{display:inline-block;font-size:.62em;letter-spacing:.08em;text-transform:uppercase;background:#f3e4b9;color:#7a5b13;border-radius:10px;padding:3px 8px;margin-left:6px}
+  .trans .pend{color:#a39375;font-style:italic}
+  .nav{display:flex;justify-content:space-between;gap:12px;margin-top:26px;padding-top:16px;border-top:1px solid var(--line)}
+  .nav button{border:0;background:none;color:var(--navy2);font:inherit;font-size:.82em;cursor:pointer;padding:6px 0}
+  .nav button:disabled{visibility:hidden}
+  .lib-head{display:flex;align-items:flex-end;justify-content:space-between;gap:20px;flex-wrap:wrap;margin:0 0 20px}
+  .lib-head h2{margin:0;color:var(--navy);font-size:1.8em}
+  .lib-head p{margin:5px 0 0;color:var(--muted);font-size:.9em}
+  .cards{display:grid;grid-template-columns:repeat(auto-fill,minmax(280px,1fr));gap:18px}
+  .grupo{margin:0 0 26px}
+  .grupo>h3{margin:0 0 3px;color:var(--navy);font-size:1.22em;display:flex;align-items:baseline;gap:9px}
+  .grupo>h3 span{font-size:.55em;letter-spacing:.1em;text-transform:uppercase;color:#a98a45;font-weight:700}
+  .grupo>p{margin:0 0 12px;font-size:.84em;color:var(--muted)}
+  .grupo .cards{grid-template-columns:repeat(auto-fill,minmax(250px,1fr))}
+  .card{background:var(--paper);border:1px solid var(--line);border-top:4px solid var(--gold);border-radius:6px;padding:18px;display:flex;gap:16px;align-items:flex-start;box-shadow:0 10px 30px -28px rgba(0,0,0,.55)}
+  .mini-cover{flex:0 0 92px;height:128px;border-radius:3px;background:linear-gradient(145deg,#1d3a6b,#14243f 70%);border:1px solid #0d1728;color:#f2e4bd;padding:9px;position:relative;overflow:hidden}
+  .mini-cover:before{content:"";position:absolute;inset:5px;border:1px solid rgba(201,162,39,.5)}
+  .mini-cover span{position:relative;display:block;font-size:.56em;letter-spacing:.14em;text-transform:uppercase;color:var(--gold2);line-height:1.25}
+  .mini-cover b{position:relative;display:block;font-size:.74em;line-height:1.2;margin-top:6px;font-weight:400}
+  .card h3{margin:0 0 5px;color:var(--navy);font-size:1.1em;line-height:1.25}
+  .card .au{font-size:.76em;color:#8d7b58;margin:0 0 10px}
+  .card p{font-size:.82em;line-height:1.45;color:#5f5644;margin:0 0 12px}
+  .card button{border:1px solid var(--gold);background:#fbf5e4;color:#7a5a18;border-radius:16px;padding:5px 13px;font:inherit;font-size:.76em;font-weight:700;cursor:pointer}
+  .card button:hover{background:var(--navy);color:#fff;border-color:var(--navy)}
+  .searchbar{display:flex;gap:10px;margin:0 0 18px}
+  .searchbar input{flex:1;padding:12px 14px;border:1px solid var(--line);border-radius:6px;background:#fff;font:inherit}
+  .searchbar button{border:0;background:var(--navy);color:#fff;border-radius:6px;padding:0 22px;font:inherit;cursor:pointer}
+  .results{display:flex;flex-direction:column;gap:10px}
+  .res{background:var(--paper);border:1px solid var(--line);border-left:4px solid var(--gold);border-radius:5px;padding:13px 16px;cursor:pointer}
+  .res:hover{background:#fffbf0}
+  .res h4{margin:0 0 3px;color:var(--navy);font-size:.96em}
+  .res .ob{font-size:.7em;letter-spacing:.08em;text-transform:uppercase;color:#a3822c;margin:0 0 6px}
+  .res p{margin:0;font-size:.84em;line-height:1.45;color:#5f5644}
+  .bible-bar{display:flex;gap:10px;flex-wrap:wrap;margin:0 0 16px}
+  .bible-bar select{padding:9px 12px;border:1px solid var(--line);border-radius:6px;background:#fff;font:inherit}
+  .bible-box{background:var(--paper);border:1px solid var(--line);border-radius:6px;padding:24px 30px;max-width:900px}
+  .bible-box h2{margin:0 0 14px;color:var(--navy)}
+  .bvers{font-size:1em;line-height:1.7;margin:0 0 9px}
+  .bvers .bn{color:#a3822c;font-weight:700;font-size:.75em;vertical-align:super;margin-right:5px}
+  .loading{color:#8d7b58;font-style:italic}
+  .ref-modal{position:fixed;inset:0;background:rgba(15,22,34,.55);display:none;align-items:center;justify-content:center;z-index:50;padding:20px}
+  .ref-modal.on{display:flex}
+  .ref-box{background:#fffdf7;border:1px solid #d9c48c;border-top:5px solid var(--gold);border-radius:7px;width:min(560px,95vw);max-height:80vh;overflow:auto;padding:20px 24px;box-shadow:0 30px 80px rgba(0,0,0,.4)}
+  .ref-box .topline{display:flex;justify-content:space-between;align-items:center;gap:12px}
+  .ref-box h3{margin:0;color:var(--navy);font-size:1.15em}
+  .ref-box .x{border:0;background:none;font-size:1.4em;color:#9a8a6a;cursor:pointer}
+  .ref-box .verse{font-size:1em;line-height:1.65;margin:12px 0;padding-bottom:10px;border-bottom:1px solid #eee2c8}
+  .ref-box .verse:last-of-type{border-bottom:0}
+  .ref-box .ver-n{color:#a3822c;font-weight:700;font-size:.72em;vertical-align:super;margin-right:4px}
+  .ref-box .kjv{font-size:.62em;letter-spacing:.14em;text-transform:uppercase;color:#a3822c;font-weight:700}
+  .ref-box .open{margin-top:12px;border:1px solid var(--gold);background:#fbf5e4;color:#7a5a18;border-radius:16px;padding:6px 14px;font:inherit;font-size:.8em;cursor:pointer}
+  .foot{max-width:1420px;margin:0 auto;padding:0 34px 26px;font-size:.7em;color:#9b8d74}
+  .foot b{color:#6a5a3d}
+  @media (max-width:1100px){
+    .cols,.cols.only-en,.cols.only-es{grid-template-columns:210px minmax(0,1fr)}
+    .cols .trans{display:none!important}
+    .cols.only-es .read{display:none!important}
+    .cols.only-es .trans{display:block!important}
+  }
+  @media (max-width:760px){
+    .cols,.cols.only-en,.cols.only-es{grid-template-columns:1fr}
+    .side{position:static}
+    .cover{display:none}
+    .read,.trans{padding:22px}
+    .top-in{padding:14px 18px}
+    .shell{padding:16px 18px}
+  }
+</style>
+</head>
+<body>
+
+<header class="top">
+  <div class="top-in">
+    <div class="seal" aria-hidden="true">
+      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.4" stroke-linecap="round" stroke-linejoin="round">
+        <path d="M4 5.5A2.5 2.5 0 0 1 6.5 3H20v16H6.5A2.5 2.5 0 0 0 4 21.5z"/><path d="M8 7h8M8 10h8M8 13h5"/>
+      </svg>
+    </div>
+    <div class="brand">
+      <h1>Pastor Russell Library</h1>
+      <p>English originals · Spanish on demand</p>
+    </div>
+    <div class="top-sp"></div>
+    <div class="lang" role="group" aria-label="Language">
+      <button class="on" data-lang="en">English</button>
+      <button data-lang="es">Español</button>
+      <button data-lang="both">Bilingual</button>
+    </div>
+  </div>
+</header>
+
+<nav class="tabs">
+  <div class="tabs-in">
+    <button class="tab" data-view="library">Library</button>
+    <button class="tab on" data-view="read">Read</button>
+    <button class="tab" data-view="bible">Bible</button>
+    <button class="tab" data-view="search">Search</button>
+  </div>
+</nav>
+
+<main class="shell">
+  <section class="view" id="view-library">
+    <div class="lib-head">
+      <div>
+        <h2>Scripture Studies &amp; Reprints</h2>
+        <p>Charles Taze Russell · six volumes · Tabernacle Shadows · Watch Tower reprints · King James Version · no audio</p>
+      </div>
+    </div>
+    <div class="cards" id="cards"></div>
+  </section>
+
+  <section class="view on" id="view-read">
+    <p class="crumb" id="crumb">Library / <b>The Divine Plan of the Ages</b></p>
+    <div class="cols only-en" id="cols">
+      <aside class="side">
+        <div class="cover" id="cover" onclick="irBiblioteca()">
+          <div class="cv-s" id="coverSerie">Studies in the Scriptures · I</div>
+          <div class="cv-t" id="coverTitulo">The Divine Plan of the Ages</div>
+          <div class="cv-a">C. T. Russell</div>
+        </div>
+        <h4>Contents</h4>
+        <ul class="toc" id="toc"></ul>
+      </aside>
+      <article class="read" id="read">
+        <p class="loading">Cargando…</p>
+      </article>
+      <section class="trans" id="trans"></section>
+    </div>
+  </section>
+
+  <section class="view" id="view-bible">
+    <div class="lib-head"><div><h2>King James Version</h2><p>Click a reference in the reader to open the passage.</p></div></div>
+    <div class="bible-bar">
+      <select id="bLibro"></select>
+      <select id="bCap"></select>
+    </div>
+    <div class="bible-box" id="bibliaBox"><p class="loading">Elige un libro.</p></div>
+  </section>
+
+  <section class="view" id="view-search">
+    <div class="lib-head"><div><h2>Search the library</h2><p>English text of the pilot volumes.</p></div></div>
+    <form class="searchbar" onsubmit="return buscar(event)">
+      <input id="q" type="search" placeholder="Search: restitution, ransom, kingdom…" autocomplete="off">
+      <button type="submit">Search</button>
+    </form>
+    <div class="results" id="results"></div>
+  </section>
+</main>
+
+<div class="ref-modal" id="refModal">
+  <div class="ref-box">
+    <div class="topline"><h3 id="rmRef">—</h3><button class="x" onclick="cerrarRef()" aria-label="Close">×</button></div>
+    <div id="rmVerses"></div>
+    <span class="kjv">King James Version</span><br>
+    <button class="open" id="rmOpen">Open chapter →</button>
+  </div>
+</div>
+
+<footer class="foot"><b>Pastor Russell Library</b> · English originals · Spanish translations on demand · English originals · Spanish translations on demand · no audio.</footer>
+
+<script>
+const $ = s => document.querySelector(s);
+const esc = s => String(s).replace(/[&<>"]/g, c => ({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;'}[c]));
+let OBRAS = [], ACTUAL = null, INDICE = [], IDIOMA = 'en';
+let TRAD = {}, TRAD_PEND = false, TRAD_ERROR = '', TRAD_TITULO = '', TRAD_PROVEEDOR = '', TOKEN = 0;
+
+async function json(url, opts){
+  const r = await fetch(url, opts);
+  if(!r.ok) throw new Error('HTTP '+r.status);
+  return r.json();
+}
+
+function ver(v){
+  document.querySelectorAll('.view').forEach(x=>x.classList.toggle('on', x.id==='view-'+v));
+  document.querySelectorAll('.tab').forEach(x=>x.classList.toggle('on', x.dataset.view===v));
+}
+
+document.querySelectorAll('.tab').forEach(t=>t.addEventListener('click',()=>ver(t.dataset.view)));
+
+function tarjetaObra(o){
+  const serie = (o.descripcion||'').match(/Series\s+([IVX]+)/i);
+  const sello = serie ? 'Studies in the Scriptures · '+serie[1] :
+    (o.titulo.includes('Tabernacle') ? 'Tabernacle Shadows' :
+    (o.titulo==='The Watch Tower' ? 'Reprints' : 'Daily Devotions'));
+  return `<article class="card">
+      <div class="mini-cover"><span>${esc(sello)}</span><b>${esc(o.titulo)}</b></div>
+      <div>
+        <h3>${esc(o.titulo)}</h3>
+        <p class="au">${esc(o.autor)} · ${o.n} chapters</p>
+        <p>${esc(o.descripcion)}</p>
+        <button onclick="abrirObra(${o.id})">Read this book</button>
+      </div>
+    </article>`;
+}
+
+async function cargarObras(){
+  OBRAS = await json('/api/obras');
+  const grupos = [
+    {t:'Scripture Studies', d:'The six volumes of Studies in the Scriptures.', items: OBRAS.filter(o=>/Series\s+[IVX]+/i.test(o.descripcion||''))},
+    {t:'Tabernacle Shadows', d:'The better sacrifices and the Royal Priesthood.', items: OBRAS.filter(o=>o.titulo.includes('Tabernacle'))},
+    {t:'Reprints', d:'Zion’s Watch Tower, 1879–1916, articles only.', items: OBRAS.filter(o=>o.titulo==='The Watch Tower')},
+    {t:'Devotions', d:'Daily Heavenly Manna, 366 daily readings.', items: OBRAS.filter(o=>o.titulo==='Daily Heavenly Manna')},
+  ];
+  $('#cards').innerHTML = grupos.filter(g=>g.items.length).map(g=>`
+    <section class="grupo">
+      <h3>${esc(g.t)} <span>${g.items.length} ${g.items.length===1?'work':'works'}</span></h3>
+      <p>${esc(g.d)}</p>
+      <div class="cards">${g.items.map(tarjetaObra).join('')}</div>
+    </section>`).join('');
+}
+
+async function abrirObra(id){
+  const o = OBRAS.find(x=>x.id==id);
+  if(!o) return;
+  INDICE = await json('/api/indice?obra_id='+id);
+  $('#coverTitulo').textContent = o.titulo;
+  const sm = (o.descripcion||'').match(/Series\s+([IVX]+)/i);
+  $('#coverSerie').textContent = sm ? 'Studies in the Scriptures · '+sm[1] : 'Pastor Russell Library';
+  $('#crumb').innerHTML = 'Library / <b>'+esc(o.titulo)+'</b>';
+  if(o.titulo === 'The Watch Tower'){
+    const años = [...new Set(INDICE.map(c=>(c.titulo.match(/(\d{4})$/)||[''])[0]).filter(Boolean))];
+    const pintarAño = (año)=>{
+      $('#toc').innerHTML = `<li style="margin:0 0 8px"><select id="tocAnio" aria-label="Year">${años.map(a=>`<option value="${a}" ${a===año?'selected':''}>${a}</option>`).join('')}</select></li>` +
+        INDICE.filter(c=>c.titulo.endsWith(año)).map(c=>`<li><a href="#" data-id="${c.id}"><span class="num">·</span>${esc(c.titulo.replace('The Watch Tower — ',''))}</a></li>`).join('');
+      $('#tocAnio').onchange = e=>{ pintarAño(e.target.value); };
+      $('#toc').querySelectorAll('a[data-id]').forEach(a=>a.addEventListener('click',ev=>{ev.preventDefault(); cargarPagina(+a.dataset.id);}));
+    };
+    pintarAño(años[0]);
+    $('#toc').addEventListener('click', e=>{ if(e.target.tagName==='SUMMARY') e.preventDefault(); }, {once:true});
+  } else if(o.titulo === 'Daily Heavenly Manna'){
+    const meses = [...new Set(INDICE.map(c=>c.titulo.split(' ')[0]))];
+    const pintarMes = (mes)=>{
+      $('#toc').innerHTML = `<li style="margin:0 0 8px"><select id="tocMes" aria-label="Month">${meses.map(m=>`<option value="${m}" ${m===mes?'selected':''}>${m}</option>`).join('')}</select></li>` +
+        INDICE.filter(c=>c.titulo.startsWith(mes+' ')).map(c=>`<li><a href="#" data-id="${c.id}"><span class="num">·</span>${esc(c.titulo.replace(mes+' ',''))}</a></li>`).join('');
+      $('#tocMes').onchange = e=>pintarMes(e.target.value);
+      $('#toc').querySelectorAll('a[data-id]').forEach(a=>a.addEventListener('click',ev=>{ev.preventDefault(); cargarPagina(+a.dataset.id);}));
+    };
+    pintarMes(meses[0]);
+  } else {
+    $('#toc').innerHTML = INDICE.map((c,i)=>`<li><a href="#" data-id="${c.id}" class="${i===0?'on':''}"><span class="num">${roman(c.orden)}</span>${esc(c.titulo)}</a></li>`).join('');
+    $('#toc').querySelectorAll('a').forEach(a=>a.addEventListener('click',e=>{e.preventDefault(); cargarPagina(+a.dataset.id);}));
+  }
+  if(INDICE.length) await cargarPagina(INDICE[0].id);
+  ver('read');
+}
+
+function roman(n){
+  const r=['I','II','III','IV','V','VI','VII','VIII','IX','X','XI','XII','XIII','XIV','XV','XVI','XVII','XVIII','XIX','XX'];
+  return r[n-1] || n;
+}
+
+const RE_MAYUS = /(\b[A-ZÁÉÍÓÚÜÑ]{2}[A-ZÁÉÍÓÚÜÑ0-9'’.\-]*(?:\s+(?:[A-ZÁÉÍÓÚÜÑ]{2}[A-ZÁÉÍÓÚÜÑ0-9'’.\-]*|&|—|–|-)){1,})/g;
+
+function marcarMayusculas(html){
+  let enlace = 0;
+  return html.split(/(<[^>]+>)/).map(part=>{
+    if(part.charAt(0)==='<'){
+      if(/^<a\b/i.test(part)) enlace++;
+      else if(/^<\/a>/i.test(part)) enlace = Math.max(0, enlace-1);
+      return part;
+    }
+    if(enlace) return part;
+    return part.replace(RE_MAYUS, m=>'<strong class="caps">'+m+'</strong>');
+  }).join('');
+}
+
+async function cargarPagina(id){
+  const tok = ++TOKEN;
+  TRAD = {}; TRAD_PEND = false; TRAD_ERROR = ''; TRAD_TITULO = ''; TRAD_PROVEEDOR = '';
+  $('#read').innerHTML = '<p class="loading">Loading…</p>';
+  $('#trans').innerHTML = '';
+  let d;
+  try{ d = await json('/api/pagina?id='+id); }catch(e){ $('#read').innerHTML='<p class="loading">Could not load this chapter.</p>'; return; }
+  if(tok !== TOKEN) return;
+  ACTUAL = d;
+  const o = OBRAS.find(x=>x.id==d.obra_id);
+  $('#coverTitulo').textContent = o ? o.titulo : d.obra;
+  $('#crumb').innerHTML = 'Library / <b>'+esc(d.obra)+'</b> / '+esc(d.titulo);
+  $('#toc').querySelectorAll('a').forEach(a=>a.classList.toggle('on', +a.dataset.id===d.id));
+  const pal = d.parrafos.reduce((n,p)=>n+p.texto.split(/\s+/).length,0);
+  $('#read').innerHTML = `
+    <p class="kicker">${esc(d.obra)} · Chapter ${d.orden}</p>
+    <h2>${esc(d.titulo)}</h2>
+    <p class="meta">${pal.toLocaleString('en')} words <i>·</i> English original <i>·</i> KJV references</p>
+    <div class="translate-bar">
+      <button class="tr-btn" id="trBtn">
+        <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M4 5h8M8 5v2c0 4-2 7-5 9"/><path d="M6 12c1.5 2 3.5 3.5 6 4"/><path d="M13 19l4-10 4 10"/><path d="M14.5 15h5"/></svg>
+        Translate to Spanish
+      </button>
+      <span class="tr-note">Automatic translation, paragraph by paragraph, saved in cache</span>
+    </div>
+    ${d.parrafos.map((p,i)=>`<p class="${i===0?'lead':''}">${marcarMayusculas(p.html)}</p>`).join('')}
+    <div class="nav">
+      <button ${d.prev?'':'disabled'} onclick="cargarPagina(${d.prev||0})">← Previous</button>
+      <button ${d.next?'':'disabled'} onclick="cargarPagina(${d.next||0})">Next →</button>
+    </div>`;
+  $('#trBtn').addEventListener('click', ()=>setIdioma('both'));
+  enlazarRefs();
+  aplicarIdioma();
+}
+
+function enlazarRefs(){
+  document.querySelectorAll('#read a.ref').forEach(a=>{
+    a.addEventListener('click', e=>{
+      e.preventDefault();
+      abrirRef(a.dataset.libro, +a.dataset.cap, +a.dataset.v1, +a.dataset.v2, a.dataset.ref);
+    });
+  });
+}
+
+async function abrirRef(libro, cap, v1, v2, ref){
+  $('#rmRef').textContent = ref || (libro+' '+cap+':'+v1);
+  $('#rmVerses').innerHTML = '<p class="loading">Loading…</p>';
+  $('#refModal').classList.add('on');
+  try{
+    const d = await json('/api/biblia/capitulo?libro='+encodeURIComponent(libro)+'&cap='+cap);
+    const vs = d.versiculos.filter(v=>v.versiculo>=v1 && v.versiculo<=(v2||v1));
+    $('#rmVerses').innerHTML = vs.map(v=>`<p class="verse"><span class="ver-n">${v.versiculo}</span>${esc(v.texto)}</p>`).join('') || '<p class="loading">No verses found.</p>';
+    $('#rmOpen').onclick = ()=>{ cerrarRef(); abrirBiblia(libro, cap); };
+  }catch(e){ $('#rmVerses').innerHTML='<p class="loading">Could not load the verse.</p>'; }
+}
+function cerrarRef(){ $('#refModal').classList.remove('on'); }
+$('#refModal').addEventListener('click', e=>{ if(e.target.id==='refModal') cerrarRef(); });
+
+function setIdioma(lang){
+  IDIOMA = lang;
+  document.querySelectorAll('.lang button').forEach(b=>b.classList.toggle('on', b.dataset.lang===lang));
+  aplicarIdioma();
+  if(lang!=='en' && ACTUAL) asegurarTraduccion();
+}
+
+function aplicarIdioma(){
+  const cols = $('#cols');
+  cols.classList.remove('only-en','only-es');
+  if(IDIOMA==='en'){ cols.classList.add('only-en'); $('#trans').style.display='none'; $('#read').style.display='block'; }
+  else if(IDIOMA==='es'){ cols.classList.add('only-es'); $('#read').style.display='none'; $('#trans').style.display='block'; }
+  else { $('#read').style.display='block'; $('#trans').style.display='block'; }
+  pintarTraduccion();
+}
+
+function pintarTraduccion(){
+  if(!ACTUAL) return;
+  const t = $('#trans');
+  if(IDIOMA==='en'){ t.innerHTML=''; return; }
+  const listo = Object.keys(TRAD).length;
+  const total = ACTUAL.parrafos.length;
+  let html = `<h3>Automatic translation <span class="chip">Español</span></h3>
+    <h2>${esc(TRAD_TITULO || ACTUAL.titulo)}</h2>
+    <p class="sub">${esc(ACTUAL.obra)} · ${listo}/${total} paragraphs translated · ${TRAD_PROVEEDOR==='deepl'?'DeepL':'Google Translate'}${TRAD_ERROR?' · '+esc(TRAD_ERROR):''}</p>`;
+  if(!listo && TRAD_PEND) html += '<p class="loading">Translating the chapter…</p>';
+  html += ACTUAL.parrafos.map((p,i)=>{
+    if(TRAD[i]) return `<p>${marcarMayusculas(esc(TRAD[i]))}</p>`;
+    if(TRAD_PEND) return `<p class="pend">Translating paragraph ${i+1}…</p>`;
+    return `<p class="pend">Pending translation.</p>`;
+  }).join('');
+  t.innerHTML = html;
+}
+
+async function asegurarTraduccion(){
+  if(!ACTUAL || TRAD_PEND) return;
+  const tok = TOKEN;
+  const faltan = ACTUAL.parrafos.map((p,i)=>i).filter(i=>!TRAD[i]);
+  if(!faltan.length){ pintarTraduccion(); return; }
+  TRAD_PEND = true; TRAD_ERROR=''; pintarTraduccion();
+  if(!TRAD_TITULO){
+    try{
+      const dt = await json('/api/traducir', {method:'POST', headers:{'Content-Type':'application/json'}, body:JSON.stringify({textos:[ACTUAL.titulo]})});
+      if(tok===TOKEN){ TRAD_TITULO = (dt.traducciones||[''])[0] || ''; TRAD_PROVEEDOR = dt.proveedor || TRAD_PROVEEDOR; }
+    }catch(e){}
+  }
+  const batch = 4;
+  for(let k=0;k<faltan.length;k+=batch){
+    const ids = faltan.slice(k,k+batch);
+    const textos = ids.map(i=>ACTUAL.parrafos[i].texto);
+    try{
+      const d = await json('/api/traducir', {method:'POST', headers:{'Content-Type':'application/json'}, body:JSON.stringify({textos})});
+      if(tok !== TOKEN) return;
+      TRAD_PROVEEDOR = d.proveedor || TRAD_PROVEEDOR;
+      (d.traducciones||[]).forEach((es,j)=>{ if(es) TRAD[ids[j]]=es; });
+    }catch(e){ TRAD_ERROR='translation service unavailable'; }
+    pintarTraduccion();
+  }
+  TRAD_PEND = false; pintarTraduccion();
+}
+
+document.querySelectorAll('.lang button').forEach(b=>b.addEventListener('click',()=>setIdioma(b.dataset.lang)));
+
+async function cargarBiblia(){
+  const libros = await json('/api/biblia');
+  $('#bLibro').innerHTML = libros.map(l=>`<option value="${l.libro}">${l.libro}</option>`).join('');
+  $('#bLibro').onchange = ()=>{ llenarCaps(libros); cargarCapitulo(); };
+  $('#bCap').onchange = cargarCapitulo;
+  llenarCaps(libros); cargarCapitulo();
+}
+let LIBROS = [];
+function llenarCaps(libros){
+  if(libros) LIBROS = libros;
+  const l = LIBROS.find(x=>x.libro===$('#bLibro').value);
+  $('#bCap').innerHTML = Array.from({length:l?l.caps:1},(_,i)=>`<option value="${i+1}">Chapter ${i+1}</option>`).join('');
+}
+async function cargarCapitulo(){
+  const libro = $('#bLibro').value, cap = $('#bCap').value;
+  $('#bibliaBox').innerHTML = '<p class="loading">Loading…</p>';
+  try{
+    const d = await json('/api/biblia/capitulo?libro='+encodeURIComponent(libro)+'&cap='+cap);
+    $('#bibliaBox').innerHTML = `<h2>${esc(d.libro)} ${d.capitulo}</h2>` +
+      d.versiculos.map(v=>`<p class="bvers"><span class="bn">${v.versiculo}</span>${esc(v.texto)}</p>`).join('');
+  }catch(e){ $('#bibliaBox').innerHTML='<p class="loading">Could not load the chapter.</p>'; }
+}
+async function abrirBiblia(libro, cap){
+  ver('bible');
+  await cargarBiblia();
+  $('#bLibro').value = libro;
+  llenarCaps();
+  $('#bCap').value = cap;
+  cargarCapitulo();
+}
+
+async function buscar(e){
+  e.preventDefault();
+  const q = $('#q').value.trim(); if(!q) return;
+  $('#results').innerHTML = '<p class="loading">Searching…</p>';
+  try{
+    const d = await json('/api/buscar?q='+encodeURIComponent(q));
+    $('#results').innerHTML = d.resultados.length ? d.resultados.map(r=>`
+      <article class="res" onclick="abrirResultado(${r.id})">
+        <p class="ob">${esc(r.obra)}</p><h4>${esc(r.titulo)}</h4>
+        <p>${esc(r.extracto)}…</p>
+      </article>`).join('') : '<p class="loading">No results.</p>';
+  }catch(e){ $('#results').innerHTML='<p class="loading">Search failed.</p>'; }
+}
+function abrirResultado(id){ ver('read'); cargarPagina(id); }
+
+function irBiblioteca(){ ver('library'); }
+
+(async()=>{
+  await cargarObras();
+  if(OBRAS.length) await abrirObra(OBRAS[0].id);
+  cargarBiblia();
+})();
+</script>
+</body>
+</html>
