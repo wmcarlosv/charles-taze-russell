@@ -1310,7 +1310,7 @@
       <input type="text" id="biblia-q" placeholder="Buscar en la Biblia: rescate, «cuerpo de Cristo»…" autocomplete="off">
       <button class="accion" type="submit">Buscar</button>
     </form>
-    <p class="pista" style="margin:-4px 0 14px">Reina-Valera 1960 · 66 libros · 1.189 capítulos. Los números en círculo señalan versículos comentados en los tomos, en <i>Sombras del Tabernáculo</i> y en el <i>Foto-Drama de la Creación</i>: púlsalos para ver las referencias.</p>
+    <p class="pista" style="margin:-4px 0 14px">Reina-Valera 1960 · 66 libros · 1.189 capítulos. Los números en círculo señalan versículos comentados en los tomos, en <i>Sombras del Tabernáculo</i>, en el <i>Foto-Drama de la Creación</i> y en las revistas <i>La Torre del Vigía</i>: púlsalos para ver las referencias y abrir la página exacta.</p>
     <div class="biblia-diario" id="biblia-diario" hidden>
       <span class="bd-marca">Versículo del día</span>
       <p class="bd-texto" id="bd-texto"></p>
@@ -1936,13 +1936,14 @@ function qattr(q){
 }
 
 function tarjeta(r, terminos, q, conRef){
+  const marca = r.marca || '';
   return `<article class="card">
-    <p class="meta"><b>${esc(r.obra)}</b>${r.volumen?' · Vol. '+r.volumen:''} · pág. ${r.pagina}</p>
+    <p class="meta"><b>${esc(r.obra)}</b>${r.volumen?' · Vol. '+r.volumen:''} · ${marca ? esc(marca) : 'pág. '+r.pagina}</p>
     ${r.titulo?`<p class="meta" style="text-transform:none;letter-spacing:0;font-size:.85em">${esc(r.titulo)}</p>`:''}
     <p class="extracto">${marcar(r.extracto, terminos)}</p>
     <div class="acciones">
-      <button onclick="abrirPagina(${r.id}, ${conRef?"null":"'"+qattr(q)+"'"}, ${conRef?'true':'false'})">Leer la página</button>
-      <span style="color:var(--gris)">${esc(r.obra)}${r.volumen?', vol. '+r.volumen:''}, p. ${r.pagina}</span>
+      <button onclick="window._marcaDestino=${marca ? "'"+esc(marca).replace(/'/g,"\\'")+"'" : 'null'};abrirPagina(${r.id}, ${conRef?"null":"'"+qattr(q)+"'"}, ${conRef?'true':'false'})">Leer la página</button>
+      <span style="color:var(--gris)">${esc(r.obra)}${r.volumen?', vol. '+r.volumen:''}, ${marca ? esc(marca) : 'p. '+r.pagina}</span>
     </div>
   </article>`;
 }
@@ -2272,6 +2273,18 @@ async function verTema(id){
   window._temaActual = d;
   window._temaEn = false;
   c.innerHTML = temaHTML(d, false);
+  const term = d.termino_es || d.termino;
+  if(term){
+    c.insertAdjacentHTML('beforeend',
+      '<p style="margin:14px 0 0"><button class="chip" id="tema-revistas">Buscar «' +
+      esc(term) + '» en La Torre del Vigía</button></p>');
+    const br = document.getElementById('tema-revistas');
+    if(br) br.onclick = ()=>{
+      document.querySelector('.tab[data-panel="p-palabra"]').click();
+      document.getElementById('q-palabra').value = term;
+      buscarPalabra(term, 'La Torre del Vigía');
+    };
+  }
   document.getElementById('tema-detalle').scrollIntoView({block:'nearest'});
 }
 
@@ -3045,15 +3058,16 @@ async function abrirComentariosVerso(libro, cap, v, texto){
     lista.innerHTML = '<p class="pista">Este versículo no tiene comentarios en la biblioteca.</p>';
     return;
   }
-  lista.innerHTML = d.refs.map(r=>`<button class="cv-item" data-pid="${r.id}">
-      <span class="cv-pag">p. ${r.pagina}</span>
+  lista.innerHTML = d.refs.map(r=>`<button class="cv-item" data-pid="${r.id}" data-marca="${esc(r.marca||'')}">
+      <span class="cv-pag">${r.marca ? esc(r.marca) : 'p. ' + r.pagina}</span>
       <span class="cv-obra">${esc(r.obra)}${r.volumen ? ' · Tomo ' + r.volumen : ''}</span>
       <span class="cv-tit">${esc(r.titulo || r.ref || '')}</span>
     </button>`).join('');
   lista.querySelectorAll('.cv-item').forEach(b=>b.onclick = () => {
     window._refActual = {libro, cap, v1:v, v2:v};
+    window._marcaDestino = b.dataset.marca || null;
     cerrarComentariosVerso();
-    abrirPagina(parseInt(b.dataset.pid,10), null, true);
+    abrirPagina(parseInt(b.dataset.pid,10), null, false);
   });
 }
 
@@ -3271,10 +3285,25 @@ async function abrirPagina(id, termino, conRef){
   }
   if(window._marcaDestino){
     const marca = window._marcaDestino; window._marcaDestino = null;
-    setTimeout(()=>{
-      const el = [...document.querySelectorAll('#lector-texto .marca-b')].find(x=>x.textContent==='['+marca+']');
-      if(el){ el.scrollIntoView({block:'center'}); el.classList.add('destello'); }
-    }, 450);
+    let intentos = 0;
+    const irMarca = ()=>{
+      const el = [...document.querySelectorAll('#lector-texto .marca-b, #lector-texto .marca-reprint')]
+        .find(x=>x.textContent === '[' + marca + ']');
+      if(!el && intentos++ < 6){ setTimeout(irMarca, 300); return; }
+      if(el){
+        const l = document.getElementById('lector');
+        const centrar = ()=>{
+          const a = el.getBoundingClientRect(), b = l.getBoundingClientRect();
+          l.scrollTop += (a.top - b.top) - Math.max(40, b.height / 3);
+        };
+        centrar();
+        setTimeout(centrar, 500);
+        setTimeout(centrar, 1200);
+        el.classList.add('destello');
+        setTimeout(()=>el.classList.remove('destello'), 1600);
+      }
+    };
+    setTimeout(irMarca, 450);
   }
   if(window._posLectura){ const pl = window._posLectura; window._posLectura = null;
     setTimeout(()=>{ l.scrollTop = pl; }, 400); }
@@ -3702,10 +3731,20 @@ async function pintarHoy(clave){
 
   const ref = d.referencia_html || esc(d.referencia);
   const cita = d.cita_html || esc(d.cita);
+  const enlaceRevista = d.revista_pid
+    ? '<p style="margin:8px 0 0"><button class="link" id="hoy-revista" data-pid="' + d.revista_pid +
+      '" data-marca="' + esc(d.revista_marca || '') + '">Leer el artículo completo en La Torre del Vigía' +
+      (d.revista_marca ? ' · [' + esc(d.revista_marca) + ']' : '') + '</button></p>' : '';
   cont.innerHTML = '<div class="hoy-ref-titulo">' + ref + '</div>' +
     '<p class="hoy-cita">“' + cita + '”</p>' +
     '<div class="hoy-texto">' + htmlParrafos(d.parrafos, d.parrafos_html) + '</div>' +
-    '<p class="hoy-fuente">' + (d.fuente ? 'Fuente: ' + esc(d.fuente) : 'El PDF no imprime fuente para este día.') + '</p>';
+    '<p class="hoy-fuente">' + (d.fuente ? 'Fuente: ' + esc(d.fuente) : 'El PDF no imprime fuente para este día.') + '</p>' +
+    enlaceRevista;
+  const btnRev = document.getElementById('hoy-revista');
+  if(btnRev) btnRev.onclick = () => {
+    window._marcaDestino = btnRev.dataset.marca || null;
+    abrirPagina(parseInt(btnRev.dataset.pid,10), null, false);
+  };
 
   const devDia = diaSemanaDe(d);
   const dev = (MANA.devociones_matutinas || []).find(x => x.dia_semana === devDia)

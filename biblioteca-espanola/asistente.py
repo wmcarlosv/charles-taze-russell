@@ -234,23 +234,33 @@ def biblia_capitulo(libro, cap):
 def biblia_comentarios(libro, cap, verso):
     con = conectar()
     filas = con.execute(
-        'SELECT p.id, p.titulo, p.titulo_obra, p.volumen, p.pagina, c.ref_texto '
+        'SELECT p.id, p.titulo, p.titulo_obra, p.volumen, p.pagina, c.ref_texto, c.inicio '
         'FROM citas c JOIN paginas p ON p.id = c.pagina_id '
         'WHERE c.libro=? AND c.capitulo=? AND c.v_ini<=? '
         'AND COALESCE(c.v_fin, c.v_ini)>=? '
         'ORDER BY p.volumen, p.pagina, p.id',
         (libro, cap, verso, verso)).fetchall()
-    con.close()
+    marcas = {}
     vistos = set()
     refs = []
     for f in filas:
         if f['id'] in vistos:
             continue
         vistos.add(f['id'])
+        marca = ''
+        if (f['titulo_obra'] or '') == 'La Torre del Vigía':
+            if f['id'] not in marcas:
+                t = con.execute('SELECT texto FROM paginas WHERE id=?', (f['id'],)).fetchone()
+                marcas[f['id']] = t['texto'] if t else ''
+            t = marcas[f['id']]
+            ms = re.findall(r'\[(R\d+ : page \d+)\]', t[:f['inicio'] or 0])
+            if ms:
+                marca = ms[-1]
         refs.append({'id': f['id'], 'titulo': f['titulo'] or '',
                      'obra': f['titulo_obra'] or f['titulo'] or '',
                      'volumen': f['volumen'], 'pagina': f['pagina'],
-                     'ref': f['ref_texto'] or ''})
+                     'ref': f['ref_texto'] or '', 'marca': marca})
+    con.close()
     return {'libro': libro, 'capitulo': cap, 'versiculo': verso, 'refs': refs}
 
 def biblia_buscar(q, libro=None, limite=40, offset=0):
@@ -295,10 +305,22 @@ def buscar(q, limite=40, offset=0, obra=None, orden=''):
     terminos = [p for p in re.split(r'\s+', q.replace('"', '')) if p]
     res = []
     for f in filas:
+        marca = ''
+        if (f['titulo_obra'] or '') == 'La Torre del Vigía':
+            bajo = f['texto'].lower()
+            pos = -1
+            for t in terminos:
+                i = bajo.find(t.lower())
+                if i >= 0 and (pos < 0 or i < pos):
+                    pos = i
+            if pos > 0:
+                ms = re.findall(r'\[(R\d+ : page \d+)\]', f['texto'][:pos])
+                if ms:
+                    marca = ms[-1]
         res.append({
             'id': f['id'], 'obra': f['titulo_obra'], 'volumen': f['volumen'],
             'pagina': f['pagina'], 'titulo': f['titulo'],
-            'extracto': contexto(f['texto'], terminos),
+            'extracto': contexto(f['texto'], terminos), 'marca': marca,
         })
     # distribucion por volumen (sólo cuando se pide la primera página)
     dist = []
