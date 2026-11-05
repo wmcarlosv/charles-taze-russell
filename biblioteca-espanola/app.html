@@ -844,6 +844,7 @@
   .preg-filtros{display:flex;flex-wrap:wrap;gap:8px;align-items:center;margin:0 0 10px}
   .preg-filtros select{font:inherit;padding:7px 9px;border:1px solid var(--linea);border-radius:7px;background:#fff}
   .caps{font-weight:700;color:#0d0b07;letter-spacing:.012em}
+  .titulo-articulo{font-weight:700;color:#0f0d09;font-size:1.03em;letter-spacing:.01em;margin-top:1.25em}
   .hoy-temas{margin:9px 0 0;font-size:.8em;color:var(--gris);display:flex;flex-wrap:wrap;gap:6px;align-items:center}
   .hoy-temas span{letter-spacing:.08em;text-transform:uppercase;font-size:.86em}
   .hoy-temas .chip{font-size:.95em;padding:4px 9px}
@@ -2480,6 +2481,7 @@ async function abrirCapitulo(id, restaurar){
     <button class="link" ${d.next?'':'disabled style="visibility:hidden"'} onclick="abrirCapitulo(${d.next||0})">Siguiente →</button>
   </div>`;
   c.innerHTML=html;
+  marcarTitulos(c.querySelector('.lectura-texto'));
   const pagEsc = document.getElementById('pag-escuchar');
   if(pagEsc) pagEsc.onclick = () => escucharTexto(d.texto || '', pagEsc, 'Escuchar capítulo');
   const hs = [...c.querySelectorAll('h4')];
@@ -3317,6 +3319,7 @@ async function abrirPagina(id, termino, conRef){
       puntos.map(x=>'<li>'+resaltar(esc(x), terminoBusqueda)+'</li>').join('') + '</ul></div>';
   } else { rz.innerHTML=''; }
   $('#lector-texto').innerHTML = d.bloques.map(b=>bloque(d.texto, b, d.citas)).join('');
+  marcarTitulos(document.getElementById('lector-texto'));
   marcarReferencias();
   const hs = [...document.querySelectorAll('#lector-texto h4')];
   if(hs.length >= 2){
@@ -3712,7 +3715,7 @@ function tablaHTML(texto, b, citas){
   return html;
 }
 
-const RE_MAYUS = /(\b[A-ZÁÉÍÓÚÜÑ]{2}[A-ZÁÉÍÓÚÜÑ0-9'’.\-]*(?:\s+(?:[A-ZÁÉÍÓÚÜÑ]{2}[A-ZÁÉÍÓÚÜÑ0-9'’.\-]*|&|—|–|-)){1,})/g;
+const RE_MAYUS = /(\b[A-ZÁÉÍÓÚÜÑ]{2}[A-ZÁÉÍÓÚÜÑ0-9'’.\-]*(?:\s+(?:[A-ZÁÉÍÓÚÜÑ]{2}[A-ZÁÉÍÓÚÜÑ0-9'’.\-]*|&|—|–|-))*)/g;
 function marcarMayusculas(html){
   let enlace = 0;
   return html.split(/(<[^>]+>)/).map(part=>{
@@ -3722,8 +3725,29 @@ function marcarMayusculas(html){
       return part;
     }
     if(enlace) return part;
+    part = part.replace(/^([A-ZÁÉÍÓÚÜÑ]{4,}[A-ZÁÉÍÓÚÜÑ0-9'’.:\-]*)(?=\s)/, '<strong class="caps">$1</strong>');
     return part.replace(RE_MAYUS, m=>'<strong class="caps">'+m+'</strong>');
   }).join('');
+}
+
+function marcarTitulos(cont){
+  if(!cont) return;
+  const ps = [...cont.querySelectorAll(':scope > p')];
+  const menores = new Set(['a','de','la','el','los','las','que','y','o','en','con','por','para','sobre','al','del','un','una']);
+  for(let i = 0; i < ps.length; i++){
+    const t = (ps[i].textContent || '').trim();
+    if(!t || t.startsWith('[')) continue;
+    if(t.length > 90) continue;
+    const w = t.split(/\s+/);
+    if(w.length < 2 || w.length > 10) continue;
+    if(!/^[A-ZÁÉÍÓÚÑ]/.test(t)) continue;
+    if(/[\[\]\d]/.test(t)) continue;
+    if(/[,;:]$/.test(t)) continue;
+    const caps = w.filter(x=>/^[A-ZÁÉÍÓÚÑ]/.test(x)).length;
+    if(caps / w.length < 0.6) continue;
+    const sig = ps[i+1] ? (ps[i+1].textContent || '').trim() : '';
+    if(sig.length > 170) ps[i].classList.add('titulo-articulo');
+  }
 }
 
 function bloque(texto, b, citas){
