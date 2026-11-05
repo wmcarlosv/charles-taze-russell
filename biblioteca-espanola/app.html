@@ -1285,7 +1285,7 @@
       <input type="text" id="q-pregunta" placeholder="¿Qué enseña la biblioteca sobre el rescate?" autocomplete="off">
       <button class="accion" type="submit">Preguntar</button>
     </form>
-    <p class="pista">La respuesta se compone con los pasajes de la propia biblioteca, en español, indicando siempre el volumen y la página.</p>
+    <p class="pista">La respuesta se compone con los propios textos de la biblioteca y cita siempre la obra y la página. Todo se calcula en este equipo: <b>funciona sin internet</b>.</p>
     <div id="respuesta"><h3>Respuesta</h3><p id="respuesta-texto"></p></div>
     <div id="res-pregunta"></div>
   </section>
@@ -2523,8 +2523,18 @@ async function preguntar(q){
   let d;
   try{ d = await traerJSON('/api/preguntar?q='+encodeURIComponent(q)); }
   catch(e){ rt.textContent='No se pudo consultar la biblioteca. Revisa la conexión e inténtalo de nuevo.'; return; }
-  rt.textContent = d.respuesta;
-  if(d.tipo==='versiculo' && d.versiculo && d.versiculo.paginas){
+  rt.innerHTML = esc(d.respuesta).replace(/\n/g,'<br>');
+  if(d.tipo==='ia' && d.fuentes){
+    c.innerHTML = d.fuentes.map(f=>`<article class="card">
+        <p class="meta"><b>${esc(f.obra)}</b>${f.marca?' · '+esc(f.marca):''} · p. ${f.pagina}</p>
+        ${f.titulo && f.titulo!==f.obra?`<p class="meta" style="text-transform:none;letter-spacing:0;font-size:.85em">${esc(f.titulo)}</p>`:''}
+        <p class="extracto">${esc(f.extracto.slice(0,200))}…</p>
+        <div class="acciones">
+          <button onclick="window._posDestino=${f.pos};abrirPagina(${f.id})">Leer el pasaje</button>
+          <span style="color:var(--gris)">${esc(f.cita)}</span>
+        </div>
+      </article>`).join('');
+  } else if(d.tipo==='versiculo' && d.versiculo && d.versiculo.paginas){
     c.innerHTML = d.versiculo.paginas.map(x=>tarjeta(x,[])).join('');
   } else if(d.resultados){
     c.innerHTML = d.resultados.map(x=>tarjeta(x,q.replace(/"/g,'').split(/\s+/))).join('');

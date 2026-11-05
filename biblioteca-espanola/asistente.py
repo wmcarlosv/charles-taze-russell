@@ -514,6 +514,75 @@ def palabras_clave(q):
     return claves or sorted(todas, key=len, reverse=True)[:1]
 
 
+STOP_PREGUNTA = set('''que como cuando donde porque para pero sobre entre desde hasta todo todos
+toda todas este esta estos estas esto ese esa esos esas aquel aquella sus les por con sin mas muy
+tambien sino quien quienes cual cuales cuanto cuanta cuantos cuantas hace hacer dice dijo puede pueden
+debe deben sido ser son fue fueron han hay era eran the and of to in is are was were what how why who
+whom which'''.split())
+
+
+def _fuentes_ia(q, limite=3):
+    """Devuelve pasajes que responden a la pregunta, con su cita exacta."""
+    palabras = [w for w in re.findall(r"[A-Za-zÁÉÍÓÚÑáéíóúñ]{3,}", q)
+                if sinacento(w) not in STOP_PREGUNTA]
+    if not palabras:
+        palabras = re.findall(r"[A-Za-zÁÉÍÓÚÑáéíóúñ]{3,}", q)
+    if not palabras:
+        return []
+    consulta = ' '.join(palabras[:6])
+    r = buscar(consulta, limite=24)
+    if not r['total']:
+        r = buscar(' OR '.join(palabras[:5]), limite=24)
+    if not r['total']:
+        return []
+    con = conectar()
+    fuentes = []
+    vistos = set()
+    for item in r['resultados']:
+        if item['id'] in vistos:
+            continue
+        fila = con.execute('SELECT texto, titulo, titulo_obra, pagina FROM paginas WHERE id=?',
+                           (item['id'],)).fetchone()
+        if not fila:
+            continue
+        texto = fila['texto'] or ''
+        mejor, puntos = '', 0
+        for p in texto.split('\n\n'):
+            p = p.strip()
+            if len(p) < 80:
+                continue
+            bajo = sinacento(p)
+            n = sum(1 for w in palabras if sinacento(w) in bajo)
+            if n > puntos:
+                mejor, puntos = p, n
+        if not mejor or puntos == 0:
+            continue
+        if len(mejor) > 620:
+            corte = mejor.rfind('. ', 0, 620)
+            mejor = mejor[:corte + 1] if corte > 200 else mejor[:620].rsplit(' ', 1)[0] + '…'
+        pos = texto.find(mejor[:80])
+        pos = max(0, pos)
+        marca = ''
+        if (fila['titulo_obra'] or '') == 'La Torre del Vigía' and pos > 0:
+            ms = re.findall(r'\[(R\d+ : page \d+)\]', texto[:pos])
+            if ms:
+                marca = ms[-1]
+        vistos.add(item['id'])
+        titulo = fila['titulo'] or ''
+        fuentes.append({
+            'id': item['id'], 'obra': fila['titulo_obra'] or '', 'titulo': titulo,
+            'pagina': fila['pagina'], 'marca': marca, 'pos': pos,
+            'extracto': mejor,
+            'cita': '%s%s — p. %s%s' % (fila['titulo_obra'] or '',
+                                        (' · ' + titulo) if titulo and titulo != fila['titulo_obra'] else '',
+                                        fila['pagina'],
+                                        (' · ' + marca) if marca else '')})
+        if len(fuentes) >= limite:
+            break
+    con.close()
+    return fuentes
+
+
 def preguntar(q):
     q = (q or '').strip()
     if not q:
@@ -544,11 +613,17 @@ def preguntar(q):
         return {'tipo': 'sinresultados', 'respuesta':
                 'No encuentro «%s» en la biblioteca. Prueba con otra palabra, en singular, o con una cita bíblica (por ejemplo «Romanos 5:12»).' % q,
                 'resultados': []}
-    dist = ', '.join('%s (%d)' % (d['titulo_obra'], d['n']) for d in r['distribucion'][:4])
-    return {'tipo': 'tema',
-            'respuesta': 'He encontrado %d páginas relacionadas con «%s». Se reparten así: %s. Estos son los pasajes más pertinentes:'
-                         % (r['total'], consulta, dist),
-            'resultados': r['resultados']}
+    fuentes = _fuentes_ia(q)
+    if not fuentes:
+        return {'tipo': 'sinresultados', 'respuesta':
+                'No encuentro una respuesta en la biblioteca para «%s». Prueba con otras palabras o con una cita bíblica.' % q,
+                'resultados': []}
+    partes = ['«%s»\n— %s' % (f['extracto'], f['cita']) for f in fuentes]
+    respuesta = ('Sobre «%s», esto es lo que enseñó el pastor Russell:\n\n' % q.strip()
+                 + '\n\n'.join(partes)
+                 + '\n\nPuedes leer más en las fuentes señaladas abajo.')
+    return {'tipo': 'ia', 'respuesta': respuesta, 'fuentes': fuentes,
+            'resultados': r['resultados'][:6]}
 
 def _trozos(texto, limite=1700):
     partes, buf = [], ''
