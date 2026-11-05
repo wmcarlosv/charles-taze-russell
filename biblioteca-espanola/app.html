@@ -862,9 +862,9 @@
   .tema-rev-ext{display:block;margin-top:3px;color:var(--gris);font-size:.86em;line-height:1.35}
   .cita-resaltada{background:#fff3a8;border-radius:3px;box-shadow:0 0 0 4px #fff3a8}
   html[data-tema="noche"] .cita-resaltada{background:#5b5220;box-shadow:0 0 0 4px #5b5220;color:#f6eed8}
-  .marca-reprint{color:#b3261e;font-weight:700;font-size:.8em;letter-spacing:.05em;
+  .marca-reprint{color:#14110c;font-weight:800;font-size:.82em;letter-spacing:.05em;
     margin:1.1em 0 .45em;padding-top:.5em;border-top:1px solid #e6d5a9;font-variant:small-caps}
-  html[data-tema="noche"] .marca-reprint{color:#ff8a80;border-top-color:#3b4350}
+  html[data-tema="noche"] .marca-reprint{color:#f2e8d5;border-top-color:#3b4350}
   #fab-indice{position:fixed;right:18px;bottom:18px;z-index:70;border:1px solid rgba(217,184,92,.65);
     background:#14243f;color:#f3e6c6;border-radius:22px;padding:9px 15px;font:inherit;font-size:.84em;
     cursor:pointer;box-shadow:0 8px 20px rgba(0,0,0,.25);opacity:0;pointer-events:none;
@@ -3783,7 +3783,7 @@ function bloque(texto, b, citas){
   const crudo = texto.slice(b.ini, b.fin);
   const mi = crudo.trim().match(/^\[\[img:([^|\]]+)\|?([^\]]*)\]\]$/);
   if(mi){ return '<figure class="figura"><img loading="lazy" src="/img/'+encodeURIComponent(mi[1])+'" alt="'+esc(mi[2]||'')+'">'+(mi[2]?'<figcaption>'+esc(mi[2])+'</figcaption>':'')+'</figure>'; }
-  const mp = crudo.trim().match(/^\[(R\d+ : page \d+)\]$/);
+  const mp = crudo.trim().match(/^\[(R\d+\s*:\s*page\s*\d+)\]$/);
   if(mp){
     window._marcasVistas = window._marcasVistas || {};
     const k = mp[1];
