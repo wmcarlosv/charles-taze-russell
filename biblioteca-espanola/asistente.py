@@ -260,7 +260,7 @@ def biblia_comentarios(libro, cap, verso):
                 t = con.execute('SELECT texto FROM paginas WHERE id=?', (pid,)).fetchone()
                 marcas[pid] = t['texto'] if t else ''
             t = marcas[pid]
-            ms = re.findall(r'\[(R\d+ : page \d+)\]', t[:min(r['posiciones'])])
+            ms = re.findall(r'\[(R\d+\s*:\s*page\s*\d+)\]', t[:min(r['posiciones'])])
             if ms:
                 r['marca'] = ms[-1]
     con.close()
@@ -308,6 +308,7 @@ def buscar(q, limite=40, offset=0, obra=None, orden=''):
         ' ORDER BY ' + orden_sql + ' LIMIT ? OFFSET ?', params + [limite, offset]).fetchall()
     terminos = [p for p in re.split(r'\s+', q.replace('"', '')) if p]
     m_ov = re.match(r'^\s*OV\s*(\d{1,3})\s*$', q, re.I)
+    m_r = re.match(r'^\s*R\s*(\d{1,5})\s*$', q, re.I)
     res = []
     for f in filas:
         marca = ''
@@ -319,7 +320,7 @@ def buscar(q, limite=40, offset=0, obra=None, orden=''):
                 if i >= 0 and (pos < 0 or i < pos):
                     pos = i
             if pos > 0:
-                ms = re.findall(r'\[(R\d+ : page \d+)\]', f['texto'][:pos])
+                ms = re.findall(r'\[(R\d+\s*:\s*page\s*\d+)\]', f['texto'][:pos])
                 if ms:
                     marca = ms[-1]
         extracto = contexto(f['texto'], terminos)
@@ -332,6 +333,12 @@ def buscar(q, limite=40, offset=0, obra=None, orden=''):
                 marca_ov = 'OV%s' % m_ov.group(1)
                 pos_ov = pv
                 extracto = re.sub(r'\[\[OV\d+\]\]\s*', '', f['texto'][pv:pv + 320])
+        if m_r:
+            mr = re.search(r'\[R%s\s*:\s*page\s*\d+\]' % m_r.group(1), f['texto'])
+            if mr:
+                marca = mr.group(0)[1:-1]
+                pos_ov = mr.start()
+                extracto = f['texto'][mr.start():mr.start() + 340]
         res.append({
             'id': f['id'], 'obra': f['titulo_obra'], 'volumen': f['volumen'],
             'pagina': f['pagina'], 'titulo': f['titulo'],
@@ -601,7 +608,7 @@ def _fuentes_ia(q, limite=4, obra=None, anio=None):
         pos = max(0, pos)
         marca = ''
         if (fila['titulo_obra'] or '') == 'La Torre del Vigía' and pos > 0:
-            ms = re.findall(r'\[(R\d+ : page \d+)\]', texto[:pos])
+            ms = re.findall(r'\[(R\d+\s*:\s*page\s*\d+)\]', texto[:pos])
             if ms:
                 marca = ms[-1]
         vistos.add(item['id'])
