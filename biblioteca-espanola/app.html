@@ -844,6 +844,7 @@
   .preg-filtros{display:flex;flex-wrap:wrap;gap:8px;align-items:center;margin:0 0 10px}
   .preg-filtros select{font:inherit;padding:7px 9px;border:1px solid var(--linea);border-radius:7px;background:#fff}
   .caps{font-weight:700;color:#0d0b07;letter-spacing:.012em}
+  .personaje{color:#1d4ed8;font-weight:700;letter-spacing:.02em}
   .titulo-articulo{font-weight:700;color:#0f0d09;font-size:1.03em;letter-spacing:.01em;margin-top:1.25em}
   .hoy-temas{margin:9px 0 0;font-size:.8em;color:var(--gris);display:flex;flex-wrap:wrap;gap:6px;align-items:center}
   .hoy-temas span{letter-spacing:.08em;text-transform:uppercase;font-size:.86em}
@@ -2453,6 +2454,7 @@ async function abrirCapitulo(id, restaurar){
   try{ d = await traerJSON('/api/pagina?id='+id); }
   catch(e){ c.innerHTML='<div class="vacio">No se pudo cargar el capítulo. Revisa la conexión.</div>'; return; }
   if(d.error){ c.innerHTML='<div class="vacio">No encontrada.</div>'; return; }
+  window._dialogo = detectarDialogo(d.texto || '');
   const palabras = (d.texto || '').split(/\s+/).filter(Boolean).length;
   const minutos = Math.max(1, Math.round(palabras / 200));
   let html = `<div class="lectura-cab">
@@ -3312,6 +3314,7 @@ async function abrirPagina(id, termino, conRef){
     rz.innerHTML = '<div class="resumen-cap"><h5>En este capítulo</h5><ul>' +
       puntos.map(x=>'<li>'+resaltar(esc(x), terminoBusqueda)+'</li>').join('') + '</ul></div>';
   } else { rz.innerHTML=''; }
+  window._dialogo = detectarDialogo(d.texto || '');
   $('#lector-texto').innerHTML = d.bloques.map(b=>bloque(d.texto, b, d.citas)).join('');
   marcarTitulos(document.getElementById('lector-texto'));
   marcarReferencias();
@@ -3744,6 +3747,21 @@ function marcarTitulos(cont){
   }
 }
 
+function detectarDialogo(texto){
+  const letras = new Set();
+  let n = 0;
+  for(const p of texto.split('\n\n')){
+    const m = p.trim().match(/^([A-Z])\.\s/);
+    if(m){ n++; letras.add(m[1]); }
+  }
+  return n >= 3 && letras.size >= 2;
+}
+
+function marcarPersonajes(html){
+  return html.replace(/(^|[.!?…»”"]\s)([A-Z])\.(?=\s)/g,
+    (m, pre, letra)=>pre + '<span class="personaje">' + letra + '.</span>');
+}
+
 function bloque(texto, b, citas){
   const dentro = citas.filter(c=>c.inicio>=b.ini && c.inicio<b.fin);
   const crudo = texto.slice(b.ini, b.fin);
@@ -3766,6 +3784,7 @@ function bloque(texto, b, citas){
   let html = textoConCitas(texto, b.ini, b.fin, citas);
   html = html.replace(/\[([A-Z])(\d+)\]/g, '<strong class="marca-b">[$1$2]</strong>');
   html = marcarMayusculas(html);
+  if(window._dialogo) html = marcarPersonajes(html);
   return '<p>'+html+'</p>';
 }
 
