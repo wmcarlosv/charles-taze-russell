@@ -659,9 +659,10 @@ def preguntar(q, obra=None, anio=None):
                 'No encuentro una respuesta en la biblioteca para «%s». Prueba con otras palabras o con una cita bíblica.' % q,
                 'resultados': []}
     partes = ['«%s»\n— %s' % (f['extracto'], f['cita']) for f in fuentes]
-    respuesta = ('Sobre «%s», esto es lo que enseñó el pastor Russell:\n\n' % q.strip()
+    respuesta = ('Sobre «%s», esto es lo que investigó el pastor Russell en sus '
+                 'Estudios de las Escrituras:\n\n' % q.strip()
                  + '\n\n'.join(partes)
-                 + '\n\nPuedes leer más en las fuentes señaladas abajo.')
+                 + '\n\nPuedes comprobarlo y seguir investigando en las fuentes señaladas.')
     return {'tipo': 'ia', 'respuesta': respuesta, 'fuentes': fuentes,
             'temas': temas, 'resultados': r['resultados'][:6]}
 
