@@ -865,6 +865,8 @@
   .marca-reprint{color:#14110c;font-weight:800;font-size:.82em;letter-spacing:.05em;
     margin:1.1em 0 .45em;padding-top:.5em;border-top:1px solid #e6d5a9;font-variant:small-caps}
   html[data-tema="noche"] .marca-reprint{color:#f2e8d5;border-top-color:#3b4350}
+  .marca-reprint-inline{color:#14110c;font-weight:800;font-variant:small-caps;letter-spacing:.045em}
+  html[data-tema="noche"] .marca-reprint-inline{color:#f2e8d5}
   #fab-indice{position:fixed;right:18px;bottom:18px;z-index:70;border:1px solid rgba(217,184,92,.65);
     background:#14243f;color:#f3e6c6;border-radius:22px;padding:9px 15px;font:inherit;font-size:.84em;
     cursor:pointer;box-shadow:0 8px 20px rgba(0,0,0,.25);opacity:0;pointer-events:none;
@@ -3802,6 +3804,7 @@ function bloque(texto, b, citas){
   html = marcarMayusculas(html);
   if(window._dialogo) html = marcarPersonajes(html);
   html = html.replace(/\[\[(?:<strong class="caps">)?(OV\d+)(?:<\/strong>)?\]\]/g, '<span class="pagina-ov">$1</span>');
+  html = html.replace(/\[(R\d+\s*:\s*page\s*\d+)\]/g, '<span class="marca-reprint-inline">[$1]</span>');
   return '<p>'+html+'</p>';
 }
 
