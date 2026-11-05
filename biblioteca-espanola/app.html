@@ -1177,6 +1177,8 @@
             <span class="n">Libro</span><span class="t">Sombras del Tabernáculo</span></button>
           <button class="hoy-libro" type="button" onclick="abrirObra('Foto-Drama de la Creación')">
             <span class="n">Libro</span><span class="t">Foto-Drama de la Creación</span></button>
+          <button class="hoy-libro" type="button" onclick="abrirObra('Escritos del pastor Russell para Overland Monthly')">
+            <span class="n">Libro</span><span class="t">Overland Monthly</span></button>
           <button class="hoy-libro" type="button" onclick="abrirObra('La Torre del Vigía')">
             <span class="n">Revistas</span><span class="t">Torre del Vigía 1879-1916</span></button>
         </div>
@@ -2391,7 +2393,7 @@ document.addEventListener('click', e=>{
 function tarjetaObra(x){
   const esTomo = x.volumen >= 1 && x.volumen <= 6;
   const esTorre = x.titulo_obra === 'La Torre del Vigía';
-  const esLibro = x.titulo_obra === 'Sombras del Tabernáculo' || x.titulo_obra === 'Foto-Drama de la Creación';
+  const esLibro = x.titulo_obra === 'Sombras del Tabernáculo' || x.titulo_obra === 'Foto-Drama de la Creación' || x.titulo_obra === 'Escritos del pastor Russell para Overland Monthly';
   const num = esTomo ? 'Tomo '+x.volumen : (esTorre ? 'Revistas 1879–1916' : (esLibro ? 'Libro' : 'Obra'));
   const esFoto = x.titulo_obra === 'Foto-Drama de la Creación';
   const portada = esFoto
@@ -4784,7 +4786,7 @@ $('#lector').querySelector('.cerrar').onclick = cerrarLector;
     const po = document.getElementById('preg-obra');
     if(po) po.innerHTML = '<option value="">Toda la biblioteca</option>' +
       o.filter(x=>x.n>0).map(x=>`<option value="${esc(x.titulo_obra)}">${esc(x.titulo_obra)}</option>`).join('');
-    const orden = x => (x.volumen>=1 && x.volumen<=6) ? x.volumen : 100 + ['Sombras del Tabernáculo','Foto-Drama de la Creación','De Adán a Sion','Maná','Cánticos del Alba','El Mapa de las Edades','La Torre del Vigía (1879-1916)'].indexOf(x.titulo_obra);
+    const orden = x => (x.volumen>=1 && x.volumen<=6) ? x.volumen : 100 + ['Sombras del Tabernáculo','Foto-Drama de la Creación','Escritos del pastor Russell para Overland Monthly','De Adán a Sion','Maná','Cánticos del Alba','El Mapa de las Edades','La Torre del Vigía (1879-1916)'].indexOf(x.titulo_obra);
     $('#rejilla-obras').innerHTML = o.filter(x=>x.n>0).sort((a,b)=>orden(a)-orden(b)).map(tarjetaObra).join('') + tarjetaBiblia() + tarjetaMapa() + tarjetaTemas() + tarjetaGaleria();
     const e = await (await fetch('/api/estado')).json();
     $('#estado').textContent = ` · ${e.paginas} páginas indexadas · ${e.citas} citas bíblicas · ${e.versiculos} versículos RVR1960 · ${e.temas||0} voces del índice temático`;

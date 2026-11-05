@@ -5,6 +5,7 @@ Biblioteca digital en español de las obras de Charles Taze Russell:
 - **Estudios de las Escrituras**, seis tomos.
 - **Sombras del Tabernáculo**.
 - **Foto-Drama de la Creación**: 102 capítulos y 378 láminas.
+- **Escritos del pastor Russell para Overland Monthly**: 98 artículos (1909-1916).
 - **Biblia Reina-Valera 1960** con referencias y comentarios.
 - **Maná diario** y **Devociones Matutinas**.
 - **Audio narrado** de la Biblia: 1.189 capítulos.
