@@ -1218,10 +1218,23 @@ class Manejador(BaseHTTPRequestHandler):
                         foto.append(item)
                 except sqlite3.OperationalError:
                     foto = []
+                try:
+                    obras = []
+                    for r in con.execute(
+                            'SELECT f.pid, f.pos, f.term, f.ctx, p.pagina, p.titulo, p.titulo_obra, p.texto '
+                            'FROM temaobras f JOIN paginas p ON p.id=f.pid '
+                            'WHERE f.tema_id=? ORDER BY p.pagina', (tid,)):
+                        item = dict(r)
+                        texto = item.pop('texto') or ''
+                        ms = re.findall(r'\[\[OV(\d+)\]\]', texto[:item['pos']])
+                        item['marca'] = ('OV' + ms[-1]) if ms else ''
+                        obras.append(item)
+                except sqlite3.OperationalError:
+                    obras = []
                 con.close()
                 return self._json({'id': f['id'], 'termino': f['termino'], 'termino_es': f['termino_es'] or f['termino'],
                                    'nrefs': f['nrefs'], 'lineas': lineas_es, 'lineas_en': lineas, 'refs': refs,
-                                   'foto': foto})
+                                   'foto': foto, 'obras': obras})
             if ruta == '/api/estado':
                 con = conectar()
                 n = con.execute('SELECT count(*) FROM biblia').fetchone()[0]

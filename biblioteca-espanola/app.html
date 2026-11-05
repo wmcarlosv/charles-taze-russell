@@ -1304,7 +1304,7 @@
       <input type="text" id="q-tema" placeholder="Buscar en el índice: rescate, pirámide, Babilonia…" autocomplete="off">
       <button class="accion" type="submit">Buscar</button>
     </form>
-    <p class="pista" style="margin-top:0">Índice temático de <i>Estudios de las Escrituras</i> y otras ayudas, traducido al español. Cada referencia abre el párrafo correspondiente y resalta en amarillo la frase o palabra guía del índice (p. ej. «Cegado por falsas expectativas»), para localizar el pasaje exacto. Las T se enlazan por contenido con la edición española del Tabernáculo. Las referencias con subrayado punteado son aproximadas (la página exacta no tiene texto continuo). K y J remiten a obras no incluidas. Al final de cada voz se añaden los capítulos del <i>Foto-Drama de la Creación</i> donde aparece ese tema. Puedes ver la voz original en inglés dentro de cada entrada.</p>
+    <p class="pista" style="margin-top:0">Índice temático de <i>Estudios de las Escrituras</i> y otras ayudas, traducido al español. Cada referencia abre el párrafo correspondiente y resalta en amarillo la frase o palabra guía del índice (p. ej. «Cegado por falsas expectativas»), para localizar el pasaje exacto. Las T se enlazan por contenido con la edición española del Tabernáculo. Las referencias con subrayado punteado son aproximadas (la página exacta no tiene texto continuo). K y J remiten a obras no incluidas. Al final de cada voz se añaden los capítulos del <i>Foto-Drama de la Creación</i> y los artículos de <i>Escritos del pastor Russell para Overland Monthly</i> donde aparece ese tema. Puedes ver la voz original en inglés dentro de cada entrada.</p>
     <div class="temas-riel"><div class="chips" id="temas-letras"></div></div>
     <div class="temas-caja">
       <aside id="temas-lista"><p class="cargando" style="padding:12px">Cargando…</p></aside>
@@ -2306,7 +2306,7 @@ async function listarTemas(q, letra){
 function temaHTML(d, en){
   const lineas = en ? (d.lineas_en || d.lineas) : d.lineas;
   let html = `<h3>${en ? esc(d.termino) : esc(d.termino_es || d.termino)}</h3>
-    <p class="sub">${en ? esc(d.termino_es || '') : esc(d.termino)} · ${d.nrefs} referencias · ${Object.keys(d.refs||{}).length} localizadas${(()=>{const a=Object.values(d.refs||{}).filter(v=>v[2]).length;return a?' ('+a+' aproximadas)':''})()}${d.foto&&d.foto.length?' · '+d.foto.length+' en el Foto-Drama':''}
+    <p class="sub">${en ? esc(d.termino_es || '') : esc(d.termino)} · ${d.nrefs} referencias · ${Object.keys(d.refs||{}).length} localizadas${(()=>{const a=Object.values(d.refs||{}).filter(v=>v[2]).length;return a?' ('+a+' aproximadas)':''})()}${d.foto&&d.foto.length?' · '+d.foto.length+' en el Foto-Drama':''}${d.obras&&d.obras.length?' · '+d.obras.length+' en Overland Monthly':''}
     <button class="link" style="background:none;border:0;color:var(--azul);cursor:pointer;font:inherit;font-size:.9em;margin-left:8px" onclick="alternarTema()">${en ? 'Ver traducción' : 'Ver original en inglés'}</button></p>`;
   for(const ln of lineas){
     const label = ln[0];
@@ -2330,6 +2330,15 @@ function temaHTML(d, en){
       html += `<button type="button" class="foto-mini tref" data-pid="${f.pid}" data-pos="${f.pos}" data-ctx="${esc(f.ctx||'')}" data-term="${esc(f.term||'')}" title="Abrir el Foto-Drama, capítulo ${f.pagina}">
         ${img ? `<img loading="lazy" src="${img}" alt="${esc(f.titulo||'Lámina del Foto-Drama')}">` : ''}
         <span class="fm-pie"><span class="fm-pag">Capítulo ${f.pagina}</span><span class="fm-tit">${esc(f.titulo||'Foto-Drama de la Creación')}</span></span>
+      </button>`;
+    }
+    html += '</div>';
+  }
+  if(d.obras && d.obras.length){
+    html += `<h4 class="tg-foto-h">En Escritos del pastor Russell para Overland Monthly <span>${d.obras.length} ${d.obras.length===1?'artículo':'artículos'}</span></h4><div class="foto-gal">`;
+    for(const f of d.obras){
+      html += `<button type="button" class="foto-mini tref" data-pid="${f.pid}" data-pos="${f.pos}" data-ctx="${esc(f.ctx||'')}" data-term="${esc(f.term||'')}" title="Abrir ${esc(f.titulo||'Overland Monthly')}${f.marca?' · '+esc(f.marca):''}">
+        <span class="fm-pie"><span class="fm-pag">${esc(f.marca||('p. '+f.pagina))}</span><span class="fm-tit">${esc(f.titulo||'Escritos para Overland Monthly')}</span></span>
       </button>`;
     }
     html += '</div>';
