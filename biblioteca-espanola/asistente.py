@@ -149,6 +149,7 @@ def _busca_termino(texto, terminos):
     return -1
 
 def contexto(texto, terminos, ancho=220):
+    texto = re.sub(r'\[\[OV\d+\]\]\s*', '', texto or '')
     t = re.sub(r'(?m)^##\s*', '', texto)
     # saltar el encabezado en mayusculas (argumentos de capitulo)
     seg = t[:800]
@@ -306,6 +307,7 @@ def buscar(q, limite=40, offset=0, obra=None, orden=''):
         'FROM busqueda b JOIN paginas p ON p.id=b.rowid WHERE busqueda MATCH ?' + filtro +
         ' ORDER BY ' + orden_sql + ' LIMIT ? OFFSET ?', params + [limite, offset]).fetchall()
     terminos = [p for p in re.split(r'\s+', q.replace('"', '')) if p]
+    m_ov = re.match(r'^\s*OV\s*(\d{1,3})\s*$', q, re.I)
     res = []
     for f in filas:
         marca = ''
@@ -320,10 +322,21 @@ def buscar(q, limite=40, offset=0, obra=None, orden=''):
                 ms = re.findall(r'\[(R\d+ : page \d+)\]', f['texto'][:pos])
                 if ms:
                     marca = ms[-1]
+        extracto = contexto(f['texto'], terminos)
+        marca_ov = ''
+        pos_ov = None
+        if m_ov:
+            mt = '[[OV%s]]' % m_ov.group(1)
+            pv = f['texto'].find(mt)
+            if pv >= 0:
+                marca_ov = 'OV%s' % m_ov.group(1)
+                pos_ov = pv
+                extracto = re.sub(r'\[\[OV\d+\]\]\s*', '', f['texto'][pv:pv + 320])
         res.append({
             'id': f['id'], 'obra': f['titulo_obra'], 'volumen': f['volumen'],
             'pagina': f['pagina'], 'titulo': f['titulo'],
-            'extracto': contexto(f['texto'], terminos), 'marca': marca,
+            'extracto': extracto, 'marca': marca,
+            'marca_ov': marca_ov, 'pos': pos_ov,
         })
     # distribucion por volumen (sólo cuando se pide la primera página)
     dist = []
@@ -546,13 +559,13 @@ def _fuentes_ia(q, limite=4, obra=None, anio=None):
     if not palabras:
         palabras = re.findall(r"[A-Za-zÁÉÍÓÚÑáéíóúñ]{3,}", q)
     if not palabras:
-        return []
+        return [], []
     consulta = ' '.join(palabras[:6])
     r = buscar(consulta, limite=40, obra=obra)
     if not r['total']:
         r = buscar(' OR '.join(palabras[:5]), limite=40, obra=obra)
     if not r['total']:
-        return []
+        return [], []
     con = conectar()
     fuentes = []
     vistos = set()
@@ -579,12 +592,12 @@ def _fuentes_ia(q, limite=4, obra=None, anio=None):
                 mejor, puntos = p, n
         if not mejor or puntos == 0:
             continue
-        extracto = _extracto_ia(mejor, palabras)
+        extracto = re.sub(r'\[\[OV\d+\]\]\s*', '', _extracto_ia(mejor, palabras))
         firma = re.sub(r'\W', '', sinacento(extracto))[:110]
         if firma in firmas:
             continue
         firmas.add(firma)
-        pos = texto.find(extracto[:70])
+        pos = texto.find(mejor[:70])
         pos = max(0, pos)
         marca = ''
         if (fila['titulo_obra'] or '') == 'La Torre del Vigía' and pos > 0:
@@ -643,6 +656,30 @@ def preguntar(q, obra=None, anio=None):
     m = re.search(r'([1-3]?\s*[A-Za-zÁÉÍÓÚÑáéíóúñ]+)\s+(\d{1,3}):(\d{1,3})', q)
     if m and LIBROS.get(sinacento(m.group(1)).replace(' ', '')):
         return preguntar(m.group(0))
+    mov = re.match(r'^\s*OV\s*(\d{1,3})\s*$', q, re.I)
+    if mov:
+        n = int(mov.group(1))
+        con = conectar()
+        filas = con.execute("select id,titulo_obra,volumen,pagina,titulo,texto from paginas "
+                            "where texto like ? order by pagina", ('%%[[OV%d]]%%' % n,)).fetchall()
+        con.close()
+        if filas:
+            res = []
+            for f in filas:
+                marca = '[[OV%d]]' % n
+                pos = f['texto'].find(marca)
+                ext = re.sub(r'\[\[OV\d+\]\]\s*', '',
+                             f['texto'][pos:pos + 340])
+                res.append({'id': f['id'], 'obra': f['titulo_obra'],
+                            'volumen': f['volumen'], 'pagina': f['pagina'],
+                            'titulo': f['titulo'], 'extracto': ext, 'marca': '',
+                            'marca_ov': 'OV%d' % n, 'pos': pos})
+            return {'tipo': 'pagina_ov',
+                    'respuesta': 'La marca OV%d aparece en %d página(s) de la biblioteca:' % (n, len(res)),
+                    'resultados': res}
+        return {'tipo': 'sinresultados',
+                'respuesta': 'No encuentro la marca OV%d en la biblioteca.' % n,
+                'resultados': []}
     claves = palabras_clave(q)
     consulta = ' '.join(claves[:6]) if claves else q
     r = buscar(consulta, limite=6)

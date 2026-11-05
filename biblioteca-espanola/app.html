@@ -844,6 +844,8 @@
   .preg-filtros{display:flex;flex-wrap:wrap;gap:8px;align-items:center;margin:0 0 10px}
   .preg-filtros select{font:inherit;padding:7px 9px;border:1px solid var(--linea);border-radius:7px;background:#fff}
   .caps{font-weight:700;color:#0d0b07;letter-spacing:.012em}
+  .pagina-ov{display:inline-block;font-family:ui-monospace,SFMono-Regular,Menlo,Consolas,monospace;font-size:.72em;font-weight:700;line-height:1.5;color:#8a4b08;background:#fff6e5;border:1px solid #e3c88f;border-radius:4px;padding:0 .32em;margin:0 .18em;vertical-align:.12em;letter-spacing:.04em}
+  html[data-tema="noche"] .pagina-ov{background:#2a2114;border-color:#6b5528;color:#e8c98a}
   .personaje{color:#1d4ed8;font-weight:700;letter-spacing:.02em}
   .titulo-articulo{font-weight:700;color:#0f0d09;font-size:1.03em;letter-spacing:.01em;margin-top:1.25em}
   .hoy-temas{margin:9px 0 0;font-size:.8em;color:var(--gris);display:flex;flex-wrap:wrap;gap:6px;align-items:center}
@@ -1960,13 +1962,15 @@ function qattr(q){
 
 function tarjeta(r, terminos, q, conRef){
   const marca = r.marca || '';
+  const marcaOv = r.marca_ov || '';
+  const etiqueta = marca ? esc(marca) : (marcaOv ? esc(marcaOv) : 'pág. '+r.pagina);
   return `<article class="card">
-    <p class="meta"><b>${esc(r.obra)}</b>${r.volumen?' · Vol. '+r.volumen:''} · ${marca ? esc(marca) : 'pág. '+r.pagina}</p>
+    <p class="meta"><b>${esc(r.obra)}</b>${r.volumen?' · Vol. '+r.volumen:''} · ${etiqueta}</p>
     ${r.titulo?`<p class="meta" style="text-transform:none;letter-spacing:0;font-size:.85em">${esc(r.titulo)}</p>`:''}
     <p class="extracto">${marcar(r.extracto, terminos)}</p>
     <div class="acciones">
-      <button onclick="window._marcaDestino=${marca ? "'"+esc(marca).replace(/'/g,"\\'")+"'" : 'null'};abrirPagina(${r.id}, ${conRef?"null":"'"+qattr(q)+"'"}, ${conRef?'true':'false'})">Leer la página</button>
-      <span style="color:var(--gris)">${esc(r.obra)}${r.volumen?', vol. '+r.volumen:''}, ${marca ? esc(marca) : 'p. '+r.pagina}</span>
+      <button onclick="window._marcaDestino=${marca ? "'"+esc(marca).replace(/'/g,"\\'")+"'" : 'null'};window._posDestino=${marcaOv && r.pos!=null ? r.pos : 'null'};abrirPagina(${r.id}, ${conRef?"null":"'"+qattr(q)+"'"}, ${conRef?'true':'false'})">Leer la página</button>
+      <span style="color:var(--gris)">${esc(r.obra)}${r.volumen?', vol. '+r.volumen:''}, ${etiqueta}</span>
     </div>
   </article>`;
 }
@@ -3734,7 +3738,7 @@ function marcarTitulos(cont){
   const ps = [...cont.querySelectorAll(':scope > p')];
   const menores = new Set(['a','de','la','el','los','las','que','y','o','en','con','por','para','sobre','al','del','un','una']);
   for(let i = 0; i < ps.length; i++){
-    const t = (ps[i].textContent || '').trim();
+    const t = (ps[i].textContent || '').trim().replace(/^\[\[OV\d+\]\]\s*/, '');
     if(!t || t.startsWith('[')) continue;
     if(t.length > 90) continue;
     const w = t.split(/\s+/);
@@ -3753,7 +3757,8 @@ function detectarDialogo(texto){
   const letras = new Set();
   let n = 0;
   for(const p of texto.split('\n\n')){
-    const m = p.trim().match(/^([A-Z])\.\s/);
+    const q = p.trim().replace(/^\[\[OV\d+\]\]\s*/, '');
+    const m = q.match(/^([A-Z])\.\s/);
     if(m){ n++; letras.add(m[1]); }
   }
   return n >= 3 && letras.size >= 2;
@@ -3787,6 +3792,7 @@ function bloque(texto, b, citas){
   html = html.replace(/\[([A-Z])(\d+)\]/g, '<strong class="marca-b">[$1$2]</strong>');
   html = marcarMayusculas(html);
   if(window._dialogo) html = marcarPersonajes(html);
+  html = html.replace(/\[\[(?:<strong class="caps">)?(OV\d+)(?:<\/strong>)?\]\]/g, '<span class="pagina-ov">$1</span>');
   return '<p>'+html+'</p>';
 }
 
