@@ -98,3 +98,16 @@ publica con HTTPS en la raíz del dominio. El servicio systemd es
 
 Textos originales de Charles Taze Russell (1879–1916), de dominio público.
 Las citas bíblicas en español proceden de la Reina-Valera 1960.
+
+## Preguntar a la biblioteca
+
+La pestaña **Preguntar** responde con los propios textos de la biblioteca:
+
+- Busca en todo el contenido (tomos, libros y revistas) con el índice interno.
+- Devuelve hasta cuatro pasajes literales, cada uno con su cita:
+  obra, capítulo, página y marca R si es una revista.
+- Permite filtrar por obra y por año de las revistas.
+- Cada fuente abre la obra en el punto exacto y resalta el pasaje.
+- Sugiere temas del índice temático y permite copiar la cita.
+- **Funciona sin internet**: todo se calcula en el equipo.
+

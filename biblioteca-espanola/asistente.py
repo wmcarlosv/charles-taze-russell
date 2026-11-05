@@ -521,8 +521,26 @@ debe deben sido ser son fue fueron han hay era eran the and of to in is are was 
 whom which'''.split())
 
 
-def _fuentes_ia(q, limite=3):
-    """Devuelve pasajes que responden a la pregunta, con su cita exacta."""
+def _extracto_ia(texto, palabras, ancho=520):
+    """Devuelve la frase (o frases) con más términos de la pregunta."""
+    frases = re.split(r'(?<=[.!?])\s+', texto)
+    mejor_i, mejor_p = 0, -1
+    for k, fr in enumerate(frases):
+        bajo = sinacento(fr)
+        pts = sum(1 for w in palabras if sinacento(w) in bajo)
+        if pts > mejor_p:
+            mejor_i, mejor_p = k, pts
+    ini = max(0, mejor_i - 1)
+    fin = min(len(frases) - 1, mejor_i + 1)
+    while ini > 0 and len(' '.join(frases[ini - 1:fin + 1])) < ancho:
+        ini -= 1
+    while fin + 1 < len(frases) and len(' '.join(frases[ini:fin + 2])) <= ancho:
+        fin += 1
+    return ' '.join(frases[ini:fin + 1]).strip()
+
+
+def _fuentes_ia(q, limite=4, obra=None, anio=None):
+    """Busca los pasajes que mejor responden y devuelve citas exactas."""
     palabras = [w for w in re.findall(r"[A-Za-zÁÉÍÓÚÑáéíóúñ]{3,}", q)
                 if sinacento(w) not in STOP_PREGUNTA]
     if not palabras:
@@ -530,20 +548,24 @@ def _fuentes_ia(q, limite=3):
     if not palabras:
         return []
     consulta = ' '.join(palabras[:6])
-    r = buscar(consulta, limite=24)
+    r = buscar(consulta, limite=40, obra=obra)
     if not r['total']:
-        r = buscar(' OR '.join(palabras[:5]), limite=24)
+        r = buscar(' OR '.join(palabras[:5]), limite=40, obra=obra)
     if not r['total']:
         return []
     con = conectar()
     fuentes = []
     vistos = set()
+    firmas = set()
+    ya_obras = {}
     for item in r['resultados']:
         if item['id'] in vistos:
             continue
         fila = con.execute('SELECT texto, titulo, titulo_obra, pagina FROM paginas WHERE id=?',
                            (item['id'],)).fetchone()
         if not fila:
+            continue
+        if anio and str(anio) not in (fila['titulo'] or ''):
             continue
         texto = fila['texto'] or ''
         mejor, puntos = '', 0
@@ -557,10 +579,12 @@ def _fuentes_ia(q, limite=3):
                 mejor, puntos = p, n
         if not mejor or puntos == 0:
             continue
-        if len(mejor) > 620:
-            corte = mejor.rfind('. ', 0, 620)
-            mejor = mejor[:corte + 1] if corte > 200 else mejor[:620].rsplit(' ', 1)[0] + '…'
-        pos = texto.find(mejor[:80])
+        extracto = _extracto_ia(mejor, palabras)
+        firma = re.sub(r'\W', '', sinacento(extracto))[:110]
+        if firma in firmas:
+            continue
+        firmas.add(firma)
+        pos = texto.find(extracto[:70])
         pos = max(0, pos)
         marca = ''
         if (fila['titulo_obra'] or '') == 'La Torre del Vigía' and pos > 0:
@@ -569,21 +593,37 @@ def _fuentes_ia(q, limite=3):
                 marca = ms[-1]
         vistos.add(item['id'])
         titulo = fila['titulo'] or ''
-        fuentes.append({
-            'id': item['id'], 'obra': fila['titulo_obra'] or '', 'titulo': titulo,
-            'pagina': fila['pagina'], 'marca': marca, 'pos': pos,
-            'extracto': mejor,
-            'cita': '%s%s — p. %s%s' % (fila['titulo_obra'] or '',
-                                        (' · ' + titulo) if titulo and titulo != fila['titulo_obra'] else '',
-                                        fila['pagina'],
-                                        (' · ' + marca) if marca else '')})
+        # repartir: no más de 2 por obra
+        if ya_obras.get(fila['titulo_obra'], 0) >= 2:
+            continue
+        ya_obras[fila['titulo_obra']] = ya_obras.get(fila['titulo_obra'], 0) + 1
+        cita = '%s%s — p. %s%s' % (fila['titulo_obra'] or '',
+                                   (' · ' + titulo) if titulo and titulo != fila['titulo_obra'] else '',
+                                   fila['pagina'],
+                                   (' · ' + marca) if marca else '')
+        fuentes.append({'id': item['id'], 'obra': fila['titulo_obra'] or '',
+                        'titulo': titulo, 'pagina': fila['pagina'], 'marca': marca,
+                        'pos': pos, 'extracto': extracto, 'cita': cita,
+                        'cita_formateada': '%s, %s, p. %s%s' % (
+                            'C. T. Russell', titulo or fila['titulo_obra'],
+                            fila['pagina'], (' [%s]' % marca) if marca else '')})
         if len(fuentes) >= limite:
             break
+    # temas del índice relacionados con la pregunta
+    temas = []
+    try:
+        for w in palabras[:4]:
+            for t in con.execute('SELECT id, termino_es FROM temas WHERE tnorm LIKE ? LIMIT 2',
+                                 ('%' + sinacento(w) + '%',)):
+                if t['termino_es'] and t['termino_es'] not in [x['termino'] for x in temas]:
+                    temas.append({'id': t['id'], 'termino': t['termino_es']})
+    except Exception:
+        pass
     con.close()
-    return fuentes
+    return fuentes, temas[:3]
 
 
-def preguntar(q):
+def preguntar(q, obra=None, anio=None):
     q = (q or '').strip()
     if not q:
         return {'tipo': 'vacio', 'respuesta': 'Escribe una pregunta, una palabra o una referencia bíblica.'}
@@ -613,7 +653,7 @@ def preguntar(q):
         return {'tipo': 'sinresultados', 'respuesta':
                 'No encuentro «%s» en la biblioteca. Prueba con otra palabra, en singular, o con una cita bíblica (por ejemplo «Romanos 5:12»).' % q,
                 'resultados': []}
-    fuentes = _fuentes_ia(q)
+    fuentes, temas = _fuentes_ia(q, obra=obra, anio=anio)
     if not fuentes:
         return {'tipo': 'sinresultados', 'respuesta':
                 'No encuentro una respuesta en la biblioteca para «%s». Prueba con otras palabras o con una cita bíblica.' % q,
@@ -623,7 +663,7 @@ def preguntar(q):
                  + '\n\n'.join(partes)
                  + '\n\nPuedes leer más en las fuentes señaladas abajo.')
     return {'tipo': 'ia', 'respuesta': respuesta, 'fuentes': fuentes,
-            'resultados': r['resultados'][:6]}
+            'temas': temas, 'resultados': r['resultados'][:6]}
 
 def _trozos(texto, limite=1700):
     partes, buf = [], ''
@@ -1052,7 +1092,9 @@ class Manejador(BaseHTTPRequestHandler):
                 return self._json(versiculo(q.get('ref', [''])[0],
                                             bool(q.get('simple', [''])[0])))
             if ruta == '/api/preguntar':
-                return self._json(preguntar(q.get('q', [''])[0]))
+                return self._json(preguntar(q.get('q', [''])[0],
+                                            (q.get('obra', [None])[0] or None),
+                                            (q.get('anio', [None])[0] or None)))
             if ruta == '/api/traducir':
                 t = traducir(q.get('texto', [''])[0])
                 return self._json({'texto': t})

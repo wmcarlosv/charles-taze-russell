@@ -841,6 +841,8 @@
     opacity:0;pointer-events:none;transition:opacity .2s}
   #progreso-lectura.visible{opacity:1;background:rgba(29,58,107,.10)}
   #progreso-lectura i{display:block;height:100%;width:0;background:linear-gradient(90deg,#946a1d,#d9b85c,#f0d58c)}
+  .preg-filtros{display:flex;flex-wrap:wrap;gap:8px;align-items:center;margin:0 0 10px}
+  .preg-filtros select{font:inherit;padding:7px 9px;border:1px solid var(--linea);border-radius:7px;background:#fff}
   .caps{font-weight:700;color:#0d0b07;letter-spacing:.012em}
   .hoy-temas{margin:9px 0 0;font-size:.8em;color:var(--gris);display:flex;flex-wrap:wrap;gap:6px;align-items:center}
   .hoy-temas span{letter-spacing:.08em;text-transform:uppercase;font-size:.86em}
@@ -1285,6 +1287,11 @@
       <input type="text" id="q-pregunta" placeholder="¿Qué enseña la biblioteca sobre el rescate?" autocomplete="off">
       <button class="accion" type="submit">Preguntar</button>
     </form>
+    <div class="preg-filtros">
+      <select id="preg-obra" aria-label="Obra"><option value="">Toda la biblioteca</option></select>
+      <select id="preg-anio" aria-label="Año"><option value="">Cualquier año</option></select>
+      <span class="pista" style="margin:0">Filtra por obra o por año de las revistas.</span>
+    </div>
     <p class="pista">La respuesta se compone con los propios textos de la biblioteca y cita siempre la obra y la página. Todo se calcula en este equipo: <b>funciona sin internet</b>.</p>
     <div id="respuesta"><h3>Respuesta</h3><p id="respuesta-texto"></p></div>
     <div id="res-pregunta"></div>
@@ -1827,6 +1834,7 @@ document.querySelectorAll('.tab').forEach(t=>{
   t.addEventListener('click', ()=>{ if(window.innerWidth <= 700 && menuAbierto()) abrirMenu(false); });
 });
 if(location.hash === '#menu') abrirMenu(true);
+pintarFiltrosPregunta();
 
 document.querySelectorAll('.tab').forEach(t=>{
   if(!t.dataset.panel) return;   // pestañas especiales (guía) conservan su propio onclick
@@ -2516,24 +2524,52 @@ async function verIndice(obra){
     <div class="chips">` + d.map(x=>`<button class="chip" style="cursor:pointer" onclick="abrirPagina(${x.id})">${esc((x.titulo||'pág. '+x.pagina)).slice(0,42)}</button>`).join('') + '</div>';
 }
 
+function copiarCita(btn, texto){
+  const hecho = ()=>{ const t=btn.textContent; btn.textContent='Copiada'; setTimeout(()=>btn.textContent=t,1400); };
+  if(navigator.clipboard && navigator.clipboard.writeText){
+    navigator.clipboard.writeText(texto).then(hecho).catch(()=>prompt('Copia la cita:', texto));
+  } else { prompt('Copia la cita:', texto); }
+}
+
+function pintarFiltrosPregunta(){
+  const sa = document.getElementById('preg-anio');
+  if(sa && sa.options.length <= 1){
+    let html = '<option value="">Cualquier año</option>';
+    for(let y=1916; y>=1879; y--) html += `<option value="${y}">${y}</option>`;
+    sa.innerHTML = html;
+  }
+}
+
 async function preguntar(q){
   q=(q||'').trim(); if(!q) return;
   const r=$('#respuesta'), rt=$('#respuesta-texto'), c=$('#res-pregunta');
   r.style.display='block'; rt.textContent='Consultando la biblioteca…'; c.innerHTML='';
   let d;
-  try{ d = await traerJSON('/api/preguntar?q='+encodeURIComponent(q)); }
+  const obra = (document.getElementById('preg-obra')||{}).value || '';
+  const anio = (document.getElementById('preg-anio')||{}).value || '';
+  const url = '/api/preguntar?q=' + encodeURIComponent(q) +
+              (obra ? '&obra=' + encodeURIComponent(obra) : '') +
+              (anio ? '&anio=' + encodeURIComponent(anio) : '');
+  try{ d = await traerJSON(url); }
   catch(e){ rt.textContent='No se pudo consultar la biblioteca. Revisa la conexión e inténtalo de nuevo.'; return; }
   rt.innerHTML = esc(d.respuesta).replace(/\n/g,'<br>');
   if(d.tipo==='ia' && d.fuentes){
+    const terminos = q.replace(/["¿?¡!.,;:]/g,' ').split(/\s+/).filter(x=>x.length>3);
     c.innerHTML = d.fuentes.map(f=>`<article class="card">
         <p class="meta"><b>${esc(f.obra)}</b>${f.marca?' · '+esc(f.marca):''} · p. ${f.pagina}</p>
         ${f.titulo && f.titulo!==f.obra?`<p class="meta" style="text-transform:none;letter-spacing:0;font-size:.85em">${esc(f.titulo)}</p>`:''}
-        <p class="extracto">${esc(f.extracto.slice(0,200))}…</p>
+        <p class="extracto">${marcar(esc(f.extracto), terminos)}</p>
         <div class="acciones">
           <button onclick="window._posDestino=${f.pos};abrirPagina(${f.id})">Leer el pasaje</button>
+          <button onclick="copiarCita(this, ${JSON.stringify(f.cita_formateada||f.cita).replace(/"/g,'&quot;')})">Copiar cita</button>
           <span style="color:var(--gris)">${esc(f.cita)}</span>
         </div>
-      </article>`).join('');
+      </article>`).join('') +
+      (d.temas && d.temas.length ? '<p class="hoy-temas" style="margin-top:6px"><span>Temas del índice:</span> ' +
+        d.temas.map(t=>'<button class="chip tema-ia" data-id="'+t.id+'">'+esc(t.termino)+'</button>').join(' ') + '</p>' : '') +
+      '<p style="margin:10px 0 0"><button class="link" onclick="document.querySelector(\'.tab[data-panel=\"p-palabra\"]\').click();document.getElementById(\'q-palabra\').value=' +
+        JSON.stringify(q).replace(/"/g,'&quot;') + ';buscarPalabra(' + JSON.stringify(q).replace(/"/g,'&quot;') + ')">Ver todos los resultados en la biblioteca</button></p>';
+    c.querySelectorAll('.tema-ia').forEach(b=>b.onclick=()=>abrirTematico().then(()=>verTema(parseInt(b.dataset.id,10))));
   } else if(d.tipo==='versiculo' && d.versiculo && d.versiculo.paginas){
     c.innerHTML = d.versiculo.paginas.map(x=>tarjeta(x,[])).join('');
   } else if(d.resultados){
@@ -4708,6 +4744,9 @@ $('#lector').querySelector('.cerrar').onclick = cerrarLector;
     const o = await (await fetch('/api/obras')).json();
     $('#chips-obras').innerHTML = o.filter(x=>x.n>0).map(x=>`<span class="chip">${esc(x.titulo_obra)}${x.volumen?' (vol. '+x.volumen+')':''}: ${x.n} págs.</span>`).join('');
     $('#sel-obra').innerHTML = '<option value="">— elegir obra —</option>' + o.filter(x=>x.n>0).map(x=>`<option value="${esc(x.titulo_obra)}">${esc(x.titulo_obra)}${x.volumen?' (vol. '+x.volumen+')':''}</option>`).join('');
+    const po = document.getElementById('preg-obra');
+    if(po) po.innerHTML = '<option value="">Toda la biblioteca</option>' +
+      o.filter(x=>x.n>0).map(x=>`<option value="${esc(x.titulo_obra)}">${esc(x.titulo_obra)}</option>`).join('');
     const orden = x => (x.volumen>=1 && x.volumen<=6) ? x.volumen : 100 + ['Sombras del Tabernáculo','Foto-Drama de la Creación','De Adán a Sion','Maná','Cánticos del Alba','El Mapa de las Edades','La Torre del Vigía (1879-1916)'].indexOf(x.titulo_obra);
     $('#rejilla-obras').innerHTML = o.filter(x=>x.n>0).sort((a,b)=>orden(a)-orden(b)).map(tarjetaObra).join('') + tarjetaBiblia() + tarjetaMapa() + tarjetaTemas() + tarjetaGaleria();
     const e = await (await fetch('/api/estado')).json();
