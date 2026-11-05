@@ -840,11 +840,52 @@ def _texto_comprimido(ruta):
     _CACHE_TEXTOS[clave] = it
     return it
 
+def _voz_libro(libro):
+    m = re.match(r'^([1-3])\s+(.+)$', libro or '')
+    if m:
+        return {'1': 'Primera de', '2': 'Segunda de', '3': 'Tercera de'}[m.group(1)] + ' ' + m.group(2)
+    return libro or ''
+
+
+def _voz_versos(ref, cap):
+    m = re.search(r'\b' + re.escape(str(cap)) + r'\s*[:.]\s*(\d.*)$', ref or '')
+    if not m:
+        return ''
+    partes = [p.strip() for p in re.split(r'\s*,\s*', m.group(1)) if p.strip()]
+    items = []
+    for p in partes:
+        r = re.match(r'^(\d{1,3})\s*[-–]\s*(\d{1,3})$', p)
+        items.append(('%s al %s' % (r.group(1), r.group(2))) if r else p)
+    if not items:
+        return ''
+    if len(items) == 1:
+        return (', versículos ' if ' al ' in items[0] else ', versículo ') + items[0]
+    return ', versículos ' + ', '.join(items[:-1]) + ' y ' + items[-1]
+
+
+def _tts_referencias(texto):
+    try:
+        import pdf_vol
+        refs = pdf_vol.extrae(texto)
+    except Exception:
+        refs = []
+    for (a, b, ref, libro, cap, v1, v2) in reversed(refs):
+        texto = texto[:a] + _voz_libro(libro) + ' capítulo ' + str(cap) + _voz_versos(ref, cap) + texto[b:]
+    pat = re.compile(r'(?<![\wÁÉÍÓÚÑáéíóúñ])([1-3]?\s?[A-Za-zÁÉÍÓÚÑáéíóúñ]{2,15})\.?\s+(\d{1,3})(?!\s*[:.]\s*\d)(?!\d)')
+    for m in reversed(list(pat.finditer(texto))):
+        libro = LIBROS.get(sinacento(m.group(1)).replace(' ', ''))
+        if not libro:
+            continue
+        texto = texto[:m.start()] + _voz_libro(libro) + ' capítulo ' + m.group(2) + texto[m.end():]
+    return texto
+
+
 def _tts_limpiar(texto):
     t = re.sub(r'\[\[img:[^\]]*\]\]', ' ', texto or '')
     t = re.sub(r'\[[A-Z]\d+\]', ' ', t)
     t = re.sub(r'(?m)^\s*##\s*', '', t)
     t = re.sub(r'\s+', ' ', t).strip()
+    t = _tts_referencias(t)
     return t[:12000]
 
 
@@ -904,18 +945,21 @@ def _tts_archivo(texto, voz):
                     if chunk.get('type') == 'audio':
                         f.write(chunk['data'])
 
-    try:
-        asyncio.run(asyncio.wait_for(sintetizar(), 90))
-        if os.path.getsize(tmp) > 1000:
-            os.replace(tmp, destino)
-            _tts_limpiar_cache()
-            return destino
-    except Exception as e:
-        print('tts:', e, flush=True)
-    try:
-        os.remove(tmp)
-    except OSError:
-        pass
+    for intento in range(3):
+        try:
+            asyncio.run(asyncio.wait_for(sintetizar(), 90))
+            if os.path.getsize(tmp) > 1000:
+                os.replace(tmp, destino)
+                _tts_limpiar_cache()
+                return destino
+        except Exception as e:
+            print('tts:', e, flush=True)
+        try:
+            os.remove(tmp)
+        except OSError:
+            pass
+        if intento < 2:
+            time.sleep(1.5)
     return None
 
 

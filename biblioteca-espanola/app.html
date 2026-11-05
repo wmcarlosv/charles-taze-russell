@@ -1528,7 +1528,7 @@ const ABREV_LIB = {'Gén.':'Génesis','Éx.':'Éxodo','Lev.':'Levítico','Núm.'
  'Is.':'Isaías','Jer.':'Jeremías','Lam.':'Lamentaciones','Ezeq.':'Ezequiel','Dan.':'Daniel','Os.':'Oseas','Am.':'Amós','Abd.':'Abdías',
  'Jon.':'Jonás','Miq.':'Miqueas','Nah.':'Nahúm','Hab.':'Habacuc','Sof.':'Sofonías','Hag.':'Hageo','Zac.':'Zacarías','Mal.':'Malaquías',
  'Mat.':'Mateo','Mar.':'Marcos','Luc.':'Lucas','Jn.':'Juan','Hech.':'Hechos','Rom.':'Romanos','1 Cor.':'1 Corintios','2 Cor.':'2 Corintios',
- 'Gál.':'Gálatas','Ef.':'Efesios','Fil.':'Filipenses','Col.':'Colosenses','1 Tes.':'1 Tesalonicenses','2 Tes.':'2 Tesalonicenses',
+ 'Gál.':'Gálatas','Gal.':'Gálatas','Gen.':'Génesis','Ex.':'Éxodo','Num.':'Números','Psa.':'Salmos','Matt.':'Mateo','Rev.':'Apocalipsis','Ro.':'Romanos','Ef.':'Efesios','Fil.':'Filipenses','Col.':'Colosenses','1 Tes.':'1 Tesalonicenses','2 Tes.':'2 Tesalonicenses',
  '1 Tim.':'1 Timoteo','2 Tim.':'2 Timoteo','Tit.':'Tito','Flm.':'Filemón','Heb.':'Hebreos','Sant.':'Santiago',
  '1 Ped.':'1 Pedro','2 Ped.':'2 Pedro','1 Jn.':'1 Juan','2 Jn.':'2 Juan','3 Jn.':'3 Juan','Jud.':'Judas','Apoc.':'Apocalipsis'};
 const ABREV_ORD = Object.keys(ABREV_LIB).sort((a,b)=>b.length-a.length);
@@ -4345,20 +4345,25 @@ const HABLAR_LIB = {
   '1 Juan':'Primera de Juan', '2 Juan':'Segunda de Juan', '3 Juan':'Tercera de Juan',
   'I Juan':'Primera de Juan', 'II Juan':'Segunda de Juan', 'III Juan':'Tercera de Juan'
 };
+const sinTilde = s => String(s||'').normalize('NFD').replace(/[\u0300-\u036f]/g,'');
 const VOZ_ALIAS = (()=>{
   const s = new Set();
   for(const [a,b] of Object.entries(ABREV_LIB)){
     s.add(a); s.add(a.replace(/\.$/,''));
-    s.add(b);
+    s.add(sinTilde(a)); s.add(sinTilde(a).replace(/\.$/,''));
+    s.add(b); s.add(sinTilde(b));
   }
   ['Salmo','Salmos','Génesis','Éxodo','Levítico','Números','Deuteronomio','Josué','Jueces','Rut','Ester','Job','Proverbios','Eclesiastés','Cantares','Isaías','Jeremías','Lamentaciones','Ezequiel','Daniel','Oseas','Joel','Amós','Abdías','Jonás','Miqueas','Nahúm','Habacuc','Sofonías','Hageo','Zacarías','Malaquías','Mateo','Marcos','Lucas','Juan','Hechos','Romanos','Gálatas','Efesios','Filipenses','Colosenses','Tito','Filemón','Hebreos','Santiago','Judas','Apocalipsis',
-   'I Samuel','II Samuel','I Reyes','II Reyes','I Crónicas','II Crónicas','I Corintios','II Corintios','I Tesalonicenses','II Tesalonicenses','I Timoteo','II Timoteo','I Pedro','II Pedro','I Juan','II Juan','III Juan'].forEach(x=>s.add(x));
+   'I Samuel','II Samuel','I Reyes','II Reyes','I Crónicas','II Crónicas','I Corintios','II Corintios','I Tesalonicenses','II Tesalonicenses','I Timoteo','II Timoteo','I Pedro','II Pedro','I Juan','II Juan','III Juan'].forEach(x=>{s.add(x);s.add(sinTilde(x));});
   return [...s].sort((a,b)=>b.length-a.length).map(x=>x.replace(/[.*+?^${}()|[\]\\]/g,'\\$&')).join('|');
 })();
 function vozCanon(b){
   const limpio = b.replace(/\.$/,'').trim();
+  const norm = sinTilde(limpio).toLowerCase();
   for(const [a,v] of Object.entries(ABREV_LIB)){
-    if(a===b || a.replace(/\.$/,'')===limpio || v===b) return v;
+    if(a===b || a.replace(/\.$/,'')===limpio
+       || sinTilde(a).replace(/\.$/,'').toLowerCase()===norm
+       || v===b || sinTilde(v).toLowerCase()===norm) return v;
   }
   return limpio === 'Salmo' ? 'Salmos' : limpio;
 }
@@ -4384,16 +4389,16 @@ function textoParaVoz(texto){
   const pre = '(?<![A-Za-zÁÉÍÓÚÑáéíóúñ])(';
   let t = texto;
   // Referencia encadenada del mismo libro: Proverbios 15:23; 25:11
-  t = t.replace(new RegExp(pre + VOZ_ALIAS + ')\\.?\\s*(\\d{1,3})\\s*[:.]\\s*' + vSimple + '\\s*;\\s*(\\d{1,3})\\s*[:.]\\s*' + vSimple,'g'),
+  t = t.replace(new RegExp(pre + VOZ_ALIAS + ')\\.?\\s*(\\d{1,3})\\s*[:.]\\s*' + vSimple + '\\s*;\\s*(\\d{1,3})\\s*[:.]\\s*' + vSimple,'gi'),
     (m,b,c1,v1,c2,v2)=> vozLibro(b) + ' capítulo ' + c1 + ' ' + vozVersos(v1) + '; ' + vozLibro(b) + ' capítulo ' + c2 + ' ' + vozVersos(v2));
   // Libro (capítulo:versículos), por ejemplo: Daniel (12:4, 9, 10)
-  t = t.replace(new RegExp(pre + VOZ_ALIAS + ')\\s*\\(\\s*(\\d{1,3})\\s*:\\s*' + v + '\\s*\\)','g'),
+  t = t.replace(new RegExp(pre + VOZ_ALIAS + ')\\s*\\(\\s*(\\d{1,3})\\s*:\\s*' + v + '\\s*\\)','gi'),
     (m,b,c,vs)=> vozLibro(b) + ' capítulo ' + c + ' ' + vozVersos(vs));
   // Libro capítulo:versículos, por ejemplo: Santiago 3:2
-  t = t.replace(new RegExp(pre + VOZ_ALIAS + ')\\.?\\s*(\\d{1,3})\\s*[:.]\\s*' + v,'g'),
+  t = t.replace(new RegExp(pre + VOZ_ALIAS + ')\\.?\\s*(\\d{1,3})\\s*[:.]\\s*' + v,'gi'),
     (m,b,c,vs)=> vozLibro(b) + ' capítulo ' + c + ' ' + vozVersos(vs));
   // Libro capítulo, sin versículos
-  t = t.replace(new RegExp(pre + VOZ_ALIAS + ')\\.?\\s+(\\d{1,3})(?!\\s*[:.])','g'),
+  t = t.replace(new RegExp(pre + VOZ_ALIAS + ')\\.?\\s+(\\d{1,3})(?!\\s*[:.])','gi'),
     (m,b,c)=> LIB_UN_CAP.has(vozCanon(b))
       ? vozLibro(b) + ' capítulo 1 versículo ' + c
       : vozLibro(b) + ' capítulo ' + c);
