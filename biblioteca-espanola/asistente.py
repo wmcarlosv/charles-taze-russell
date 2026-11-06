@@ -641,6 +641,30 @@ def _extracto_ia(texto, palabras, ancho=520):
     return ' '.join(frases[ini:fin + 1]).strip()
 
 
+OBRA_WHATSAID = 'Lo que dijo el pastor Russell'
+
+
+def _cita_marca(fila, texto, pos):
+    """Devuelve (página visible, marca) para una fuente."""
+    pag = fila['pagina']
+    marca = ''
+    if (fila['titulo_obra'] or '') == OBRA_WHATSAID:
+        qid = re.search(r'Q\d+:\d+', texto[max(0, pos - 80):pos + 240])
+        if qid:
+            marca = qid.group(0)
+            pag = 'Q' + marca.split(':')[0][1:]
+        else:
+            ms = re.findall(r'\[\[Q(\d+)\]\]', texto[:pos])
+            if ms:
+                marca = 'Q' + ms[-1]
+            pag = 'Q' + str(pag)
+    elif (fila['titulo_obra'] or '') == 'La Torre del Vigía' and pos > 0:
+        ms = re.findall(r'\[(R\d+\s*:\s*page\s*\d+)\]', texto[:pos])
+        if ms:
+            marca = ms[-1]
+    return pag, marca
+
+
 def _fuentes_ia(q, limite=4, obra=None, anio=None):
     """Busca los pasajes que mejor responden y devuelve citas exactas."""
     palabras = [w for w in re.findall(r"[A-Za-zÁÉÍÓÚÑáéíóúñ]{3,}", q)
@@ -688,11 +712,7 @@ def _fuentes_ia(q, limite=4, obra=None, anio=None):
         firmas.add(firma)
         pos = texto.find(mejor[:70])
         pos = max(0, pos)
-        marca = ''
-        if (fila['titulo_obra'] or '') == 'La Torre del Vigía' and pos > 0:
-            ms = re.findall(r'\[(R\d+\s*:\s*page\s*\d+)\]', texto[:pos])
-            if ms:
-                marca = ms[-1]
+        pagina_txt, marca = _cita_marca(fila, texto, pos)
         vistos.add(item['id'])
         titulo = fila['titulo'] or ''
         # repartir: no más de 2 por obra
@@ -701,16 +721,47 @@ def _fuentes_ia(q, limite=4, obra=None, anio=None):
         ya_obras[fila['titulo_obra']] = ya_obras.get(fila['titulo_obra'], 0) + 1
         cita = '%s%s — p. %s%s' % (fila['titulo_obra'] or '',
                                    (' · ' + titulo) if titulo and titulo != fila['titulo_obra'] else '',
-                                   fila['pagina'],
+                                   pagina_txt,
                                    (' · ' + marca) if marca else '')
         fuentes.append({'id': item['id'], 'obra': fila['titulo_obra'] or '',
-                        'titulo': titulo, 'pagina': fila['pagina'], 'marca': marca,
+                        'titulo': titulo, 'pagina': pagina_txt, 'marca': marca,
                         'pos': pos, 'extracto': extracto, 'cita': cita,
                         'cita_formateada': '%s, %s, p. %s%s' % (
                             'C. T. Russell', titulo or fila['titulo_obra'],
-                            fila['pagina'], (' [%s]' % marca) if marca else '')})
+                            pagina_txt, (' [%s]' % marca) if marca else '')})
         if len(fuentes) >= limite:
             break
+    # asegurar presencia del libro en respuestas generales
+    if (obra is None or obra == OBRA_WHATSAID) and not any(f['obra'] == OBRA_WHATSAID for f in fuentes):
+        try:
+            candidatas = [w for w in palabras
+                          if sinacento(w) not in ('russell', 'pastor', 'hermano', 'hermana')]
+            consulta2 = max(candidatas or palabras, key=len) if palabras else consulta
+            r2 = buscar(consulta2, limite=5, obra=OBRA_WHATSAID)
+            if not r2['total']:
+                r2 = buscar(' OR '.join(palabras[:4]), limite=5, obra=OBRA_WHATSAID)
+            item = next((x for x in r2['resultados']
+                         if (x['titulo'] or '').strip() != 'Introducción'), None)
+            if item:
+                fila = con.execute('SELECT texto, titulo, titulo_obra, pagina FROM paginas WHERE id=?',
+                                   (item['id'],)).fetchone()
+                if fila:
+                    texto = fila['texto'] or ''
+                    mejor = _extracto_ia(texto, palabras)
+                    if mejor:
+                        pos = max(0, texto.find(mejor[:70]))
+                        pagina_txt, marca = _cita_marca(fila, texto, pos)
+                        extracto = re.sub(r'\[\[Q\d+\]\]\s*', '', mejor)
+                        titulo = fila['titulo'] or ''
+                        cita = '%s — %s, p. %s%s' % (OBRA_WHATSAID, titulo, pagina_txt,
+                                                   (' · ' + marca) if marca else '')
+                        fuentes.append({'id': item['id'], 'obra': OBRA_WHATSAID,
+                                        'titulo': titulo, 'pagina': pagina_txt, 'marca': marca,
+                                        'pos': pos, 'extracto': extracto, 'cita': cita,
+                                        'cita_formateada': 'C. T. Russell, %s, p. %s%s' % (
+                                            titulo, pagina_txt, (' [%s]' % marca) if marca else '')})
+        except Exception:
+            pass
     # temas del índice relacionados con la pregunta
     temas = []
     try:
