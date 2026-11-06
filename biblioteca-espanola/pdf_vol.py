@@ -55,6 +55,76 @@ def _versos(txt):
     return [int(x) for x in re.findall(r'\d{1,3}', txt)]
 
 
+UN_CAPITULO = {'Abdías', 'Filemón', '2 Juan', '3 Juan', 'Judas'}
+PAT_CAP = re.compile(r'(?<![\wÁÉÍÓÚÑáéíóúñ])([1-3]?\s?[A-Za-zÁÉÍÓÚÑáéíóúñ]{2,15})\.?'
+                     r'\s+(\d{1,4})(?!\d)(?!\s*[:.]\s*\d)')
+_LIMITES = None
+
+
+def _limites():
+    global _LIMITES
+    if _LIMITES is not None:
+        return _LIMITES
+    con = sqlite3.connect(DB)
+    maxcap = {r[0]: r[1] for r in con.execute('select libro,max(capitulo) from biblia group by libro')}
+    maxvers = {}
+    for libro, cap, mx in con.execute('select libro,capitulo,max(versiculo) from biblia group by libro,capitulo'):
+        maxvers.setdefault(libro, {})[cap] = mx
+    con.close()
+    _LIMITES = (maxcap, maxvers)
+    return _LIMITES
+
+
+def cita_valida(libro, cap, v1, v2):
+    maxcap, maxvers = _limites()
+    mx = maxvers.get(libro, {}).get(cap)
+    return mx is not None and 1 <= v1 <= v2 <= mx
+
+
+def ajustar_cap(libro, n):
+    maxcap, maxvers = _limites()
+    if libro in UN_CAPITULO:
+        return (1, n) if 1 <= n <= maxvers.get(libro, {}).get(1, 0) else None
+    if 1 <= n <= maxcap.get(libro, 0):
+        return (n, 1)
+    candidatos = []
+    for div in (10, 100, 1000):
+        c, v = divmod(n, div)
+        if 1 <= c <= maxcap.get(libro, 0) and 1 <= v <= maxvers.get(libro, {}).get(c, 0):
+            candidatos.append((c, v))
+    if not candidatos:
+        return None
+    candidatos.sort(key=lambda x: (-x[0], -x[1]))
+    return candidatos[0]
+
+
+def citas_validas(texto):
+    out, previo = [], -1
+    for (a, b, ref, libro, cap, v1, v2) in extrae(texto):
+        if a < previo or '\n\n' in texto[a:b]:
+            continue
+        if not cita_valida(libro, cap, v1, v2):
+            continue
+        out.append((a, b, ref, libro, cap, v1, v2))
+        previo = b
+    for m in PAT_CAP.finditer(texto):
+        libro = LIB.get(sinac(m.group(1)).replace(' ', ''))
+        if not libro:
+            continue
+        a, b = m.start(), m.end()
+        if '\n\n' in texto[a:b] or any(not (b <= c[0] or a >= c[1]) for c in out):
+            continue
+        ajuste = ajustar_cap(libro, int(m.group(2)))
+        if not ajuste:
+            continue
+        cap, v = ajuste
+        if not cita_valida(libro, cap, v, v):
+            continue
+        out.append((a, b, m.group(0), libro, cap, v, v))
+    out.sort(key=lambda c: c[0])
+    return out
+
+
 def extrae(t):
     out = []
     for m in PAT.finditer(t):
