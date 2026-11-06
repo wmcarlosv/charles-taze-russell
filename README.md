@@ -17,7 +17,7 @@ Sitio público: <https://charlestazerussell.online/>
 
 - **Reportar error** desde el lector: guarda obra, artículo, página, párrafo y comentario.
 - **Panel de reportes** para revisar, marcar como resueltos o borrar los errores enviados.
-- **Copiar enlace** al párrafo exacto, **copiar cita Markdown** y **compartir** con el móvil.
+- **Copiar enlace** al párrafo exacto (el enlace abre el lector y resalta ese párrafo), **copiar cita** con obra, artículo, página y marca Q cuando existe, y **compartir** con el móvil.
 - **Ver original**: página escaneada de Overland Monthly y PDF de revistas y tomos.
 - **Continuar donde lo dejé**: recupera el último capítulo y la posición de lectura.
 - **Etiquetas y filtro** en los marcadores del cuaderno.
@@ -109,6 +109,21 @@ Cómo funciona:
 En el servidor, la aplicación escucha solo en `127.0.0.1:8099` y Apache la
 publica con HTTPS en la raíz del dominio. El servicio systemd es
 `biblioteca-espanola.service`.
+
+## Revisión del texto
+
+La biblioteca se revisó a fondo para que el investigador encuentre términos,
+referencias y párrafos exactos:
+
+- 38.229 referencias bíblicas validadas contra el texto bíblico, sin citas fuera
+  de capítulo o versículo.
+- 849 marcas originales **Q5–Q853** conservadas y buscables, y 1.408 preguntas
+  con numeración **Q5:1, Q5:2…** sin duplicados.
+- Corrección de términos y erratas en los textos, el índice temático y las
+  tablas de contexto: por ejemplo, «colalso» → «colirio», «Dignoes» → «Dignos»,
+  «miesca» → «mies», «dócilidad» → «docilidad», «ENIMIDAD» → «ENEMISTAD».
+- Normalización de nombres bíblicos, referencias de libros de un solo capítulo
+  y expresiones que habían quedado en inglés.
 
 ## Créditos
 
