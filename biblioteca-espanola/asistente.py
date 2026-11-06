@@ -164,7 +164,7 @@ def _busca_termino(texto, terminos):
     return -1
 
 def contexto(texto, terminos, ancho=220):
-    texto = re.sub(r'\[\[OV\d+\]\]\s*', '', texto or '')
+    texto = re.sub(r'\[\[(?:OV|Q)\d+\]\]\s*', '', texto or '')
     t = re.sub(r'(?m)^##\s*', '', texto)
     # saltar el encabezado en mayusculas (argumentos de capitulo)
     seg = t[:800]
@@ -349,6 +349,7 @@ def buscar(q, limite=40, offset=0, obra=None, orden='', anio=None, intentos=1):
         ' ORDER BY ' + orden_sql + ' LIMIT ? OFFSET ?', params + [limite, offset]).fetchall()
     terminos = [p for p in re.split(r'\s+', q.replace('"', '')) if p]
     m_ov = re.match(r'^\s*OV\s*(\d{1,3})\s*$', q, re.I)
+    m_q = re.match(r'^\s*Q\s*(\d{1,3})\s*$', q, re.I)
     m_r = re.match(r'^\s*R\s*(\d{1,5})\s*$', q, re.I)
     res = []
     for f in filas:
@@ -374,6 +375,13 @@ def buscar(q, limite=40, offset=0, obra=None, orden='', anio=None, intentos=1):
                 marca_ov = 'OV%s' % m_ov.group(1)
                 pos_ov = pv
                 extracto = re.sub(r'\[\[OV\d+\]\]\s*', '', f['texto'][pv:pv + 320])
+        if m_q:
+            mt = '[[Q%s]]' % m_q.group(1)
+            pv = f['texto'].find(mt)
+            if pv >= 0:
+                marca_ov = 'Q%s' % m_q.group(1)
+                pos_ov = pv
+                extracto = re.sub(r'\[\[Q\d+\]\]\s*', '', f['texto'][pv:pv + 340])
         if m_r:
             mr = re.search(r'\[R%s\s*:\s*page\s*\d+\]' % m_r.group(1), f['texto'])
             if mr:
@@ -1399,7 +1407,10 @@ class Manejador(BaseHTTPRequestHandler):
                         item = dict(r)
                         texto = item.pop('texto') or ''
                         ms = re.findall(r'\[\[OV(\d+)\]\]', texto[:item['pos']])
-                        item['marca'] = ('OV' + ms[-1]) if ms else ''
+                        mq = re.findall(r'\[\[Q(\d+)\]\]', texto[:item['pos']])
+                        item['marca'] = ('OV' + ms[-1]) if ms else (('Q' + mq[-1]) if mq else '')
+                        if not item['marca'] and item['titulo_obra'] == 'Lo que dijo el pastor Russell':
+                            item['marca'] = 'Q%d' % (item['pagina'] or 0)
                         obras.append(item)
                 except sqlite3.OperationalError:
                     obras = []

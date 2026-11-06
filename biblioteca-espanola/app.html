@@ -6,7 +6,7 @@
 <link rel="icon" type="image/png" href="/icono.png">
 <link rel="manifest" href="/manifest.json">
 <meta name="theme-color" content="#1d3a6b">
-<meta name="description" content="Biblioteca digital de Estudios de las Escrituras de C. T. Russell: seis tomos, Sombras del Tabernáculo, Foto-Drama de la Creación, Maná Diario, Biblia RVR1960, índice temático y Mapa de las Edades.">
+<meta name="description" content="Biblioteca digital de Estudios de las Escrituras de C. T. Russell: seis tomos, Sombras del Tabernáculo, Foto-Drama de la Creación, Overland Monthly, Lo que dijo el pastor Russell, Maná Diario, Biblia RVR1960, índice temático y Mapa de las Edades.">
 <meta name="apple-mobile-web-app-capable" content="yes">
 <title>Estudios de las Escrituras de C. T. Russell</title>
 <style>
@@ -422,6 +422,12 @@
               padding:7px 8px;font:inherit;font-size:.86em;line-height:1.3;color:var(--tinta);cursor:pointer;border-radius:0 6px 6px 0}
   .toc button:hover{background:#f1e9d7}
   .toc button.activo{background:#f1e9d7;border-left-color:var(--oro);font-weight:700;color:var(--azul)}
+  .toc-az{display:flex;flex-wrap:wrap;gap:4px;margin:0 0 9px}
+  .toc-az button{width:auto;flex:0 0 auto;padding:4px 6px;border:1px solid var(--linea);border-radius:5px;font-size:.75em;font-weight:700;text-align:center;line-height:1.2}
+  .toc-az button.activo{background:var(--azul);color:#fff;border-color:var(--azul)}
+  .toc-az button:disabled{opacity:.28;cursor:default}
+  .toc-busca{width:100%;box-sizing:border-box;margin:0 0 6px;padding:6px 8px;border:1px solid var(--linea);border-radius:6px;font:inherit;font-size:.82em;background:#fff}
+  .toc-cuenta{display:block;font-size:.73em;color:var(--gris);margin:0 0 8px}
   .pagina{background:var(--papel2);border:1px solid var(--linea);border-radius:8px;padding:34px 44px 44px;min-height:70vh}
   .pagina .obra{font-size:.7em;letter-spacing:.14em;text-transform:uppercase;color:var(--gris);margin:0 0 4px}
   .pagina h2{margin:0 0 16px;font-size:1.22em;color:var(--azul);line-height:1.3}
@@ -430,6 +436,10 @@
   .figura img{max-width:100%;height:auto;border-radius:6px;border:1px solid var(--linea);display:block;margin:0 auto;min-width:min(100%,320px)}
   .figura figcaption{font-size:.8em;color:var(--gris);margin-top:.4em;font-style:italic}
   .marca-b{color:#000;font-weight:700;letter-spacing:.02em}
+  .preg-russell{color:#000;font-weight:600;border-left:4px solid #000;background:#f3f0e8;padding:10px 14px;border-radius:0 6px 6px 0;text-indent:0;margin:0 0 .95em}
+  .preg-russell .etiqueta-preg{display:inline-block;background:#000;color:#fff;font-weight:700;font-size:.76em;letter-spacing:.05em;padding:1px 7px;border-radius:3px;margin-right:6px;text-transform:uppercase;vertical-align:.08em}
+  html[data-tema="noche"] .preg-russell{background:#1b1d21;border-left-color:#e8c98a;color:#f4efe3}
+  html[data-tema="noche"] .preg-russell .etiqueta-preg{background:#e8c98a;color:#111}
   .pagina p{margin:0 0 .85em;text-align:justify;hyphens:auto;text-indent:1.5em;line-height:1.62}
   .pagina p:first-of-type{text-indent:0}
   .pagina .resumen-cap{background:#f7f2e4;border-left:4px solid var(--oro);border-radius:6px;padding:12px 16px 10px;margin:0 0 20px}
@@ -1238,6 +1248,8 @@
             <span class="n">Libro</span><span class="t">Foto-Drama de la Creación</span></button>
           <button class="hoy-libro" type="button" onclick="abrirObra('Escritos del pastor Russell para Overland Monthly')">
             <span class="n">Libro</span><span class="t">Overland Monthly</span></button>
+          <button class="hoy-libro" type="button" onclick="abrirObra('Lo que dijo el pastor Russell')">
+            <span class="n">Libro</span><span class="t">Lo que dijo el pastor Russell</span></button>
           <button class="hoy-libro" type="button" onclick="abrirObra('La Torre del Vigía')">
             <span class="n">Revistas</span><span class="t">Torre del Vigía 1879-1916</span></button>
         </div>
@@ -1302,6 +1314,7 @@
     <div class="mesa">
       <aside class="toc">
         <h4 id="toc-obra">—</h4>
+        <div id="toc-controles"></div>
         <ul id="toc-lista"></ul>
       </aside>
       <article class="pagina" id="pagina">
@@ -1328,7 +1341,7 @@
       <span>Sintaxis: <b>«frase exacta»</b> · <b>palabra1 OR palabra2</b> · <b>-palabra</b> para excluir</span>
     </div>
     <div class="chips" id="busquedas-guardadas"></div>
-    <p class="pista">Busca en los seis tomos de <i>Estudios de las Escrituras</i>, en <i>Sombras del Tabernáculo</i>, en el <i>Foto-Drama de la Creación</i>, en <i>Overland Monthly</i> y en las revistas. También puedes buscar una marca de reimpresión, por ejemplo <b>R2555</b>.</p>
+    <p class="pista">Busca en los seis tomos de <i>Estudios de las Escrituras</i>, en <i>Sombras del Tabernáculo</i>, en el <i>Foto-Drama de la Creación</i>, en <i>Overland Monthly</i>, en <i>Lo que dijo el pastor Russell</i> y en las revistas. También puedes buscar una marca de página o de reimpresión, por ejemplo <b>Q5</b> o <b>R2555</b>.</p>
     <div class="chips" id="chips-obras"></div>
     <p class="pista" style="margin:-6px 0 14px">O explora una obra por su índice:
       <select id="sel-obra" onchange="verIndice(this.value)" style="font:inherit;padding:4px 8px;border:1px solid var(--linea);border-radius:6px;background:#fff">
@@ -1370,7 +1383,7 @@
       <input type="text" id="q-tema" placeholder="Buscar en el índice: rescate, pirámide, Babilonia…" autocomplete="off">
       <button class="accion" type="submit">Buscar</button>
     </form>
-    <p class="pista" style="margin-top:0">Índice temático de <i>Estudios de las Escrituras</i> y otras ayudas, traducido al español. Cada referencia abre el párrafo correspondiente y resalta en amarillo la frase o palabra guía del índice (p. ej. «Cegado por falsas expectativas»), para localizar el pasaje exacto. Las T se enlazan por contenido con la edición española del Tabernáculo. Las referencias con subrayado punteado son aproximadas (la página exacta no tiene texto continuo). K y J remiten a obras no incluidas. Al final de cada voz se añaden los capítulos del <i>Foto-Drama de la Creación</i>, los artículos de <i>Escritos del pastor Russell para Overland Monthly</i> y los de <i>La Torre del Vigía</i> donde aparece ese tema; en las revistas se indica la marca de reimpresión (R...). Puedes ver la voz original en inglés dentro de cada entrada.</p>
+    <p class="pista" style="margin-top:0">Índice temático de <i>Estudios de las Escrituras</i> y otras ayudas, traducido al español. Cada referencia abre el párrafo correspondiente y resalta en amarillo la frase o palabra guía del índice (p. ej. «Cegado por falsas expectativas»), para localizar el pasaje exacto. Las T se enlazan por contenido con la edición española del Tabernáculo. Las referencias con subrayado punteado son aproximadas (la página exacta no tiene texto continuo). K y J remiten a obras no incluidas. Al final de cada voz se añaden los capítulos del <i>Foto-Drama de la Creación</i>, los artículos de <i>Escritos del pastor Russell para Overland Monthly</i>, los temas de <i>Lo que dijo el pastor Russell</i> y los de <i>La Torre del Vigía</i> donde aparece ese tema; en las revistas se indica la marca de reimpresión (R...). Puedes ver la voz original en inglés dentro de cada entrada.</p>
     <div class="temas-riel"><div class="chips" id="temas-letras"></div></div>
     <div class="temas-caja">
       <aside id="temas-lista"><p class="cargando" style="padding:12px">Cargando…</p></aside>
@@ -1545,7 +1558,7 @@
   <div class="texto" id="cv-texto"></div>
   <h4 style="margin:14px 0 0;color:var(--azul);font-size:.9em">Comentado en la biblioteca</h4>
   <div id="cv-lista"></div>
-  <div class="pie"><span>Estudios de las Escrituras · Sombras del Tabernáculo · Foto-Drama de la Creación</span>
+  <div class="pie"><span>Estudios de las Escrituras · Sombras del Tabernáculo · Foto-Drama · Lo que dijo el pastor Russell</span>
     <span style="display:flex;gap:10px">
       <button class="link" id="cv-guardar" style="font-size:1em">Guardar versículo</button>
       <button class="accion" style="padding:6px 14px" onclick="cerrarComentariosVerso()">Cerrar</button>
@@ -2417,7 +2430,7 @@ async function listarTemas(q, letra){
 function temaHTML(d, en){
   const lineas = en ? (d.lineas_en || d.lineas) : d.lineas;
   let html = `<h3>${en ? esc(d.termino) : esc(d.termino_es || d.termino)}</h3>
-    <p class="sub">${en ? esc(d.termino_es || '') : esc(d.termino)} · ${d.nrefs} referencias · ${Object.keys(d.refs||{}).length} localizadas${(()=>{const a=Object.values(d.refs||{}).filter(v=>v[2]).length;return a?' ('+a+' aproximadas)':''})()}${d.foto&&d.foto.length?' · '+d.foto.length+' en el Foto-Drama':''}${d.obras&&d.obras.length?' · '+d.obras.length+' en Overland Monthly':''}
+    <p class="sub">${en ? esc(d.termino_es || '') : esc(d.termino)} · ${d.nrefs} referencias · ${Object.keys(d.refs||{}).length} localizadas${(()=>{const a=Object.values(d.refs||{}).filter(v=>v[2]).length;return a?' ('+a+' aproximadas)':''})()}${d.foto&&d.foto.length?' · '+d.foto.length+' en el Foto-Drama':''}${d.obras&&d.obras.length?' · '+d.obras.length+' en otras obras':''}
     <button class="link" style="background:none;border:0;color:var(--azul);cursor:pointer;font:inherit;font-size:.9em;margin-left:8px" onclick="alternarTema()">${en ? 'Ver traducción' : 'Ver original en inglés'}</button></p>`;
   for(const ln of lineas){
     const label = ln[0];
@@ -2446,13 +2459,23 @@ function temaHTML(d, en){
     html += '</div>';
   }
   if(d.obras && d.obras.length){
-    html += `<h4 class="tg-foto-h">En Escritos del pastor Russell para Overland Monthly <span>${d.obras.length} ${d.obras.length===1?'artículo':'artículos'}</span></h4><div class="foto-gal">`;
-    for(const f of d.obras){
-      html += `<button type="button" class="foto-mini tref" data-pid="${f.pid}" data-pos="${f.pos}" data-ctx="${esc(f.ctx||'')}" data-term="${esc(f.term||'')}" title="Abrir ${esc(f.titulo||'Overland Monthly')}${f.marca?' · '+esc(f.marca):''}">
-        <span class="fm-pie"><span class="fm-pag">${esc(f.marca||('p. '+f.pagina))}</span><span class="fm-tit">${esc(f.titulo||'Escritos para Overland Monthly')}</span></span>
-      </button>`;
+    const grupos = {};
+    for(const f of d.obras){ const k = f.titulo_obra || 'Otras obras'; (grupos[k] = grupos[k] || []).push(f); }
+    const prelacion = ['La Torre del Vigía','Escritos del pastor Russell para Overland Monthly','Lo que dijo el pastor Russell'];
+    const claves = Object.keys(grupos).sort((a,b)=>{
+      const ia = prelacion.indexOf(a), ib = prelacion.indexOf(b);
+      return (ia < 0 ? 99 : ia) - (ib < 0 ? 99 : ib) || a.localeCompare(b,'es');
+    });
+    for(const k of claves){
+      const items = grupos[k];
+      html += `<h4 class="tg-foto-h">En ${esc(k)} <span>${items.length} ${items.length===1?'capítulo':'capítulos'}</span></h4><div class="foto-gal">`;
+      for(const f of items){
+        html += `<button type="button" class="foto-mini tref" data-pid="${f.pid}" data-pos="${f.pos}" data-ctx="${esc(f.ctx||'')}" data-term="${esc(f.term||'')}" title="Abrir ${esc(f.titulo||k)}${f.marca?' · '+esc(f.marca):''}">
+          <span class="fm-pie"><span class="fm-pag">${esc(f.marca||('p. '+f.pagina))}</span><span class="fm-tit">${esc(f.titulo||k)}</span></span>
+        </button>`;
+      }
+      html += '</div>';
     }
-    html += '</div>';
   }
   return html;
 }
@@ -2542,7 +2565,7 @@ document.addEventListener('click', e=>{
 function tarjetaObra(x){
   const esTomo = x.volumen >= 1 && x.volumen <= 6;
   const esTorre = x.titulo_obra === 'La Torre del Vigía';
-  const esLibro = x.titulo_obra === 'Sombras del Tabernáculo' || x.titulo_obra === 'Foto-Drama de la Creación' || x.titulo_obra === 'Escritos del pastor Russell para Overland Monthly';
+  const esLibro = x.titulo_obra === 'Sombras del Tabernáculo' || x.titulo_obra === 'Foto-Drama de la Creación' || x.titulo_obra === 'Escritos del pastor Russell para Overland Monthly' || x.titulo_obra === 'Lo que dijo el pastor Russell';
   const num = esTomo ? 'Tomo '+x.volumen : (esTorre ? 'Revistas 1879–1916' : (esLibro ? 'Libro' : 'Obra'));
   const esFoto = x.titulo_obra === 'Foto-Drama de la Creación';
   const portada = esFoto
@@ -2568,11 +2591,51 @@ async function indiceObra(obra){
   window.scrollTo({top:0,behavior:'smooth'});
 }
 
+function letraTitulo(t){
+  const x = String(t || '').trim().normalize('NFD').replace(/[\u0300-\u036f]/g, '').charAt(0).toUpperCase();
+  return /[A-Z]/.test(x) ? x : '#';
+}
+
 async function abrirObra(obra){
   document.querySelector('.tab[data-panel="p-leer"]').click();
   $('#toc-obra').textContent = obra;
+  $('#toc-controles').innerHTML = '';
   $('#toc-lista').innerHTML = '<li class="cargando">Cargando índice…</li>';
   const d = await (await fetch('/api/indice?obra='+encodeURIComponent(obra))).json();
+  const LIBRO_WHATSAID = 'Lo que dijo el pastor Russell';
+  if(obra === LIBRO_WHATSAID && d.length){
+    const orden = d.slice().sort((a,b)=>String(a.titulo||'').localeCompare(String(b.titulo||''),'es'));
+    const letras = new Set(orden.map(x=>letraTitulo(x.titulo)));
+    const abecedario = 'ABCDEFGHIJKLMNÑOPQRSTUVWXYZ'.split('');
+    const intro = orden.find(x=>/^Introducción$/i.test(String(x.titulo||'').trim()));
+    let letra = intro ? letraTitulo(intro.titulo) : (orden.length ? letraTitulo(orden[0].titulo) : 'A');
+    const norm = t=>String(t||'').normalize('NFD').replace(/[\u0300-\u036f]/g,'').toLowerCase();
+    $('#toc-controles').innerHTML =
+      `<div class="toc-az" role="group" aria-label="Elegir letra">` +
+      abecedario.map(l=>`<button type="button" data-letra="${l}" ${letras.has(l)?'':'disabled'} class="${l===letra?'activo':''}">${l}</button>`).join('') +
+      `</div><input id="toc-busca" class="toc-busca" type="search" placeholder="Buscar tema o subtítulo…" autocomplete="off"><span id="toc-cuenta" class="toc-cuenta"></span>`;
+    const pintar = (l, filtro)=>{
+      let items = filtro ? orden.filter(x=>norm(x.titulo).includes(norm(filtro))) : orden.filter(x=>letraTitulo(x.titulo)===l);
+      $('#toc-lista').innerHTML = items.length
+        ? items.map(x=>`<li><button data-id="${x.id}" onclick="abrirCapitulo(${x.id})">${esc(x.titulo||('Capítulo '+x.pagina))}</button></li>`).join('')
+        : '<li class="cargando">Sin coincidencias.</li>';
+      const c = $('#toc-cuenta'); if(c) c.textContent = items.length + (items.length===1?' tema':' temas');
+      document.querySelectorAll('#toc-controles .toc-az button').forEach(b=>b.classList.toggle('activo', !filtro && b.dataset.letra===l));
+      return items;
+    };
+    document.querySelectorAll('#toc-controles .toc-az button').forEach(b=>{
+      b.onclick = ()=>{ if(b.disabled) return; letra = b.dataset.letra; const items = pintar(letra, ''); if(items.length) abrirCapitulo(items[0].id); };
+    });
+    const busca = document.getElementById('toc-busca');
+    if(busca) busca.oninput = ()=>pintar(letra, busca.value.trim());
+    busca && busca.addEventListener('keydown', e=>{
+      if(e.key === 'Enter'){ const items = pintar(letra, busca.value.trim()); if(items.length) abrirCapitulo(items[0].id); }
+    });
+    pintar(letra, '');
+    if(intro) abrirCapitulo(intro.id);
+    else if(orden.length) abrirCapitulo(orden[0].id);
+    return;
+  }
   if(obra === 'La Torre del Vigía' && d.length){
     const anio = x => (String(x.titulo||'').match(/(\d{4})$/)||[])[1] || '';
     const anios = [...new Set(d.map(anio).filter(Boolean))];
@@ -2641,26 +2704,25 @@ function enlaceParrafoActual(){
   return location.origin + location.pathname + '?pagina=' + d.id + (p ? '&p=' + p.idx : '');
 }
 
-function citaParrafoActual(){
-  const d = window._paginaActualData;
-  if(!d || !d.id) return '';
-  const p = parrafoActual();
+function citaDeParrafo(el, d){
+  d = d || window._paginaActualData;
+  if(!d || !d.id || !el) return '';
   let extra = '';
-  if(p){
-    const t = p.el.textContent || '';
-    const ov = (t.match(/\[\[(OV\d+)\]\]/) || [])[1];
-    const rr = (t.match(/\[(R\d+[^\]]*)\]/) || [])[1];
-    if(ov) extra = ' · ' + ov;
-    else if(rr) extra = ' · ' + rr;
-  }
-  return `${d.obra}${d.volumen ? ' · Tomo ' + d.volumen : ''} — ${d.titulo || ''}, p. ${d.pagina}${extra}`;
+  const marca = el.querySelector('.pagina-ov');
+  const rm = el.querySelector('.marca-reprint-inline');
+  if(marca) extra = ' · ' + marca.textContent.trim();
+  else if(rm) extra = ' · ' + rm.textContent.trim().replace(/^\[|\]$/g, '');
+  const pag = d.obra === 'Lo que dijo el pastor Russell' ? 'Q' + d.pagina : d.pagina;
+  return `${d.obra}${d.volumen ? ' · Tomo ' + d.volumen : ''} — ${d.titulo || ''}, p. ${pag}${extra}`;
 }
 
-function citaMarkdownActual(){
-  const cita = citaParrafoActual();
-  const url = enlaceParrafoActual();
-  if(!cita || !url) return '';
-  return `**${cita}** — [Abrir en la biblioteca](${url})`;
+function citaParrafoActual(){
+  const p = parrafoActual();
+  return p ? citaDeParrafo(p.el) : '';
+}
+
+function citaTextoActual(){
+  return citaParrafoActual();
 }
 
 function compartirParrafo(btn){
@@ -2675,9 +2737,17 @@ function compartirParrafo(btn){
   }
 }
 
+function destacarParrafoActual(){
+  const p = parrafoActual();
+  if(!p) return;
+  p.el.classList.add('par-destino');
+  setTimeout(()=>p.el.classList.remove('par-destino'), 2200);
+}
+
 function copiarEnlace(btn){
   const url = enlaceParrafoActual();
   if(!url) return;
+  destacarParrafoActual();
   const listo = ()=>{ if(btn){ const t = btn.textContent; btn.textContent = 'Enlace copiado'; setTimeout(()=>{ btn.textContent = t; }, 1800); } };
   if(navigator.clipboard && navigator.clipboard.writeText){
     navigator.clipboard.writeText(url).then(listo).catch(()=>prompt('Copia este enlace:', url));
@@ -2685,8 +2755,9 @@ function copiarEnlace(btn){
 }
 
 function copiarCita(btn){
-  const cita = citaMarkdownActual();
+  const cita = citaTextoActual();
   if(!cita) return;
+  destacarParrafoActual();
   const listo = ()=>{ if(btn){ const t = btn.textContent; btn.textContent = 'Cita copiada'; setTimeout(()=>{ btn.textContent = t; }, 1800); } };
   if(navigator.clipboard && navigator.clipboard.writeText){
     navigator.clipboard.writeText(cita).then(listo).catch(()=>prompt('Copia esta cita:', cita));
@@ -2923,10 +2994,10 @@ async function abrirCapitulo(id, restaurar){
     <h2>${esc(d.titulo)}</h2>
     <p class="lectura-meta"><span>${palabras.toLocaleString('es')} palabras</span><span>·</span><span>${minutos} min de lectura</span>${d.citas && d.citas.length ? '<span>·</span><span>'+d.citas.length+' citas</span>' : ''}</p>
     <p class="lectura-acciones"><button class="link btn-audio" type="button" id="pag-escuchar" data-etiqueta="Escuchar capítulo"><svg class="ico-audio" viewBox="0 0 24 24" aria-hidden="true" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M3 14v-2a9 9 0 0 1 18 0v2"/><path d="M3 14a2 2 0 0 1 2-2h1v6H5a2 2 0 0 1-2-2z"/><path d="M21 14a2 2 0 0 0-2-2h-1v6h1a2 2 0 0 0 2-2z"/></svg> Escuchar capítulo</button>
-      <button class="link" type="button" onclick="copiarEnlace(this)">Copiar enlace</button>
-      <button class="link" type="button" onclick="copiarCita(this)">Copiar cita Markdown</button>
+      <button class="link" type="button" onclick="copiarEnlace(this)" title="Copia el enlace del párrafo que estás viendo">Copiar enlace</button>
+      <button class="link" type="button" onclick="copiarCita(this)" title="Copia la cita con obra, artículo, página y marca Q">Copiar cita</button>
       <button class="link" type="button" onclick="compartirParrafo(this)">Compartir</button>
-      <button class="link" type="button" onclick="abrirOriginal()">Ver original</button>
+      ${d.obra==='Lo que dijo el pastor Russell' ? '' : '<button class="link" type="button" onclick="abrirOriginal()">Ver original</button>'}
       <button class="link" type="button" onclick="abrirReporte()">Reportar error</button></p>
   </div>`;
   if(d.resumen && d.resumen.length){
@@ -2984,6 +3055,25 @@ async function verIndice(obra){
   if(!obra){ c.innerHTML=''; return; }
   c.innerHTML='<p class="cargando">Cargando índice…</p>';
   const d = await (await fetch('/api/indice?obra='+encodeURIComponent(obra))).json();
+  if(d.length > 400){
+    c.innerHTML = `<p class="resumen"><b>${esc(obra)}</b>: ${d.length} entradas</p>
+      <input id="idx-filtro" type="search" class="toc-busca" placeholder="Filtrar por tema o subtítulo…" autocomplete="off">
+      <div class="chips" id="idx-chips"></div><p class="pista" id="idx-cuenta"></p>`;
+    const norm = t=>String(t||'').normalize('NFD').replace(/[\u0300-\u036f]/g,'').toLowerCase();
+    const pintar = q=>{
+      const items = (q ? d.filter(x=>norm(x.titulo).includes(norm(q))) : d).slice(0,300);
+      document.getElementById('idx-chips').innerHTML = items.length
+        ? items.map(x=>`<button class="chip" style="cursor:pointer" onclick="abrirPagina(${x.id})">${esc((x.titulo||'pág. '+x.pagina)).slice(0,52)}</button>`).join('')
+        : '<span class="pista">Sin coincidencias.</span>';
+      document.getElementById('idx-cuenta').textContent = q
+        ? `${items.length} coincidencias${items.length===300?' (primeras 300)':''}`
+        : `Mostrando las primeras ${items.length}. Escribe para filtrar las ${d.length} entradas, o usa el índice A–Z del lector.`;
+    };
+    const inp = document.getElementById('idx-filtro');
+    inp.oninput = ()=>pintar(inp.value.trim());
+    pintar('');
+    return;
+  }
   c.innerHTML = `<p class="resumen"><b>${esc(obra)}</b>: ${d.length} entradas</p>
     <div class="chips">` + d.map(x=>`<button class="chip" style="cursor:pointer" onclick="abrirPagina(${x.id})">${esc((x.titulo||'pág. '+x.pagina)).slice(0,42)}</button>`).join('') + '</div>';
 }
@@ -3811,7 +3901,8 @@ async function abrirPagina(id, termino, conRef){
       };
     });
   }
-  const nota = [`Fuente: ${d.obra}${d.volumen?', vol. '+d.volumen:''}, p. ${d.pagina}.`];
+  const refPag = d.obra === 'Lo que dijo el pastor Russell' ? 'página Q' + d.pagina : 'p. ' + d.pagina;
+  const nota = [`Fuente: ${d.obra}${d.volumen?', vol. '+d.volumen:''}, ${refPag}.`];
   if(d.idioma==='en') nota.push('Texto original en inglés.');
   $('#lector-nota').textContent = nota.join(' ');
   const bp=$('#nav-prev'), bn=$('#nav-next');
@@ -3820,9 +3911,9 @@ async function abrirPagina(id, termino, conRef){
   bp.onclick = () => d.prev && abrirPagina(d.prev, terminoBusqueda, !!referenciaBusqueda);
   bn.onclick = () => d.next && abrirPagina(d.next, terminoBusqueda, !!referenciaBusqueda);
   const acc = $('#lector-acciones');
-  acc.innerHTML = `<button class="link" id="btn-copiar">Copiar cita</button>` +
-    `<button class="link" id="btn-enlace">Copiar enlace</button>` +
-    `<button class="link" id="btn-original">Ver original</button>` +
+  acc.innerHTML = `<button class="link" id="btn-copiar" title="Copia la cita con obra, artículo, página y marca Q">Copiar cita</button>` +
+    `<button class="link" id="btn-enlace" title="Copia el enlace del párrafo que estás viendo">Copiar enlace</button>` +
+    (d.obra === 'Lo que dijo el pastor Russell' ? '' : `<button class="link" id="btn-original">Ver original</button>`) +
     `<button class="link" id="btn-reporte">Reportar error</button>` +
     `<button class="link" id="btn-cuaderno">Guardar en el cuaderno</button>` +
     `<button class="link btn-audio" id="btn-escuchar" data-etiqueta="Escuchar capítulo"><svg class="ico-audio" viewBox="0 0 24 24" aria-hidden="true" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M3 14v-2a9 9 0 0 1 18 0v2"/><path d="M3 14a2 2 0 0 1 2-2h1v6H5a2 2 0 0 1-2-2z"/><path d="M21 14a2 2 0 0 0-2-2h-1v6h1a2 2 0 0 0 2-2z"/></svg> Escuchar capítulo</button>` +
@@ -4265,11 +4356,16 @@ function bloque(texto, b, citas){
   }
   if(crudo.trim().startsWith('|')){ return tablaHTML(texto, b, citas); }
   let html = textoConCitas(texto, b.ini, b.fin, citas);
+  html = html.replace(/\[\[\s*(?:<[^>]+>)*\s*((?:OV|Q)\d+)\s*(?:<[^>]+>)*\s*\]\]/g, '<span class="pagina-ov">$1</span>');
   html = html.replace(/\[([A-Z])(\d+)\]/g, '<strong class="marca-b">[$1$2]</strong>');
   html = marcarMayusculas(html);
   if(window._dialogo) html = marcarPersonajes(html);
-  html = html.replace(/\[\[(?:<strong class="caps">)?(OV\d+)(?:<\/strong>)?\]\]/g, '<span class="pagina-ov">$1</span>');
   html = html.replace(/\[(R\d+\s*:\s*page\s*\d+)\]/g, '<span class="marca-reprint-inline">[$1]</span>');
+  const esWhatsaid = window._paginaActualData && window._paginaActualData.obra === 'Lo que dijo el pastor Russell';
+  if(esWhatsaid && /^Pregunta\b/.test(crudo.trim())){
+    html = html.replace(/^(Pregunta(?:\s*\([^)]*\))?\.—\s*\d+\.)/, '<span class="etiqueta-preg">$1</span>');
+    return '<p class="preg-russell">'+html+'</p>';
+  }
   return '<p>'+html+'</p>';
 }
 
@@ -5364,7 +5460,7 @@ $('#lector').querySelector('.cerrar').onclick = cerrarLector;
     const po = document.getElementById('preg-obra');
     if(po) po.innerHTML = '<option value="">Toda la biblioteca</option>' +
       o.filter(x=>x.n>0).map(x=>`<option value="${esc(x.titulo_obra)}">${esc(x.titulo_obra)}</option>`).join('');
-    const orden = x => (x.volumen>=1 && x.volumen<=6) ? x.volumen : 100 + ['Sombras del Tabernáculo','Foto-Drama de la Creación','Escritos del pastor Russell para Overland Monthly','De Adán a Sion','Maná','Cánticos del Alba','El Mapa de las Edades','La Torre del Vigía (1879-1916)'].indexOf(x.titulo_obra);
+    const orden = x => (x.volumen>=1 && x.volumen<=6) ? x.volumen : 100 + ['Sombras del Tabernáculo','Foto-Drama de la Creación','Escritos del pastor Russell para Overland Monthly','Lo que dijo el pastor Russell','De Adán a Sion','Maná','Cánticos del Alba','El Mapa de las Edades','La Torre del Vigía (1879-1916)'].indexOf(x.titulo_obra);
     $('#rejilla-obras').innerHTML = o.filter(x=>x.n>0).sort((a,b)=>orden(a)-orden(b)).map(tarjetaObra).join('') + tarjetaBiblia() + tarjetaMapa() + tarjetaTemas() + tarjetaGaleria();
     const e = await (await fetch('/api/estado')).json();
     $('#estado').textContent = ` · ${e.paginas} páginas indexadas · ${e.citas} citas bíblicas · ${e.versiculos} versículos RVR1960 · ${e.temas||0} voces del índice temático`;
