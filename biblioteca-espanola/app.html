@@ -378,6 +378,7 @@
   .cuaderno-item{background:#fff;border:1px solid var(--linea);border-left:5px solid var(--oro);border-radius:8px;padding:12px 14px;margin:0 0 12px}
   .cuaderno-item .meta{font-size:.78em;letter-spacing:.08em;text-transform:uppercase;color:#9a7b1f;margin:0 0 3px}
   .cuaderno-item h3{margin:0 0 6px;font-size:1.02em;color:var(--azul)}
+  .cuaderno-item .tags{width:100%;font:inherit;font-size:.82em;padding:6px 8px;border:1px solid var(--linea);border-radius:6px;background:#fff;color:var(--tinta);margin:0 0 8px}
   .cuaderno-item textarea{width:100%;min-height:56px;margin-top:8px;padding:8px 10px;border:1px solid var(--linea);border-radius:6px;font:inherit;font-size:.92em;background:#fdfbf5;resize:vertical}
   .cuaderno-item .acciones{display:flex;gap:12px;margin-top:8px;font-size:.85em}
   .cuaderno-item .acciones a,.cuaderno-item .acciones button{color:var(--azul2);background:none;border:0;padding:0;font:inherit;font-size:.95em;cursor:pointer;text-decoration:underline}
@@ -1065,6 +1066,13 @@
   .reporte-caja button{font:inherit;font-size:.86em;padding:7px 14px;border-radius:20px;border:1px solid var(--linea);background:#fff;color:var(--azul);cursor:pointer}
   .reporte-caja button.principal{background:var(--azul);color:#fff;border-color:var(--azul)}
   .reporte-caja button:disabled{opacity:.55;cursor:wait}
+  #aviso-app{position:fixed;left:14px;bottom:14px;z-index:95;display:flex;align-items:center;gap:10px;max-width:min(520px,94vw);
+    background:#14243f;color:#f7efd9;border:1px solid rgba(201,162,39,.55);border-radius:12px;padding:8px 12px;
+    box-shadow:0 14px 32px -18px rgba(0,0,0,.7);font-size:.82em}
+  #aviso-app[hidden]{display:none}
+  #aviso-app button{font:inherit;font-size:.9em;border:1px solid rgba(255,255,255,.28);background:rgba(255,255,255,.08);color:#f7efd9;border-radius:8px;padding:4px 9px;cursor:pointer}
+  #aviso-app button:hover{background:rgba(255,255,255,.18)}
+  #aviso-cerrar{border:0;background:none;font-size:1.1em;padding:0 2px}
   #reportes-modal{position:fixed;inset:0;z-index:131;background:rgba(12,24,44,.58);display:flex;align-items:center;justify-content:center;padding:18px}
   #reportes-modal[hidden]{display:none}
   .reportes-caja{width:min(760px,96vw);max-height:86vh;overflow:auto;background:var(--papel);color:var(--tinta);border:1px solid var(--linea);border-radius:14px;box-shadow:0 24px 60px -20px rgba(0,0,0,.6);padding:18px 20px 14px}
@@ -1077,6 +1085,14 @@
   .reporte-item .comentario{margin:0 0 5px;font-size:.92em;color:var(--tinta)}
   .reporte-item .pista{margin:0 0 6px;font-size:.8em}
   .reporte-item .acciones{display:flex;gap:8px;flex-wrap:wrap}
+  #progreso-modal{position:fixed;inset:0;z-index:132;background:rgba(12,24,44,.58);display:flex;align-items:center;justify-content:center;padding:18px}
+  #progreso-modal[hidden]{display:none}
+  .prog-item{display:grid;grid-template-columns:1fr auto;gap:4px 14px;align-items:center;padding:7px 0;border-bottom:1px solid var(--linea)}
+  .prog-item:last-child{border-bottom:0}
+  .prog-item b{font-size:.9em;color:var(--azul)}
+  .prog-item span{font-size:.78em;color:var(--gris);text-align:right}
+  .prog-barra{grid-column:1/-1;height:6px;background:#eadfc5;border-radius:4px;overflow:hidden}
+  .prog-barra i{display:block;height:100%;background:linear-gradient(90deg,#c9a227,#1d3a6b)}
   @media(max-width:520px){.tts-barra{bottom:8px;padding:8px 10px 6px}.tts-botones button{width:42px;height:38px}.reporte-caja{padding:14px}}
 </style>
 </head>
@@ -1234,6 +1250,8 @@
             <span class="n">Guía</span><span class="t">Cómo usar la biblioteca</span></button>
           <button class="hoy-libro hoy-tool" type="button" onclick="abrirReportes()">
             <span class="n">Revisar</span><span class="t">Reportes de errores</span></button>
+          <button class="hoy-libro hoy-tool" type="button" onclick="abrirProgreso()">
+            <span class="n">Datos</span><span class="t">Progreso de la biblioteca</span></button>
         </div>
       </aside>
 
@@ -1297,6 +1315,10 @@
         <option value="">Relevancia</option>
         <option value="pagina">Tomo y página</option>
       </select>
+      <label for="anio-palabra">Año:</label>
+      <select id="anio-palabra" onchange="buscarPalabra(document.getElementById('q-palabra').value)">
+        <option value="">Todos</option>
+      </select>
       <span>Sintaxis: <b>«frase exacta»</b> · <b>palabra1 OR palabra2</b> · <b>-palabra</b> para excluir</span>
     </div>
     <div class="chips" id="busquedas-guardadas"></div>
@@ -1358,6 +1380,8 @@
       <button class="accion" onclick="exportarCuaderno()">Descargar cuaderno (.md)</button>
       <button class="chip" style="cursor:pointer" onclick="exportarCuadernoJSON()">Copia de seguridad (.json)</button>
       <button class="chip" style="cursor:pointer" onclick="limpiarHistorial()">Borrar historial</button>
+      <input type="search" id="filtro-etiquetas" placeholder="Filtrar por etiqueta…" oninput="pintarCuaderno()"
+        style="font:inherit;font-size:.86em;padding:6px 10px;border:1px solid var(--linea);border-radius:16px;background:#fff;color:var(--tinta);min-width:180px">
     </div>
     <div id="cuaderno-lista"></div>
     <h3 class="cuaderno-h3">Historial reciente</h3>
@@ -2087,8 +2111,10 @@ async function buscarPalabra(q, obra){
   $('#q-palabra').value=q;
   const sel = document.getElementById('orden-palabra');
   const orden = sel ? sel.value : '';
+  const anioSel = document.getElementById('anio-palabra');
+  const anio = anioSel ? anioSel.value : '';
   c.innerHTML='<p class="cargando">Buscando…</p>';
-  const url='/api/buscar?q='+encodeURIComponent(q)+(obra?'&obra='+encodeURIComponent(obra):'')+(orden?'&orden='+orden:'');
+  const url='/api/buscar?q='+encodeURIComponent(q)+(obra?'&obra='+encodeURIComponent(obra):'')+(orden?'&orden='+orden:'')+(anio?'&anio='+encodeURIComponent(anio):'');
   let d;
   try{ d = await traerJSON(url); }
   catch(e){ c.innerHTML='<div class="vacio">No se pudo completar la búsqueda. Revisa la conexión e inténtalo de nuevo.</div>'; return; }
@@ -2099,7 +2125,7 @@ async function buscarPalabra(q, obra){
     pintarManaEnBusqueda(q);
     return;
   }
-  busqActual = {q, obra, orden, total:d.total, n:d.resultados.length};
+  busqActual = {q, obra, orden, anio, total:d.total, n:d.resultados.length};
   exportBusqueda = {q, total:d.total, resultados:[...d.resultados]};
   const chips = (d.distribucion||[]).map(x=>`<button class="chip" style="cursor:pointer" onclick="buscarPalabra('${esc(q).replace(/'/g,"\\'")}','${esc(x.titulo_obra).replace(/'/g,"\\'")}')">${esc(x.titulo_obra)}: ${x.n}</button>`).join('');
   const todas = obra ? `<button class="chip" style="cursor:pointer" onclick="buscarPalabra('${esc(q).replace(/'/g,"\\'")}')">Ver todos los volúmenes</button>` : '';
@@ -2117,7 +2143,7 @@ async function cargarMas(){
   const b = busqActual; if(!b) return;
   const cont = document.getElementById('mas-palabra');
   if(cont) cont.innerHTML = '<p class="cargando">Cargando más…</p>';
-  const url='/api/buscar?q='+encodeURIComponent(b.q)+(b.obra?'&obra='+encodeURIComponent(b.obra):'')+(b.orden?'&orden='+b.orden:'')+'&offset='+b.n;
+  const url='/api/buscar?q='+encodeURIComponent(b.q)+(b.obra?'&obra='+encodeURIComponent(b.obra):'')+(b.orden?'&orden='+b.orden:'')+(b.anio?'&anio='+encodeURIComponent(b.anio):'')+'&offset='+b.n;
   let d;
   try{ d = await traerJSON(url); }
   catch(e){ if(cont) cont.innerHTML='<div class="vacio">No se pudieron cargar más resultados.</div>'; return; }
@@ -2470,6 +2496,31 @@ async function verTema(id){
   document.getElementById('tema-detalle').scrollIntoView({block:'nearest'});
 }
 
+let _swipe = null;
+document.addEventListener('touchstart', e=>{
+  if(e.touches.length !== 1) return;
+  if(e.target.closest('input,textarea,select,button,a')) return;
+  const l = document.getElementById('lector');
+  const panel = document.querySelector('.panel.activo');
+  if(!(l && l.classList.contains('abierto')) && (!panel || panel.id !== 'p-leer')) return;
+  _swipe = {x: e.touches[0].clientX, y: e.touches[0].clientY, t: Date.now()};
+}, {passive:true});
+document.addEventListener('touchend', e=>{
+  if(!_swipe) return;
+  const s = _swipe; _swipe = null;
+  if(Date.now() - s.t > 800) return;
+  const t = e.changedTouches[0];
+  const dx = t.clientX - s.x, dy = t.clientY - s.y;
+  if(Math.abs(dx) < 60 || Math.abs(dx) < Math.abs(dy) * 1.5) return;
+  if(window.getSelection && String(window.getSelection()).trim()) return;
+  const d = window._paginaActualData; if(!d) return;
+  const ir = dx < 0 ? d.next : d.prev;
+  if(!ir) return;
+  const l = document.getElementById('lector');
+  if(l && l.classList.contains('abierto')) abrirPagina(ir);
+  else abrirCapitulo(ir);
+}, {passive:true});
+
 document.addEventListener('click', e=>{
   const a = e.target.closest('a.tref, button.tref');
   if(!a) return;
@@ -2599,6 +2650,25 @@ function citaParrafoActual(){
   return `${d.obra}${d.volumen ? ' · Tomo ' + d.volumen : ''} — ${d.titulo || ''}, p. ${d.pagina}${extra}`;
 }
 
+function citaMarkdownActual(){
+  const cita = citaParrafoActual();
+  const url = enlaceParrafoActual();
+  if(!cita || !url) return '';
+  return `**${cita}** — [Abrir en la biblioteca](${url})`;
+}
+
+function compartirParrafo(btn){
+  const url = enlaceParrafoActual();
+  const cita = citaParrafoActual();
+  if(!url) return;
+  if(navigator.share){
+    navigator.share({title: 'Biblioteca de Estudios de las Escrituras', text: cita, url})
+      .catch(()=>{});
+  }else{
+    copiarEnlace(btn);
+  }
+}
+
 function copiarEnlace(btn){
   const url = enlaceParrafoActual();
   if(!url) return;
@@ -2609,12 +2679,38 @@ function copiarEnlace(btn){
 }
 
 function copiarCita(btn){
-  const cita = citaParrafoActual();
+  const cita = citaMarkdownActual();
   if(!cita) return;
   const listo = ()=>{ if(btn){ const t = btn.textContent; btn.textContent = 'Cita copiada'; setTimeout(()=>{ btn.textContent = t; }, 1800); } };
   if(navigator.clipboard && navigator.clipboard.writeText){
     navigator.clipboard.writeText(cita).then(listo).catch(()=>prompt('Copia esta cita:', cita));
   } else prompt('Copia esta cita:', cita);
+}
+
+async function abrirProgreso(){
+  const m = document.getElementById('progreso-modal');
+  if(m) m.hidden = false;
+  const c = document.getElementById('progreso-lista');
+  const r = document.getElementById('progreso-resumen');
+  if(c) c.innerHTML = '<p class="cargando">Calculando…</p>';
+  try{
+    const d = await (await fetch('/api/progreso')).json();
+    if(r) r.textContent = `${d.paginas.toLocaleString('es')} páginas · ${d.citas.toLocaleString('es')} citas · ${d.temas.toLocaleString('es')} temas · ${d.reportes} reportes pendientes`;
+    if(c){
+      const max = Math.max(1, ...d.obras.map(x=>x.citas || 0));
+      c.innerHTML = d.obras.map(x=>`<div class="prog-item">
+        <b>${esc(x.titulo_obra)}</b>
+        <span>${x.paginas.toLocaleString('es')} págs. · ${x.citas.toLocaleString('es')} citas</span>
+        <div class="prog-barra"><i style="width:${Math.max(2, Math.round((x.citas||0)/max*100))}%"></i></div>
+      </div>`).join('');
+    }
+  }catch(e){
+    if(c) c.innerHTML = '<p class="vacio">No se pudo calcular el progreso.</p>';
+  }
+}
+function cerrarProgreso(){
+  const m = document.getElementById('progreso-modal');
+  if(m) m.hidden = true;
 }
 
 async function abrirReportes(){
@@ -2796,7 +2892,8 @@ async function abrirCapitulo(id, restaurar){
     <p class="lectura-meta"><span>${palabras.toLocaleString('es')} palabras</span><span>·</span><span>${minutos} min de lectura</span>${d.citas && d.citas.length ? '<span>·</span><span>'+d.citas.length+' citas</span>' : ''}</p>
     <p class="lectura-acciones"><button class="link btn-audio" type="button" id="pag-escuchar" data-etiqueta="Escuchar capítulo"><svg class="ico-audio" viewBox="0 0 24 24" aria-hidden="true" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M3 14v-2a9 9 0 0 1 18 0v2"/><path d="M3 14a2 2 0 0 1 2-2h1v6H5a2 2 0 0 1-2-2z"/><path d="M21 14a2 2 0 0 0-2-2h-1v6h1a2 2 0 0 0 2-2z"/></svg> Escuchar capítulo</button>
       <button class="link" type="button" onclick="copiarEnlace(this)">Copiar enlace</button>
-      <button class="link" type="button" onclick="copiarCita(this)">Copiar cita</button>
+      <button class="link" type="button" onclick="copiarCita(this)">Copiar cita Markdown</button>
+      <button class="link" type="button" onclick="compartirParrafo(this)">Compartir</button>
       <button class="link" type="button" onclick="abrirReporte()">Reportar error</button></p>
   </div>`;
   if(d.resumen && d.resumen.length){
@@ -2945,7 +3042,7 @@ function guardarMarcador(){
     alert('Este pasaje ya está en el cuaderno.'); return;
   }
   c.marcadores.unshift({id:'m'+Date.now(), pid:d.id, scroll, titulo:d.titulo||d.obra,
-    obra:d.obra, volumen:d.volumen, pagina:d.pagina, nota:'', fecha:Date.now()});
+    obra:d.obra, volumen:d.volumen, pagina:d.pagina, nota:'', tags:'', fecha:Date.now()});
   guardarCuaderno(c); pintarCuaderno();
   const b=document.getElementById('btn-cuaderno');
   if(b){ b.textContent='Guardado ✓'; setTimeout(()=>{ b.textContent='Guardar en el cuaderno'; }, 1800); }
@@ -2955,17 +3052,21 @@ function pintarCuaderno(){
   const c = leerCuaderno();
   const lista = document.getElementById('cuaderno-lista');
   if(lista){
-    const items = c.marcadores.map(m=>`<article class="cuaderno-item">
+    const f = (document.getElementById('filtro-etiquetas')?.value || '').trim().toLowerCase();
+    const marcadores = f ? c.marcadores.filter(m=>
+      [m.tags, m.nota, m.titulo, m.obra].some(x=>String(x||'').toLowerCase().includes(f))) : c.marcadores;
+    const items = marcadores.map(m=>`<article class="cuaderno-item">
       <p class="meta">${m.tipo==='mana' || m.tipo==='versiculo'
         ? esc(m.obra) + ' · ' + new Date(m.fecha).toLocaleDateString()
         : esc(m.obra) + (m.volumen?' · Tomo '+m.volumen:'') + ' · pág. ' + m.pagina + ' · ' + new Date(m.fecha).toLocaleDateString()}</p>
       <h3>${esc(m.titulo)}</h3>
       <textarea placeholder="Escribe aquí tu nota…" oninput="notaMarcador('${m.id}', this.value)">${esc(m.nota||'')}</textarea>
+      <input class="tags" type="text" placeholder="Etiquetas: fe, rescate, profecía…" value="${esc(m.tags||'')}" oninput="tagsMarcador('${m.id}', this.value)">
       <div class="acciones"><button onclick="abrirMarcador('${m.id}')">Abrir el pasaje</button>
       <button onclick="borrarMarcador('${m.id}')">Quitar</button></div>
     </article>`).join('');
-    lista.innerHTML = (c.marcadores.length ? '<h3 class="cuaderno-h3">Marcadores y notas</h3>'+items
-      : '<div class="vacio">Todavía no has guardado ningún pasaje. Abre una página o el maná del día y pulsa «Guardar en el cuaderno».</div>');
+    lista.innerHTML = (marcadores.length ? '<h3 class="cuaderno-h3">Marcadores y notas</h3>'+items
+      : '<div class="vacio">'+(f ? 'No hay marcadores con esa etiqueta.' : 'Todavía no has guardado ningún pasaje. Abre una página o el maná del día y pulsa «Guardar en el cuaderno».')+'</div>');
   }
   const hist = document.getElementById('cuaderno-historial');
   if(hist){
@@ -2987,6 +3088,10 @@ function abrirMarcador(id){
 function notaMarcador(id, txt){
   const c = leerCuaderno(); const m = c.marcadores.find(x=>x.id===id);
   if(m){ m.nota = txt; guardarCuaderno(c); }
+}
+function tagsMarcador(id, txt){
+  const c = leerCuaderno(); const m = c.marcadores.find(x=>x.id===id);
+  if(m){ m.tags = txt; guardarCuaderno(c); }
 }
 function borrarMarcador(id){
   const c = leerCuaderno(); c.marcadores = c.marcadores.filter(x=>x.id!==id);
@@ -3700,6 +3805,8 @@ async function abrirPagina(id, termino, conRef){
   };
   $('#btn-copiar').onclick = () => copiarCita($('#btn-copiar'));
   $('#btn-enlace').onclick = () => copiarEnlace($('#btn-enlace'));
+  const bc = $('#btn-compartir');
+  if(bc) bc.onclick = () => compartirParrafo(bc);
   $('#btn-reporte').onclick = () => abrirReporte();
   $('#btn-cuaderno').onclick = () => guardarMarcador();
   const be = document.getElementById('btn-escuchar');
@@ -4814,6 +4921,36 @@ function reproducirBlobVoz(blob, tok, btn){
 let ttsEstado = null;
 let ttsVelocidad = parseFloat(localStorage.getItem('bib_tts_vel') || '1') || 1;
 let ttsDormirTimer = null;
+let ttsContinuo = localStorage.getItem('bib_tts_continuo') === '1';
+let ttsContinuando = false;
+
+function continuarAudioSiguiente(){
+  if(!ttsContinuo || ttsContinuando) return false;
+  const d = window._paginaActualData; if(!d || !d.next) return false;
+  ttsContinuando = true;
+  const l = document.getElementById('lector');
+  const enLector = !!(l && l.classList.contains('abierto'));
+  const abrir = enLector ? abrirPagina(d.next) : abrirCapitulo(d.next);
+  Promise.resolve(abrir).then(()=>{
+    setTimeout(()=>{
+      const b = document.getElementById(enLector ? 'btn-escuchar' : 'pag-escuchar');
+      ttsContinuando = false;
+      if(b) b.click();
+    }, 800);
+  }).catch(()=>{ ttsContinuando = false; });
+  return true;
+}
+
+function leerAudioPos(pid){
+  try{ const o=JSON.parse(localStorage.getItem('bib_audio_pos_v1')||'null'); return (o && o.pid===pid) ? o : null; }catch(e){ return null; }
+}
+function guardarAudioPos(pid, i, time){
+  if(!pid) return;
+  try{ localStorage.setItem('bib_audio_pos_v1', JSON.stringify({pid, i, time: time||0, fecha: Date.now()})); }catch(e){}
+}
+function borrarAudioPos(pid){
+  try{ const o=JSON.parse(localStorage.getItem('bib_audio_pos_v1')||'null'); if(o && o.pid===pid) localStorage.removeItem('bib_audio_pos_v1'); }catch(e){}
+}
 
 function ttsProgramarDormir(min){
   if(ttsDormirTimer){ clearTimeout(ttsDormirTimer); ttsDormirTimer = null; }
@@ -4850,11 +4987,16 @@ function ttsPintar(){
   }
 }
 
-async function ttsIr(i){
+async function ttsIr(i, seek){
   const e = ttsEstado;
   if(!e) return;
   if(i < 0) i = 0;
-  if(i >= e.partes.length){ ttsDetener(); return; }
+  if(i >= e.partes.length){
+    if(continuarAudioSiguiente()) return;
+    const pidFin = window._paginaActualData && window._paginaActualData.id;
+    if(pidFin) borrarAudioPos(pidFin);
+    ttsDetener(true); return;
+  }
   e.i = i; e.pausado = false; ttsPintar();
   let blob = null;
   try{
@@ -4878,7 +5020,16 @@ async function ttsIr(i){
   try{ audio.preservesPitch = true; }catch(err){}
   e.audio = audio; ttsAudio = audio; ttsUrl = url;
   conectarAudio(audio);
-  audio.ontimeupdate = ttsPintar;
+  if(seek){
+    const aplicar = ()=>{ try{ audio.currentTime = Math.max(0, seek); }catch(err){} };
+    if(audio.readyState >= 1) aplicar();
+    else audio.addEventListener('loadedmetadata', aplicar, {once:true});
+  }
+  audio.ontimeupdate = ()=>{
+    ttsPintar();
+    const pid = window._paginaActualData && window._paginaActualData.id;
+    if(pid && Math.floor(audio.currentTime) % 5 === 0) guardarAudioPos(pid, e.i, audio.currentTime);
+  };
   audio.onended = ()=>{ if(e.tok === ttsToken) ttsIr(i + 1); };
   audio.onerror = ()=>{ if(e.tok === ttsToken) ttsIr(i + 1); };
   reanudarAudioCtx();
@@ -4904,11 +5055,20 @@ function ttsPausa(){
   const e = ttsEstado;
   if(!e || !e.audio) return;
   if(e.audio.paused){ e.audio.play().catch(()=>{}); e.pausado = false; }
-  else { e.audio.pause(); e.pausado = true; }
+  else {
+    e.audio.pause(); e.pausado = true;
+    const pid = window._paginaActualData && window._paginaActualData.id;
+    if(pid) guardarAudioPos(pid, e.i, e.audio.currentTime);
+  }
   ttsPintar();
 }
 
-function ttsDetener(){
+function ttsDetener(sinGuardar){
+  const e = ttsEstado;
+  if(!sinGuardar && e && e.audio){
+    const pid = window._paginaActualData && window._paginaActualData.id;
+    if(pid) guardarAudioPos(pid, e.i, e.audio.currentTime);
+  }
   ttsEstado = null;
   if(ttsDormirTimer){ clearTimeout(ttsDormirTimer); ttsDormirTimer = null; }
   const st = document.getElementById('tts-dormir-estado');
@@ -4937,7 +5097,11 @@ async function escucharTexto(texto, btn, etiqueta){
   const titulo = (h2 && h2.textContent.trim()) || et;
   ttsBarra(true, titulo);
   ttsPintar();
-  await ttsIr(0);
+  const pid = window._paginaActualData && window._paginaActualData.id;
+  const guardada = pid ? leerAudioPos(pid) : null;
+  const inicio = (guardada && guardada.i < partes.length) ? guardada.i : 0;
+  const desde = (guardada && guardada.i < partes.length) ? (guardada.time || 0) : 0;
+  await ttsIr(inicio, desde);
 }
 
 function ttsConectar(){
@@ -4960,6 +5124,11 @@ function ttsConectar(){
   }
   const dormir = document.getElementById('tts-dormir');
   if(dormir) dormir.onchange = ()=>ttsProgramarDormir(parseInt(dormir.value, 10) || 0);
+  const cont = document.getElementById('tts-continuo');
+  if(cont){
+    cont.checked = ttsContinuo;
+    cont.onchange = ()=>{ ttsContinuo = !!cont.checked; try{ localStorage.setItem('bib_tts_continuo', ttsContinuo ? '1' : '0'); }catch(e){} };
+  }
 }
 if(document.readyState === 'loading') document.addEventListener('DOMContentLoaded', ttsConectar);
 else ttsConectar();
@@ -5154,8 +5323,61 @@ $('#lector').querySelector('.cerrar').onclick = cerrarLector;
   }catch(err){}
 })();
 
-if ('serviceWorker' in navigator && (location.hostname === '127.0.0.1' || location.hostname === 'localhost')) {
-  navigator.serviceWorker.register('/sw.js', {updateViaCache:'none'}).then(r=>r.update()).catch(()=>{});
+let _instalarApp = null;
+function mostrarAvisoApp(texto, accion, etiqueta){
+  const c = document.getElementById('aviso-app');
+  const t = document.getElementById('aviso-texto');
+  const b = document.getElementById('aviso-accion');
+  if(!c || !t || !b) return;
+  t.textContent = texto;
+  b.hidden = !accion;
+  b.textContent = etiqueta || '';
+  b.onclick = ()=>{
+    if(accion === 'instalar' && _instalarApp){
+      _instalarApp.prompt();
+      _instalarApp.userChoice.finally(()=>{ _instalarApp = null; });
+    }else if(accion === 'actualizar'){
+      navigator.serviceWorker.getRegistration().then(reg=>{
+        if(reg && reg.waiting) reg.waiting.postMessage({type:'SKIP_WAITING'});
+        setTimeout(()=>location.reload(), 250);
+      }).catch(()=>location.reload());
+    }
+  };
+  c.hidden = false;
+}
+function cerrarAvisoApp(){
+  const c = document.getElementById('aviso-app');
+  if(c) c.hidden = true;
+}
+window.addEventListener('beforeinstallprompt', e=>{
+  e.preventDefault();
+  _instalarApp = e;
+  mostrarAvisoApp('Instala la biblioteca en tu equipo', 'instalar', 'Instalar');
+});
+window.addEventListener('offline', ()=>mostrarAvisoApp('Sin conexión: se usa la copia guardada', '', ''));
+window.addEventListener('online', cerrarAvisoApp);
+const _avisoCerrar = document.getElementById('aviso-cerrar');
+if(_avisoCerrar) _avisoCerrar.onclick = cerrarAvisoApp;
+
+if ('serviceWorker' in navigator && (location.protocol === 'https:' || location.hostname === '127.0.0.1' || location.hostname === 'localhost')) {
+  navigator.serviceWorker.register('/sw.js', {updateViaCache:'none'}).then(reg=>{
+    reg.update().catch(()=>{});
+    const revisar = ()=>{
+      if(reg.waiting && navigator.serviceWorker.controller){
+        mostrarAvisoApp('Hay una actualización disponible', 'actualizar', 'Recargar');
+      }
+    };
+    revisar();
+    reg.addEventListener('updatefound', ()=>{
+      const nw = reg.installing;
+      if(!nw) return;
+      nw.addEventListener('statechange', ()=>{
+        if(nw.state === 'installed' && navigator.serviceWorker.controller){
+          mostrarAvisoApp('Hay una actualización disponible', 'actualizar', 'Recargar');
+        }
+      });
+    });
+  }).catch(()=>{});
 }
 
 /* ===== Vista rápida de citas al pasar el cursor ===== */
@@ -5394,6 +5616,12 @@ document.addEventListener('DOMContentLoaded', ()=>{
   aplicarTipografia();
   pintarContinuar();
   pintarBusquedas();
+  const sa = document.getElementById('anio-palabra');
+  if(sa && sa.options.length === 1){
+    for(let y = 1916; y >= 1879; y--){
+      const o = document.createElement('option'); o.value = String(y); o.textContent = String(y); sa.appendChild(o);
+    }
+  }
   const rc = document.getElementById('reporte-cancelar');
   if(rc) rc.onclick = cerrarReporte;
   const re = document.getElementById('reporte-enviar');
@@ -5404,6 +5632,10 @@ document.addEventListener('DOMContentLoaded', ()=>{
   if(rc2) rc2.onclick = cerrarReportes;
   const rm2 = document.getElementById('reportes-modal');
   if(rm2) rm2.addEventListener('click', e=>{ if(e.target === rm2) cerrarReportes(); });
+  const pc = document.getElementById('progreso-cerrar');
+  if(pc) pc.onclick = cerrarProgreso;
+  const pm = document.getElementById('progreso-modal');
+  if(pm) pm.addEventListener('click', e=>{ if(e.target === pm) cerrarProgreso(); });
   const b1 = document.getElementById('btn-aa');
   const b2 = document.getElementById('lector-aa');
   const bv = document.getElementById('btn-vol');
@@ -5480,6 +5712,19 @@ if(location.hash==='#testclose'){
   },900);
 }
 </script>
+<div id="aviso-app" hidden role="status">
+  <span id="aviso-texto"></span>
+  <button type="button" id="aviso-accion" hidden></button>
+  <button type="button" id="aviso-cerrar" aria-label="Cerrar aviso">×</button>
+</div>
+<div id="progreso-modal" hidden role="dialog" aria-modal="true" aria-labelledby="progreso-titulo">
+  <div class="reportes-caja">
+    <h3 id="progreso-titulo">Progreso de la biblioteca</h3>
+    <p class="pista" id="progreso-resumen"></p>
+    <div id="progreso-lista"></div>
+    <div class="reporte-acciones"><button type="button" id="progreso-cerrar">Cerrar</button></div>
+  </div>
+</div>
 <div id="reportes-modal" hidden role="dialog" aria-modal="true" aria-labelledby="reportes-titulo">
   <div class="reportes-caja">
     <h3 id="reportes-titulo">Reportes de errores</h3>
@@ -5516,6 +5761,7 @@ if(location.hash==='#testclose'){
         <option value="30">30 min</option><option value="60">60 min</option>
       </select>
     </label>
+    <label><input type="checkbox" id="tts-continuo"> Continuo</label>
     <span id="tts-dormir-estado"></span>
   </div>
   <div class="tts-botones">

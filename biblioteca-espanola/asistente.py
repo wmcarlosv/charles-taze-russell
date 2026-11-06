@@ -288,7 +288,7 @@ def biblia_buscar(q, libro=None, limite=40, offset=0):
             'resultados': [{'libro': f['libro'], 'capitulo': f['capitulo'], 'versiculo': f['versiculo'],
                             'texto': f['texto'], 'extracto': contexto(f['texto'], terminos, 190)} for f in filas]}
 
-def buscar(q, limite=40, offset=0, obra=None, orden=''):
+def buscar(q, limite=40, offset=0, obra=None, orden='', anio=None):
     fq = fts_query(q)
     if not fq:
         return {'total': 0, 'resultados': []}
@@ -297,6 +297,9 @@ def buscar(q, limite=40, offset=0, obra=None, orden=''):
     if obra:
         filtro = ' AND p.titulo_obra = ?'
         params.append(obra)
+    if anio:
+        filtro += ' AND p.titulo LIKE ?'
+        params.append('%' + str(anio) + '%')
     con = conectar()
     total = con.execute(
         'SELECT count(*) FROM busqueda b JOIN paginas p ON p.id=b.rowid WHERE busqueda MATCH ?' + filtro,
@@ -1213,7 +1216,8 @@ class Manejador(BaseHTTPRequestHandler):
                 off = entero(q, 'offset', 0, 0)
                 lim = entero(q, 'limit', 40, 1, 100)
                 orden = q.get('orden', [''])[0]
-                return self._json(buscar(texto, limite=lim, offset=off, obra=obra, orden=orden))
+                return self._json(buscar(texto, limite=lim, offset=off, obra=obra, orden=orden,
+                                         anio=q.get('anio', [None])[0] or None))
             if ruta == '/api/pagina':
                 r = pagina(entero(q, 'id'))
                 return self._json(r or {'error': 'no encontrada'})
@@ -1326,6 +1330,22 @@ class Manejador(BaseHTTPRequestHandler):
                 return self._json({'id': f['id'], 'termino': f['termino'], 'termino_es': f['termino_es'] or f['termino'],
                                    'nrefs': f['nrefs'], 'lineas': lineas_es, 'lineas_en': lineas, 'refs': refs,
                                    'foto': foto, 'obras': obras})
+            if ruta == '/api/progreso':
+                con = conectar()
+                obras = con.execute(
+                    'SELECT p.titulo_obra, count(DISTINCT p.id) paginas, count(c.id) citas '
+                    'FROM paginas p LEFT JOIN citas c ON c.pagina_id=p.id '
+                    'GROUP BY p.titulo_obra ORDER BY paginas DESC').fetchall()
+                total_pag = con.execute('SELECT count(*) FROM paginas').fetchone()[0]
+                total_cit = con.execute('SELECT count(*) FROM citas').fetchone()[0]
+                total_tem = con.execute('SELECT count(*) FROM temas').fetchone()[0]
+                try:
+                    pend = con.execute('SELECT count(*) FROM reportes WHERE resuelto=0').fetchone()[0]
+                except sqlite3.OperationalError:
+                    pend = 0
+                con.close()
+                return self._json({'obras': [dict(f) for f in obras], 'paginas': total_pag,
+                                   'citas': total_cit, 'temas': total_tem, 'reportes': pend})
             if ruta == '/api/reportes':
                 con = conectar()
                 self._asegurar_reportes(con)

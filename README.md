@@ -19,8 +19,10 @@ Sitio público: <https://charlestazerussell.online/>
 - **Copiar enlace** al párrafo exacto y **copiar cita** con obra, artículo y página.
 - **Continuar donde lo dejé**: recupera el último capítulo y la posición de lectura.
 - **Controles de lectura**: fuente, tamaño, interlineado y ancho de columna.
-- **Búsquedas guardadas** para repetir consultas frecuentes.
-- **Audio** con velocidad ajustable (0,8×–1,5×) y temporizador para dormir.
+- **Búsquedas guardadas** y filtro por año para repetir consultas frecuentes.
+- **Panel de progreso** con páginas, citas y temas por obra.
+- **Audio** con velocidad ajustable (0,8×–1,5×), temporizador, reproducción continua y reanudación de la posición.
+- **Uso sin conexión**: la aplicación se instala como PWA, avisa de actualizaciones y muestra cuándo está sin conexión.
 
 ## Estructura
 
@@ -122,3 +124,15 @@ La pestaña **Preguntar** responde con los propios textos de la biblioteca:
 - Sugiere temas del índice temático y permite copiar la cita.
 - **Funciona sin internet**: todo se calcula en el equipo.
 
+
+## Copias de seguridad
+
+`biblioteca-espanola/backup-biblioteca.sh` guarda una copia comprimida diaria de la base en
+`~/Copias/Biblioteca` y conserva las 14 más recientes. Se puede programar con un timer de systemd:
+
+```ini
+# ~/.config/systemd/user/biblioteca-backup.timer
+[Timer]
+OnCalendar=daily
+Persistent=true
+```
