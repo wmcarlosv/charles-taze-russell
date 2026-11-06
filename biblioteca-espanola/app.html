@@ -1044,7 +1044,24 @@
   .tts-botones #tts-stop{background:rgba(201,162,39,.22);border-color:rgba(201,162,39,.6);margin-left:8px}
   .tts-botones #tts-pausa{width:56px;background:var(--oro);color:#14243f;border-color:var(--oro);font-weight:700}
   .tts-botones #tts-pausa:hover{background:#efd489}
-  @media(max-width:520px){.tts-barra{bottom:8px;padding:8px 10px 6px}.tts-botones button{width:42px;height:38px}}
+  .tts-opciones{display:flex;align-items:center;justify-content:center;gap:14px;flex-wrap:wrap;margin:0 0 8px;font-size:.72em;color:#d8c79c}
+  .tts-opciones label{display:flex;align-items:center;gap:5px}
+  .tts-opciones select{font:inherit;font-size:1em;background:rgba(255,255,255,.08);color:#f7efd9;border:1px solid rgba(255,255,255,.28);border-radius:7px;padding:3px 5px}
+  .tts-opciones select option{color:#14243f}
+  #tts-dormir-estado{color:var(--oro);font-weight:700}
+  .par-destino{background:#fff3a8;border-radius:4px;box-shadow:0 0 0 4px #fff3a8;transition:background .4s,box-shadow .4s}
+  html[data-tema="noche"] .par-destino{background:#5b5220;box-shadow:0 0 0 4px #5b5220}
+  #reporte-modal{position:fixed;inset:0;z-index:130;background:rgba(12,24,44,.58);display:flex;align-items:center;justify-content:center;padding:18px}
+  #reporte-modal[hidden]{display:none}
+  .reporte-caja{width:min(560px,96vw);background:var(--papel);color:var(--tinta);border:1px solid var(--linea);border-radius:14px;box-shadow:0 24px 60px -20px rgba(0,0,0,.6);padding:18px 20px 16px}
+  .reporte-caja h3{margin:0 0 8px;color:var(--azul)}
+  .reporte-caja .pista{margin:0 0 8px}
+  .reporte-caja textarea{width:100%;min-height:110px;font:inherit;font-size:.92em;line-height:1.5;padding:9px 10px;border:1px solid var(--linea);border-radius:8px;background:#fff;color:var(--tinta);resize:vertical}
+  .reporte-caja .reporte-acciones{display:flex;justify-content:flex-end;gap:10px;margin-top:10px}
+  .reporte-caja button{font:inherit;font-size:.86em;padding:7px 14px;border-radius:20px;border:1px solid var(--linea);background:#fff;color:var(--azul);cursor:pointer}
+  .reporte-caja button.principal{background:var(--azul);color:#fff;border-color:var(--azul)}
+  .reporte-caja button:disabled{opacity:.55;cursor:wait}
+  @media(max-width:520px){.tts-barra{bottom:8px;padding:8px 10px 6px}.tts-botones button{width:42px;height:38px}.reporte-caja{padding:14px}}
 </style>
 </head>
 <body>
@@ -2463,6 +2480,198 @@ function irInicio(){
   window.scrollTo({top:0,behavior:'smooth'});
 }
 
+
+/* ===== Enlaces profundos, reportes y continuar lectura ===== */
+function marcarParrafos(cont, prefix){
+  if(!cont) return;
+  [...cont.children].forEach((el,i)=>{ el.id = prefix + '-' + i; el.dataset.par = i; });
+}
+
+function contenedorLectura(){
+  const l = document.getElementById('lector');
+  if(l && l.classList.contains('abierto')){
+    return {cont: document.getElementById('lector-texto'), prefix: 'lpar', top: l.getBoundingClientRect().top + 12};
+  }
+  const c = document.querySelector('#pagina .lectura-texto');
+  return c ? {cont: c, prefix: 'ilec', top: 80} : null;
+}
+
+function parrafoActual(){
+  const ctx = contenedorLectura();
+  if(!ctx || !ctx.cont) return null;
+  const els = [...ctx.cont.children];
+  if(!els.length) return null;
+  let mejor = 0, dist = Infinity;
+  els.forEach((el,i)=>{
+    const d = Math.abs(el.getBoundingClientRect().top - ctx.top);
+    if(d < dist){ dist = d; mejor = i; }
+  });
+  return {el: els[mejor], idx: mejor, prefix: ctx.prefix};
+}
+
+function irAParrafo(prefix, idx){
+  const el = document.getElementById(prefix + '-' + idx);
+  if(!el) return;
+  el.scrollIntoView({block:'start', behavior:'smooth'});
+  el.classList.add('par-destino');
+  setTimeout(()=>el.classList.remove('par-destino'), 2600);
+}
+
+function enlaceParrafoActual(){
+  const d = window._paginaActualData;
+  if(!d || !d.id) return '';
+  const p = parrafoActual();
+  return location.origin + location.pathname + '?pagina=' + d.id + (p ? '&p=' + p.idx : '');
+}
+
+function citaParrafoActual(){
+  const d = window._paginaActualData;
+  if(!d || !d.id) return '';
+  const p = parrafoActual();
+  let extra = '';
+  if(p){
+    const t = p.el.textContent || '';
+    const ov = (t.match(/\[\[(OV\d+)\]\]/) || [])[1];
+    const rr = (t.match(/\[(R\d+[^\]]*)\]/) || [])[1];
+    if(ov) extra = ' · ' + ov;
+    else if(rr) extra = ' · ' + rr;
+  }
+  return `${d.obra}${d.volumen ? ' · Tomo ' + d.volumen : ''} — ${d.titulo || ''}, p. ${d.pagina}${extra}`;
+}
+
+function copiarEnlace(btn){
+  const url = enlaceParrafoActual();
+  if(!url) return;
+  const listo = ()=>{ if(btn){ const t = btn.textContent; btn.textContent = 'Enlace copiado'; setTimeout(()=>{ btn.textContent = t; }, 1800); } };
+  if(navigator.clipboard && navigator.clipboard.writeText){
+    navigator.clipboard.writeText(url).then(listo).catch(()=>prompt('Copia este enlace:', url));
+  } else prompt('Copia este enlace:', url);
+}
+
+function copiarCita(btn){
+  const cita = citaParrafoActual();
+  if(!cita) return;
+  const listo = ()=>{ if(btn){ const t = btn.textContent; btn.textContent = 'Cita copiada'; setTimeout(()=>{ btn.textContent = t; }, 1800); } };
+  if(navigator.clipboard && navigator.clipboard.writeText){
+    navigator.clipboard.writeText(cita).then(listo).catch(()=>prompt('Copia esta cita:', cita));
+  } else prompt('Copia esta cita:', cita);
+}
+
+function abrirReporte(){
+  const d = window._paginaActualData;
+  if(!d || !d.id) return;
+  const p = parrafoActual();
+  const sel = (window.getSelection ? String(window.getSelection()).trim() : '').slice(0, 1000);
+  window._reporteDatos = {pid: d.id, texto: p ? (p.el.textContent || '').slice(0, 5000) : '', seleccion: sel};
+  const ctx = document.getElementById('reporte-contexto');
+  if(ctx){
+    ctx.textContent = `${d.obra} · ${d.titulo || ''} · p. ${d.pagina}` +
+      (sel ? ` · Selección: «${sel.slice(0, 140)}»` : '');
+  }
+  const ta = document.getElementById('reporte-comentario');
+  if(ta) ta.value = '';
+  const m = document.getElementById('reporte-modal');
+  if(m) m.hidden = false;
+  setTimeout(()=>{ if(ta) ta.focus(); }, 60);
+}
+
+function cerrarReporte(){
+  const m = document.getElementById('reporte-modal');
+  if(m) m.hidden = true;
+  window._reporteDatos = null;
+}
+
+async function enviarReporte(){
+  const datos = window._reporteDatos;
+  const ta = document.getElementById('reporte-comentario');
+  const comentario = ta ? ta.value.trim() : '';
+  if(!datos || !comentario){ if(ta) ta.focus(); return; }
+  const b = document.getElementById('reporte-enviar');
+  if(b){ b.disabled = true; b.textContent = 'Enviando…'; }
+  try{
+    const r = await fetch('/api/reportar', {method:'POST', headers:{'Content-Type':'application/json'},
+      body: JSON.stringify({...datos, comentario})});
+    const res = await r.json().catch(()=>({}));
+    if(!r.ok) throw new Error(res.error || 'No se pudo enviar');
+    if(b){ b.textContent = 'Enviado ✓'; }
+    setTimeout(()=>{ cerrarReporte(); if(b){ b.disabled = false; b.textContent = 'Enviar reporte'; } }, 900);
+  }catch(e){
+    alert('No se pudo enviar el reporte: ' + e.message);
+    if(b){ b.disabled = false; b.textContent = 'Enviar reporte'; }
+  }
+}
+
+function leerContinuar(){
+  try{ return JSON.parse(localStorage.getItem('bib_continuar_v1') || 'null'); }catch(e){ return null; }
+}
+
+function pintarContinuar(){
+  const t = document.getElementById('tarjeta-continuar');
+  if(!t) return;
+  const tit = t.querySelector('.td-titulo');
+  const txt = t.querySelector('.td-texto');
+  const b = document.getElementById('continuar-btn');
+  if(!tit || !txt || !b) return;
+  const c = leerContinuar();
+  if(c && c.id){
+    tit.textContent = c.titulo || 'Continuar la lectura';
+    txt.textContent = [c.obra, c.pagina ? 'p. ' + c.pagina : '',
+      c.fecha ? new Date(c.fecha).toLocaleDateString() : ''].filter(Boolean).join(' · ');
+    b.disabled = false;
+    b.textContent = 'Continuar leyendo';
+    b.onclick = continuarLectura;
+    return;
+  }
+  let h = null;
+  try{ h = (leerCuaderno().historial || [])[0]; }catch(e){}
+  if(h && h.pid){
+    tit.textContent = h.titulo || 'Continuar la lectura';
+    txt.textContent = [h.obra, h.pagina ? 'p. ' + h.pagina : ''].filter(Boolean).join(' · ');
+    b.disabled = false;
+    b.textContent = 'Continuar leyendo';
+    b.onclick = () => abrirPagina(h.pid);
+  } else {
+    tit.textContent = 'Empieza por el Foto-Drama';
+    txt.textContent = '102 capítulos con texto e ilustraciones para descubrir.';
+    b.disabled = false;
+    b.textContent = 'Abrir el Foto-Drama';
+    b.onclick = () => abrirObra('Foto-Drama de la Creación');
+  }
+}
+
+function guardarContinuar(){
+  const d = window._paginaActualData;
+  if(!d || !d.id) return;
+  const l = document.getElementById('lector');
+  const abierto = !!(l && l.classList.contains('abierto'));
+  const panel = document.querySelector('.panel.activo');
+  if(!abierto && (!panel || panel.id !== 'p-leer')) return;
+  const scroll = abierto ? (l.scrollTop || 0) : (window.scrollY || 0);
+  const c = {id:d.id, titulo:d.titulo || d.obra, obra:d.obra, volumen:d.volumen,
+             pagina:d.pagina, tipo: abierto ? 'lector' : 'capitulo', scroll, fecha:Date.now()};
+  try{ localStorage.setItem('bib_continuar_v1', JSON.stringify(c)); }catch(e){}
+  pintarContinuar();
+}
+
+function continuarLectura(){
+  const c = leerContinuar();
+  if(!c || !c.id) return;
+  if(c.tipo === 'lector'){
+    abrirPagina(c.id).then(()=>setTimeout(()=>{
+      const l = document.getElementById('lector');
+      if(l) l.scrollTop = c.scroll || 0;
+    }, 700));
+  }else{
+    abrirCapitulo(c.id).then(()=>setTimeout(()=>window.scrollTo({top:c.scroll || 0, behavior:'auto'}), 700));
+  }
+}
+
+let _contTimer = null;
+window.addEventListener('scroll', ()=>{
+  clearTimeout(_contTimer);
+  _contTimer = setTimeout(guardarContinuar, 700);
+}, true);
+
 async function abrirCapitulo(id, restaurar){
   pararAudio();
   const c=$('#pagina');
@@ -2471,6 +2680,7 @@ async function abrirCapitulo(id, restaurar){
   try{ d = await traerJSON('/api/pagina?id='+id); }
   catch(e){ c.innerHTML='<div class="vacio">No se pudo cargar el capítulo. Revisa la conexión.</div>'; return; }
   if(d.error){ c.innerHTML='<div class="vacio">No encontrada.</div>'; return; }
+  window._paginaActualData = d;
   window._dialogo = detectarDialogo(d.texto || '');
   const palabras = (d.texto || '').split(/\s+/).filter(Boolean).length;
   const minutos = Math.max(1, Math.round(palabras / 200));
@@ -2480,7 +2690,10 @@ async function abrirCapitulo(id, restaurar){
       <button class="link" onclick="irInicio()" style="font-size:1.1em">← Inicio</button></p>
     <h2>${esc(d.titulo)}</h2>
     <p class="lectura-meta"><span>${palabras.toLocaleString('es')} palabras</span><span>·</span><span>${minutos} min de lectura</span>${d.citas && d.citas.length ? '<span>·</span><span>'+d.citas.length+' citas</span>' : ''}</p>
-    <p class="lectura-acciones"><button class="link btn-audio" type="button" id="pag-escuchar" data-etiqueta="Escuchar capítulo"><svg class="ico-audio" viewBox="0 0 24 24" aria-hidden="true" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M3 14v-2a9 9 0 0 1 18 0v2"/><path d="M3 14a2 2 0 0 1 2-2h1v6H5a2 2 0 0 1-2-2z"/><path d="M21 14a2 2 0 0 0-2-2h-1v6h1a2 2 0 0 0 2-2z"/></svg> Escuchar capítulo</button></p>
+    <p class="lectura-acciones"><button class="link btn-audio" type="button" id="pag-escuchar" data-etiqueta="Escuchar capítulo"><svg class="ico-audio" viewBox="0 0 24 24" aria-hidden="true" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M3 14v-2a9 9 0 0 1 18 0v2"/><path d="M3 14a2 2 0 0 1 2-2h1v6H5a2 2 0 0 1-2-2z"/><path d="M21 14a2 2 0 0 0-2-2h-1v6h1a2 2 0 0 0 2-2z"/></svg> Escuchar capítulo</button>
+      <button class="link" type="button" onclick="copiarEnlace(this)">Copiar enlace</button>
+      <button class="link" type="button" onclick="copiarCita(this)">Copiar cita</button>
+      <button class="link" type="button" onclick="abrirReporte()">Reportar error</button></p>
   </div>`;
   if(d.resumen && d.resumen.length){
     const puntos = d.resumen.flatMap(x=>String(x).split(/\s+-\s+/)).map(x=>x.trim()).filter(Boolean);
@@ -2494,9 +2707,11 @@ async function abrirCapitulo(id, restaurar){
     <button class="link" ${d.next?'':'disabled style="visibility:hidden"'} onclick="abrirCapitulo(${d.next||0})">Siguiente →</button>
   </div>`;
   c.innerHTML=html;
+  marcarParrafos(c.querySelector('.lectura-texto'), 'ilec');
   marcarTitulos(c.querySelector('.lectura-texto'));
   const pagEsc = document.getElementById('pag-escuchar');
   if(pagEsc) pagEsc.onclick = () => escucharTexto(d.texto || '', pagEsc, 'Escuchar capítulo');
+  guardarContinuar();
   const hs = [...c.querySelectorAll('h4')];
   if(hs.length >= 2){
     hs.forEach((h, i) => h.id = 'ilec-' + i);
@@ -3333,6 +3548,7 @@ async function abrirPagina(id, termino, conRef){
   } else { rz.innerHTML=''; }
   window._dialogo = detectarDialogo(d.texto || '');
   $('#lector-texto').innerHTML = d.bloques.map(b=>bloque(d.texto, b, d.citas)).join('');
+  marcarParrafos(document.getElementById('lector-texto'), 'lpar');
   marcarTitulos(document.getElementById('lector-texto'));
   marcarReferencias();
   const hs = [...document.querySelectorAll('#lector-texto h4')];
@@ -3362,7 +3578,9 @@ async function abrirPagina(id, termino, conRef){
   bp.onclick = () => d.prev && abrirPagina(d.prev, terminoBusqueda, !!referenciaBusqueda);
   bn.onclick = () => d.next && abrirPagina(d.next, terminoBusqueda, !!referenciaBusqueda);
   const acc = $('#lector-acciones');
-  acc.innerHTML = `<button class="link" id="btn-copiar">Copiar referencia</button>` +
+  acc.innerHTML = `<button class="link" id="btn-copiar">Copiar cita</button>` +
+    `<button class="link" id="btn-enlace">Copiar enlace</button>` +
+    `<button class="link" id="btn-reporte">Reportar error</button>` +
     `<button class="link" id="btn-cuaderno">Guardar en el cuaderno</button>` +
     `<button class="link btn-audio" id="btn-escuchar" data-etiqueta="Escuchar capítulo"><svg class="ico-audio" viewBox="0 0 24 24" aria-hidden="true" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M3 14v-2a9 9 0 0 1 18 0v2"/><path d="M3 14a2 2 0 0 1 2-2h1v6H5a2 2 0 0 1-2-2z"/><path d="M21 14a2 2 0 0 0-2-2h-1v6h1a2 2 0 0 0 2-2z"/></svg> Escuchar capítulo</button>` +
     `<button class="link" id="btn-descargar">Descargar capítulo</button>` +
@@ -3376,10 +3594,9 @@ async function abrirPagina(id, termino, conRef){
     bo.textContent = verOriginal ? 'Volver a la traducción' : 'Ver texto original en inglés';
     bo.dataset.modo = verOriginal ? 'es' : 'en';
   };
-  $('#btn-copiar').onclick = () => {
-    const ref = `${d.obra}${d.volumen?', vol. '+d.volumen:''}, p. ${d.pagina}`;
-    navigator.clipboard.writeText(ref).then(()=>{ $('#btn-copiar').textContent='Copiado'; });
-  };
+  $('#btn-copiar').onclick = () => copiarCita($('#btn-copiar'));
+  $('#btn-enlace').onclick = () => copiarEnlace($('#btn-enlace'));
+  $('#btn-reporte').onclick = () => abrirReporte();
   $('#btn-cuaderno').onclick = () => guardarMarcador();
   const be = document.getElementById('btn-escuchar');
   if(be) be.onclick = () => escucharTexto((d.texto || '').replace(/\[[A-Z]\d+\]/g, ''), be, 'Escuchar capítulo');
@@ -3399,6 +3616,7 @@ async function abrirPagina(id, termino, conRef){
   actualizarVolver();
   window._bloques = d.bloques;
   guardarLecturaLector(id, d, l.scrollTop || 0);
+  guardarContinuar();
   if(window._posDestino!=null){
     let pos = window._posDestino; window._posDestino = null;
     const ctx = window._ctxDestino; window._ctxDestino = null;
@@ -4040,30 +4258,6 @@ function conectarHero(){
   if(f) f.onclick = () => abrirObra('Foto-Drama de la Creación');
 }
 
-function pintarContinuar(){
-  const t = document.getElementById('tarjeta-continuar');
-  if(!t) return;
-  let h = null;
-  try{ const c = leerCuaderno(); h = (c.historial || [])[0]; }catch(e){}
-  const tit = t.querySelector('.td-titulo');
-  const txt = t.querySelector('.td-texto');
-  const b = document.getElementById('continuar-btn');
-  if(!tit || !txt || !b) return;
-  if(h && h.pid){
-    tit.textContent = h.titulo || 'Continuar la lectura';
-    txt.textContent = [h.obra, h.pagina ? 'p. ' + h.pagina : ''].filter(Boolean).join(' · ');
-    b.disabled = false;
-    b.textContent = 'Continuar leyendo';
-    b.onclick = () => abrirPagina(h.pid);
-  } else {
-    tit.textContent = 'Empieza por el Foto-Drama';
-    txt.textContent = '102 capítulos con texto e ilustraciones para descubrir.';
-    b.disabled = false;
-    b.textContent = 'Abrir el Foto-Drama';
-    b.onclick = () => abrirObra('Foto-Drama de la Creación');
-  }
-}
-
 async function pintarTesoro(){
   const img = document.getElementById('tesoro-img');
   const tit = document.getElementById('tesoro-titulo');
@@ -4514,6 +4708,22 @@ function reproducirBlobVoz(blob, tok, btn){
 }
 
 let ttsEstado = null;
+let ttsVelocidad = parseFloat(localStorage.getItem('bib_tts_vel') || '1') || 1;
+let ttsDormirTimer = null;
+
+function ttsProgramarDormir(min){
+  if(ttsDormirTimer){ clearTimeout(ttsDormirTimer); ttsDormirTimer = null; }
+  const st = document.getElementById('tts-dormir-estado');
+  if(st) st.textContent = '';
+  if(min > 0){
+    ttsDormirTimer = setTimeout(()=>{
+      ttsPausa();
+      const e = document.getElementById('tts-dormir-estado');
+      if(e) e.textContent = 'Pausado';
+    }, min * 60000);
+    if(st) st.textContent = '⏱ ' + min + ' min';
+  }
+}
 
 function ttsBarra(mostrar, titulo){
   const b = document.getElementById('tts-barra');
@@ -4560,6 +4770,8 @@ async function ttsIr(i){
   if(ttsUrl){ try{ URL.revokeObjectURL(ttsUrl); }catch(err){} ttsUrl = null; }
   const url = URL.createObjectURL(blob);
   const audio = new Audio(url);
+  audio.playbackRate = ttsVelocidad;
+  try{ audio.preservesPitch = true; }catch(err){}
   e.audio = audio; ttsAudio = audio; ttsUrl = url;
   conectarAudio(audio);
   audio.ontimeupdate = ttsPintar;
@@ -4594,6 +4806,11 @@ function ttsPausa(){
 
 function ttsDetener(){
   ttsEstado = null;
+  if(ttsDormirTimer){ clearTimeout(ttsDormirTimer); ttsDormirTimer = null; }
+  const st = document.getElementById('tts-dormir-estado');
+  if(st) st.textContent = '';
+  const sd = document.getElementById('tts-dormir');
+  if(sd) sd.value = '0';
   pararAudio();
 }
 
@@ -4628,6 +4845,17 @@ function ttsConectar(){
   if(adelante) adelante.onclick = ()=>ttsSaltar(15);
   if(pausa) pausa.onclick = ttsPausa;
   if(stop) stop.onclick = ttsDetener;
+  const vel = document.getElementById('tts-velocidad');
+  if(vel){
+    vel.value = String(ttsVelocidad);
+    vel.onchange = ()=>{
+      ttsVelocidad = parseFloat(vel.value) || 1;
+      try{ localStorage.setItem('bib_tts_vel', String(ttsVelocidad)); }catch(e){}
+      if(ttsEstado && ttsEstado.audio) ttsEstado.audio.playbackRate = ttsVelocidad;
+    };
+  }
+  const dormir = document.getElementById('tts-dormir');
+  if(dormir) dormir.onchange = ()=>ttsProgramarDormir(parseInt(dormir.value, 10) || 0);
 }
 if(document.readyState === 'loading') document.addEventListener('DOMContentLoaded', ttsConectar);
 else ttsConectar();
@@ -4796,7 +5024,13 @@ $('#lector').querySelector('.cerrar').onclick = cerrarLector;
     if(p.get('marca')) window._marcaDestino = p.get('marca');
     if(p.get('cpos')) window._posDestino = parseInt(p.get('cpos'),10);
     if(p.get('pos')) window._posLectura = parseInt(p.get('pos'),10);
-    if(p.get('pagina')) abrirPagina(parseInt(p.get('pagina'),10), p.get('q')||null, !!p.get('ref'));
+    if(p.get('pagina')){
+      const pid = parseInt(p.get('pagina'),10);
+      const par = parseInt(p.get('p'),10);
+      abrirPagina(pid, p.get('q')||null, !!p.get('ref')).then(()=>{
+        if(!Number.isNaN(par)) setTimeout(()=>irAParrafo('lpar', par), 900);
+      });
+    }
     if(p.get('obra')) abrirObra(p.get('obra'));
     if(document.querySelector('.panel.activo').id === 'p-hoy') pintarHoy();
     conectarHero();
@@ -5042,6 +5276,13 @@ function cerrarCfg(){
 document.addEventListener('DOMContentLoaded', ()=>{
   pintarFuentes();
   aplicarTipografia();
+  pintarContinuar();
+  const rc = document.getElementById('reporte-cancelar');
+  if(rc) rc.onclick = cerrarReporte;
+  const re = document.getElementById('reporte-enviar');
+  if(re) re.onclick = enviarReporte;
+  const rm = document.getElementById('reporte-modal');
+  if(rm) rm.addEventListener('click', e=>{ if(e.target === rm) cerrarReporte(); });
   const b1 = document.getElementById('btn-aa');
   const b2 = document.getElementById('lector-aa');
   const bv = document.getElementById('btn-vol');
@@ -5106,9 +5347,36 @@ if(location.hash==='#testclose'){
   },900);
 }
 </script>
+<div id="reporte-modal" hidden role="dialog" aria-modal="true" aria-labelledby="reporte-titulo">
+  <div class="reporte-caja">
+    <h3 id="reporte-titulo">Reportar un error</h3>
+    <p class="pista" id="reporte-contexto"></p>
+    <textarea id="reporte-comentario" placeholder="Describe el error: palabra repetida, referencia abreviada, frase sin sentido, traducción…"></textarea>
+    <p class="pista" style="margin:8px 0 0">Se guardará con la obra, el artículo, la página y el párrafo para poder corregirlo.</p>
+    <div class="reporte-acciones">
+      <button type="button" id="reporte-cancelar">Cancelar</button>
+      <button type="button" class="principal" id="reporte-enviar">Enviar reporte</button>
+    </div>
+  </div>
+</div>
 <div id="tts-barra" class="tts-barra" hidden role="region" aria-label="Reproductor de lectura">
   <div class="tts-fila"><span class="tts-titulo" id="tts-titulo">Lectura</span><span class="tts-parte" id="tts-parte"></span></div>
   <div class="tts-prog"><i id="tts-prog"></i></div>
+  <div class="tts-opciones">
+    <label>Velocidad
+      <select id="tts-velocidad" aria-label="Velocidad de lectura">
+        <option value="0.8">0,8×</option><option value="1" selected>1×</option>
+        <option value="1.15">1,15×</option><option value="1.3">1,3×</option><option value="1.5">1,5×</option>
+      </select>
+    </label>
+    <label>Dormir
+      <select id="tts-dormir" aria-label="Temporizador para dormir">
+        <option value="0">No</option><option value="15">15 min</option>
+        <option value="30">30 min</option><option value="60">60 min</option>
+      </select>
+    </label>
+    <span id="tts-dormir-estado"></span>
+  </div>
   <div class="tts-botones">
     <button type="button" id="tts-atras" title="Atrás 15 segundos" aria-label="Atrás">⏪</button>
     <button type="button" id="tts-pausa" title="Pausa" aria-label="Pausa">⏸</button>

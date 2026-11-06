@@ -12,6 +12,13 @@ Biblioteca digital en español de las obras de Charles Taze Russell:
 
 Sitio público: <https://charlestazerussell.online/>
 
+## Herramientas de lectura
+
+- **Reportar error** desde el lector: guarda obra, artículo, página, párrafo y comentario para su corrección.
+- **Copiar enlace** al párrafo exacto y **copiar cita** con obra, artículo y página.
+- **Continuar donde lo dejé**: recupera el último capítulo y la posición de lectura.
+- **Audio** con velocidad ajustable (0,8×–1,5×) y temporizador para dormir.
+
 ## Estructura
 
 | Archivo | Para qué sirve |

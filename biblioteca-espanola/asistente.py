@@ -1079,13 +1079,32 @@ class Manejador(BaseHTTPRequestHandler):
 
     def do_POST(self):
         ruta = urllib.parse.urlparse(self.path).path
-        if ruta != '/api/tts':
+        if ruta not in ('/api/tts', '/api/reportar'):
             self.send_error(404); return
         try:
             largo = int(self.headers.get('Content-Length') or 0)
             if largo > 200000:
                 return self._json({'error': 'texto demasiado largo'}, 413)
             datos = json.loads(self.rfile.read(largo) or b'{}')
+            if ruta == '/api/reportar':
+                pid = int(datos.get('pid') or 0)
+                comentario = str(datos.get('comentario') or '').strip()[:2000]
+                seleccion = str(datos.get('seleccion') or '').strip()[:4000]
+                texto = str(datos.get('texto') or '').strip()[:6000]
+                if not comentario:
+                    return self._json({'error': 'escribe una descripción del error'}, 400)
+                con = conectar()
+                con.execute('''CREATE TABLE IF NOT EXISTS reportes(
+                    id INTEGER PRIMARY KEY AUTOINCREMENT, pid INTEGER, obra TEXT, titulo TEXT,
+                    pagina INTEGER, seleccion TEXT, texto TEXT, comentario TEXT, creado TEXT)''')
+                fila = con.execute('SELECT obra,titulo,pagina FROM paginas WHERE id=?', (pid,)).fetchone()
+                con.execute('INSERT INTO reportes(pid,obra,titulo,pagina,seleccion,texto,comentario,creado) '
+                            'VALUES (?,?,?,?,?,?,?,?)',
+                            (pid, (fila['obra'] if fila else ''), (fila['titulo'] if fila else ''),
+                             (fila['pagina'] if fila else 0), seleccion, texto, comentario,
+                             time.strftime('%Y-%m-%d %H:%M:%S')))
+                con.commit(); con.close()
+                return self._json({'ok': True})
             texto = _tts_limpiar(str(datos.get('texto') or ''))
             if not texto:
                 return self._json({'error': 'texto vacío'}, 400)
