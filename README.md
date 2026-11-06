@@ -125,7 +125,7 @@ referencias y párrafos exactos:
 - Normalización de nombres bíblicos en 2.433 ocurrencias: «mascotas» → «Pedro»,
   «Galón» → «Gálatas», «Memoria de sólo lectura» → «Romanos», «Trabajo» → «Job»,
   «Bruja» → «Hageo», «Columna» → «Colosenses», entre otros. Se corrigieron además
-  140 entradas del índice temático y 95 contextos asociados. La lista completa de
+  140 entradas del índice temático y 81 contextos asociados. La lista completa de
   ubicaciones está en `biblioteca-espanola/auditoria-nombres-biblicos.csv`,
   `biblioteca-espanola/auditoria-temas-biblicos.csv` y
   `biblioteca-espanola/auditoria-nombres-biblicos.md`.

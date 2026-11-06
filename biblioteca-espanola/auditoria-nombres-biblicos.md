@@ -4,7 +4,7 @@ Fecha: 2026-11-06
 
 Se revisaron las 2.141 páginas de la biblioteca y se corrigieron **2433 ocurrencias** de nombres bíblicos en **440 páginas** de **10 obras**. La lista completa de ubicaciones está en `auditoria-nombres-biblicos.csv`.
 
-Además se normalizaron **140 entradas del índice temático** y **95 contextos asociados** (`temaobras`, `temafoto`, `refctx`). La lista del índice temático está al final de este documento y en `reporte_temas_biblicos.csv`.
+Además se normalizaron **140 entradas del índice temático** y **81 contextos asociados** (`temaobras`, `temafoto`, `refctx`). La lista del índice temático está al final de este documento y en `reporte_temas_biblicos.csv`.
 
 ## Resumen por libro corregido
 
@@ -2845,4 +2845,4 @@ Además se normalizaron **140 entradas del índice temático** y **95 contextos 
 | PALABRA | : Como ocurre en Jn. 1:1 significa “una palabra”,  | : Como ocurre en Juan 1:1 significa “una palabra”,  |
 | OBRAS | ; maravilloso, del diablo (Mat. 7:22-23),  | ; maravilloso, del diablo (Mateo 7:22-23),  |
 
-Contextos asociados corregidos: **95**. Detalle en `reporte_contextos_biblicos.csv`.
+Contextos asociados corregidos: **81**. Detalle en `reporte_contextos_biblicos.csv`.
