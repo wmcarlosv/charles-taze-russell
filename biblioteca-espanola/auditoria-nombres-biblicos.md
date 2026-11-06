@@ -4,6 +4,8 @@ Fecha: 2026-11-06
 
 Se revisaron las 2.141 páginas de la biblioteca y se corrigieron **2433 ocurrencias** de nombres bíblicos en **440 páginas** de **10 obras**. La lista completa de ubicaciones está en `auditoria-nombres-biblicos.csv`.
 
+Además se normalizaron **140 entradas del índice temático** y **95 contextos asociados** (`temaobras`, `temafoto`, `refctx`). La lista del índice temático está al final de este documento y en `reporte_temas_biblicos.csv`.
+
 ## Resumen por libro corregido
 
 | Libro | Correcciones | Páginas | Obras |
@@ -2697,3 +2699,150 @@ Se revisaron las 2.141 páginas de la biblioteca y se corrigieron **2433 ocurren
 | La Torre del Vigía | La Torre del Vigía — julio de 1909 | 343 | 0 | Iglesia Cristiana Central, Corintios Avenida 16 y calle Lincoln | Iglesia Cristiana Central, esquina de la Avenida 16 y la calle Lincoln | 1 |
 | La Torre del Vigía | La Torre del Vigía — julio de 1909 | 343 | 0 | Salón Italiano, Corintios Calle 2d y Avenida Lincoln | Salón Italiano, esquina de la calle 2d y la Avenida Lincoln | 1 |
 | Lo que dijo el pastor Russell | INCIENSO — Somos en Cristo un olor grato para Dios | 342 | 0 | Efesios 5:1,2, Corintios 2:15 | Efesios 5:1,2; 2 Corintios 2:15 | 1 |
+
+## Índice temático
+
+| Tema | Original | Corrección |
+| --- | --- | --- |
+| ABOMINACIÓN DE DESOLACIÓN | ; Dan. 11:31 profecía de,  | ; Daniel 11:31 profecía de,  |
+| ALEJANDRO MAGNO | ; el gran y poderoso rey de Dan. 11:3,  | ; el gran y poderoso rey de Daniel 11:3,  |
+| ANARQUÍA | ; profetizado en Sal. 46:1-2,  | ; profetizado en Salmos 46:1-2,  |
+| ANARQUÍA |  (1912); puede ser el significado de Ezek. 7:13-24,  |  (1912); puede ser el significado de Ezequiel 7:13-24,  |
+| ARMAGEDÓN |  (1912); llamada “Gran Tribulación” por Cristo (Mat. 24:21),  |  (1912); llamada “Gran Tribulación” por Cristo (Mateo 24:21),  |
+| BEBÉS | ; en credos, pero demasiado corto para “hombre” (Isa. 28:20),  | ; en credos, pero demasiado corto para “hombre” (Isaías 28:20),  |
+| BABILONIA | Primera bestia (león) (Dan. 7:2-7),  | Primera bestia (león) (Daniel 7:2-7),  |
+| BABILONIA | ; cabeza de oro (Dan. 7:38),  | ; cabeza de oro (Daniel 7:38),  |
+| BABILONIA | ; entrará en el olvido, sheol (Isa. 14:9),  | ; entrará en el olvido, sheol (Isaías 14:9),  |
+| CEGUERA | ; Israel será salvo de (Rom. 11:26),  | ; Israel será salvo de (Romanos 11:26),  |
+| SANGRE | ; justo, desde Abel hasta Zacarías (Mat. 23:35),  | ; justo, desde Abel hasta Zacarías (Mateo 23:35),  |
+| CAPITAL(ISTAS) |  ; James en,  |  ; Santiago en,  |
+| CRISTO | ; profecía de Sal. 2:12 parcialmente cumplido en,  | ; profecía de Salmos 2:12 parcialmente cumplido en,  |
+| CIVIL | Autoridad, santuario de fortaleza (Dan. 11:31),  | Autoridad, santuario de fortaleza (Daniel 11:31),  |
+| PACTO | ; mencionado en Isa. 54:1-8,  | ; mencionado en Isaías 54:1-8,  |
+| CIRO | ; Isa. 45:13 sobre la construcción de la ciudad por,  | ; Isaías 45:13 sobre la construcción de la ciudad por,  |
+| MUERTO |  ; resucitado a la vida (Heb. 11:35),  |  ; resucitado a la vida (Hebreos 11:35),  |
+| MUERTE | ; miedo a, descrito (Sal. 116:3),  | ; miedo a, descrito (Salmos 116:3),  |
+| LIBERACIÓN | ; nuestro Cuerpo (Rom. 8:22-23),  | ; nuestro Cuerpo (Romanos 8:22-23),  |
+| COMER |  ; la glotonería (Fil. 3:19) trae sufrimientos no por justicia,  |  ; la glotonería (Filipenses 3:19) trae sufrimientos no por justicia,  |
+| EGIPTO / EGIPCIOS | ; “Ay de los que descienden a” (Isa. 31:1),  | ; “Ay de los que descienden a” (Isaías 31:1),  |
+| Perdurable | ; no prometido por 1 Tim. 2:4,  | ; no prometido por 1 Timoteo 2:4,  |
+| PADRE | ; El Hijo no es el Padre en Jn. 14:7-10,  | ; El Hijo no es el Padre en Juan 14:7-10,  |
+| PADRE | ; “Santo” (1 Jn. 2:20) el,  | ; “Santo” (1 Juan 2:20) el,  |
+| MIEDO | Caer en las manos de Dios en estado imperfecto (Heb. 10:31),  | Caer en las manos de Dios en estado imperfecto (Hebreos 10:31),  |
+| FIRMAMENTO | ; El Cristo (Dan. 12:3),  | ; El Cristo (Daniel 12:3),  |
+| DILUVIO | ; Lo mismo que Dan. 12:5-7,  | ; Lo mismo que Daniel 12:5-7,  |
+| DILUVIO | ; de Nah. 1:8 no literal,  | ; de Nahúm 1:8 no literal,  |
+| PERDONAR |  ; ocurre en Col. 3:13 y Lc. 7:42, 43,  |  ; ocurre en Colosenses 3:13 y Lucas 7:42, 43,  |
+| GLORIFICAR | Palabra griega para, en Rom. 8:30 significa “honrado”,  | Palabra griega para, en Romanos 8:30 significa “honrado”,  |
+| EDAD DEL EVANGELIO | ; Respecto a Isa. 63:1-6,  | ; Respecto a Isaías 63:1-6,  |
+| GRECIA | Cuatro divisiones de los cuatro “cuernos” de Dan. 8:8,  | Cuatro divisiones de los cuatro “cuernos” de Daniel 8:8,  |
+| GRECIA | ; “rey del Norte” (Dan. 11:5-19),  | ; “rey del Norte” (Daniel 11:5-19),  |
+| GRIEGO | “Presente” en Ef. 4:11, 12, significado,  | “Presente” en Efesios 4:11, 12, significado,  |
+| GRIEGO | ; más antiguo, omite “espiritual” antes de “sacrificios” en 1Pedro 2:5,  | ; más antiguo, omite “espiritual” antes de “sacrificios” en 1 Pedro 2:5,  |
+| COSECHA | ; respecto a Isa. 63:1-6,  | ; respecto a Isaías 63:1-6,  |
+| ESPÍRITU SANTO | ; traducción del griego parakletos en Jn. 14:16, 26,  | ; traducción del griego parakletos en Juan 14:16, 26,  |
+| ESPÍRITU SANTO |  ; indicado en Ef. 5:18-20,  |  ; indicado en Efesios 5:18-20,  |
+| ESPÍRITU SANTO | ; en Jn. 16:13, 14 podría traducirse “él mismo” (forma neutra),  | ; en Juan 16:13, 14 podría traducirse “él mismo” (forma neutra),  |
+| ESPÍRITU SANTO | ; traducido incorrectamente “él” en Jn. 14:17,  | ; traducido incorrectamente “él” en Juan 14:17,  |
+| ESPÍRITU SANTO | ; “quién” y “él” están mal traducidos en Jn. 14:26,  | ; “quién” y “él” están mal traducidos en Juan 14:26,  |
+| HONORES | ; El engendramiento de la Iglesia es el comienzo de (Rom. 8:30),  | ; El engendramiento de la Iglesia es el comienzo de (Romanos 8:30),  |
+| CUERNO(S) | ; cuatro (Dan. 8:8),  | ; cuatro (Daniel 8:8),  |
+| ISRAEL | ; ser salvo de (Rom. 11:26),  | ; ser salvo de (Romanos 11:26),  |
+| JESÚS | ; siempre exceptuado en comparaciones como en 1 Tim. 6:15, 16,  | ; siempre exceptuado en comparaciones como en 1 Timoteo 6:15, 16,  |
+| JESÚS | ; Que Jesús recibiera adoración no significaba que él fuera Dios, 72:1; Jn. 14:7-10 no muestra que Jesús sea Dios,  | ; Que Jesús recibiera adoración no significaba que él fuera Dios, 72:1; Juan 14:7-10 no muestra que Jesús sea Dios,  |
+| JESÚS | ; no igual a Dios en Fil. 2:6, una mala traducción en King James,  | ; no igual a Dios en Filipenses 2:6, una mala traducción en King James,  |
+| JESÚS | ; uno de los títulos de, en Isa. 9:6,  | ; uno de los títulos de, en Isaías 9:6,  |
+| JESÚS | ; de Reyes (1 Tim. 6:15, 16),  | ; de Reyes (1 Timoteo 6:15, 16),  |
+| JESÚS | ; apareció como mensajero de Jehová en Éx. 3:2,  | ; apareció como mensajero de Jehová en Éxodo 3:2,  |
+| JESÚS | ; como se usa en Jn. 1:1,  | ; como se usa en Juan 1:1,  |
+| JESÚS | ; descrito en Prov. 8:22-30,  | ; descrito en Proverbios 8:22-30,  |
+| JESÚS | ; Isa. 53:2-3 no niega que Jesús estuviera separado de los pecadores,  | ; Isaías 53:2-3 no niega que Jesús estuviera separado de los pecadores,  |
+| JESÚS | Isa. 52:14, 15, da un pensamiento erróneo respecto a,  | Isaías 52:14, 15, da un pensamiento erróneo respecto a,  |
+| JESÚS | ; en Ej. 3:2 Logos apareció como mensajero de Jehová,  | ; en Éxodo 3:2 Logos apareció como mensajero de Jehová,  |
+| LLAVES | ; al “misterio” (Col. 1:26),  | ; al “misterio” (Colosenses 1:26),  |
+| REY |  Tim. 6:15, 16,  |  1 Timoteo 6:15, 16,  |
+| REY | Ángeles de Mat. 24:31, mensajeros de lo nuevo,  | Ángeles de Mateo 24:31, mensajeros de lo nuevo,  |
+| REINO | ; Reino de Jehová en Isa. 2:2-4 y Miqueas. 4:1-3,  | ; Reino de Jehová en Isaías 2:2-4 y Miqueas. 4:1-3,  |
+| REINO | ; profetizado en Isa. 25:6-9,  | ; profetizado en Isaías 25:6-9,  |
+| REINOS | ; Dan. 2:31-45 explicado,  | ; Daniel 2:31-45 explicado,  |
+| REYES | ; La interpretación del papado de Sal. 2:12,  | ; La interpretación del papado de Salmos 2:12,  |
+| VIVIENDO | Se requiere sacerdocio para convertirse en sacrificio (Ro. 12:1),  | Se requiere sacerdocio para convertirse en sacrificio (Romanos 12:1),  |
+| VIVIENDO | ; Cristo resucitado es Señor de, (Rom. 14:9),  | ; Cristo resucitado es Señor de, (Romanos 14:9),  |
+| HOGAZA | ; en Ej. 3:2 apareció como mensajero de Jehová,  | ; en Éxodo 3:2 apareció como mensajero de Jehová,  |
+| HOGAZA | Como ocurre en Jn. 1:1,  | Como ocurre en Juan 1:1,  |
+| Hombre | ; Hab. 2:5 puede referirse a  | ; Habacuc 2:5 puede referirse a  |
+| MARCA | mk. 16:9-20 espurio,  | Marcos 16:9-20 espurio,  |
+| EDAD MILENARIA | ; al final habrá luz (Zac. 14:6-7),  | ; al final habrá luz (Zacarías 14:6-7),  |
+| EDAD MILENARIA | ; Isa. 25:6-9,  | ; Isaías 25:6-9,  |
+| EDAD MILENARIA | ; Sábado de Mat. 24:20,  | ; Sábado de Mateo 24:20,  |
+| EDAD MILENARIA | ; día de salvación (Sal. 118:18-27),  | ; día de salvación (Salmos 118:18-27),  |
+| MISIONERO | 24:14 y Mc. 13:10,  | 24:14 y Marcos 13:10,  |
+| NACIÓN | ; de hoy se puede hacer referencia en Hab. 2:5,  | ; de hoy se puede hacer referencia en Habacuc 2:5,  |
+| NATURALEZA | ; “el único que tiene inmortalidad” (1 Tim. 6:14-16),  | ; “el único que tiene inmortalidad” (1 Timoteo 6:14-16),  |
+| ACEITUNA | Respecto a Rom. 11:17, 24,  | Respecto a Romanos 11:17, 24,  |
+| PAPADO | Firmamento del cielo (Gén. 1:16),  | Firmamento del cielo (Génesis 1:16),  |
+| PAPADO | ; Sal. 2:12 según la interpretación de  | ; Salmos 2:12 según la interpretación de  |
+| PERSONA | ; ese Espíritu Santo no puede ser, como se muestra en Ef. 5:18-20,  | ; ese Espíritu Santo no puede ser, como se muestra en Efesios 5:18-20,  |
+| ARADOR | Alcanza al segador (Am. 9:13),  | Alcanza al segador (Amós 9:13),  |
+| FUERZA | ; retratado en Sal. 139:7-8,  | ; retratado en Salmos 139:7-8,  |
+| PRESBITERIO | Significado (1 Tim. 4:14),  | Significado (1 Timoteo 4:14),  |
+| PRÍNCIPE | No confundir con el Mesías (Dan. 9:23-27),  | No confundir con el Mesías (Daniel 9:23-27),  |
+| PROFECÍAS | ; demora de la visión (Hab. 2:2),  | ; demora de la visión (Habacuc 2:2),  |
+| PROFECÍAS |  – 149:2; James, defraudando a los agricultores,  |  – 149:2; Santiago, defraudando a los agricultores,  |
+| PROFECÍAS | ; James, lucha entre capital y trabajo,  | ; Santiago, lucha entre capital y trabajo,  |
+| PROFECÍAS |  ; por James,  |  ; por Santiago,  |
+| PROFECÍAS | ; Sal. 2:12 mal aplicado por el Anticristo,  | ; Salmos 2:12 mal aplicado por el Anticristo,  |
+| PIRÁMIDE | Cleopatra: De Egipto (Dan. 11:17),  | Cleopatra: De Egipto (Daniel 11:17),  |
+| VIVIFICAR | ; “vivificado” (1 Ped. 3:18),  | ; “vivificado” (1 Pedro 3:18),  |
+| REPROCHE | ; no anciano (1 Tim. 5:1),  | ; no anciano (1 Timoteo 5:1),  |
+| RECOMPENSA(S) | ; “año de, para la controversia de Sión” (Isa. 34:8),  | ; “año de, para la controversia de Sión” (Isaías 34:8),  |
+| RECONCILIACIÓN | ; Traducido del kattalage traducido como “Expiación” en Rom. 5:11,  | ; Traducido del kattalage traducido como “Expiación” en Romanos 5:11,  |
+| RELACIÓN | ; proveer para los nuestros (1 Tim. 5:8),  | ; proveer para los nuestros (1 Timoteo 5:8),  |
+| RELACIÓN | ; la casa de tu padre (Sal. 45:10-11), humano, esperanzas, metas, ambiciones,  | ; la casa de tu padre (Salmos 45:10-11), humano, esperanzas, metas, ambiciones,  |
+| ARREPENTIMIENTO | Dones y llamamientos de Dios afuera (Rom. 11:29),  | Dones y llamamientos de Dios afuera (Romanos 11:29),  |
+| ARREPENTIMIENTO | ; imposible de renovar (Heb. 6:4-9),  | ; imposible de renovar (Hebreos 6:4-9),  |
+| ARREPENTIMIENTO | ; pecadores llamados a (Mat. 9:13),  | ; pecadores llamados a (Mateo 9:13),  |
+| REPROCHES | Discípulos no exentos de lo que cayó sobre el Maestro (Sal. 69:9),  | Discípulos no exentos de lo que cayó sobre el Maestro (Salmos 69:9),  |
+| CATÓLICO ROMANO | ; cuerno pequeño (Dan. 8:9),  | ; cuerno pequeño (Daniel 8:9),  |
+| CATÓLICO ROMANO | ; ascenso del poder clerical en (Dan. 11:27),  | ; ascenso del poder clerical en (Daniel 11:27),  |
+| IMPERIO ROMANO | ; descrito como “rey del norte” (Dan. 11:5-19),  | ; descrito como “rey del norte” (Daniel 11:5-19),  |
+| SACRIFICIO | ; “espiritual” (1 Ped. 2:5) omitido en el manuscrito sinaítico,  | ; “espiritual” (1 Pedro 2:5) omitido en el manuscrito sinaítico,  |
+| SALVACIÓN | ; no prometido por 1 Tim. 2:4,  | ; no prometido por 1 Timoteo 2:4,  |
+| SANTIFICACIÓN | En heb. 10:29 está justificado,  | En Hebreos 10:29 está justificado,  |
+| SEMILLA | La iglesia se mezcla con, para formar Babilonia (Dan. 2:43),  | La iglesia se mezcla con, para formar Babilonia (Daniel 2:43),  |
+| SEPARADO | ; Isa. 53:2-3 no niega que Jesús existiera,  | ; Isaías 53:2-3 no niega que Jesús existiera,  |
+| PLATA | ; respecto a Jam. 5:1-9, | ; respecto a Santiago 5:1-9, |
+| PECADO | ; y muerte con respecto a Lam. 2:1,  | ; y muerte con respecto a Lamentaciones 2:1,  |
+| OFRENDA POR EL PECADO | La humanidad dibujada tras la Iglesia completa (Jn. 6:44),  | La humanidad dibujada tras la Iglesia completa (Juan 6:44),  |
+| HIJO DE DIOS | ; mostrado en Jn. 14:7-10,  | ; mostrado en Juan 14:7-10,  |
+| ESPURIO | ; algunas palabras de Jn. 3:13,  | ; algunas palabras de Juan 3:13,  |
+| ESTÁNDAR | ; simboliza la verdad divina (Isa. 13:1),  | ; simboliza la verdad divina (Isaías 13:1),  |
+| MESA | Por la fe Iglesia sentada junto al Maestro, y él está sirviendo (Lc. 12:37),  | Por la fe Iglesia sentada junto al Maestro, y él está sirviendo (Lucas 12:37),  |
+| MESA | ; “Declararlo claro en tablas” (gráficos), (Hab. 2:2),  | ; “Declararlo claro en tablas” (gráficos), (Habacuc 2:2),  |
+| MESA | ; dos reyes hablan mentiras a uno (Dan. 11:27),  | ; dos reyes hablan mentiras a uno (Daniel 11:27),  |
+| DIENTES | Cuando están nerviosos (Jer. 31:29-30; Eze. 18:2, 4, 30),  | Cuando están nerviosos (Jeremías 31:29-30; Ezequiel 18:2, 4, 30),  |
+| DIENTES | ; en el fuego del tiempo de angustia, (Mat. 13:39),  | ; en el fuego del tiempo de angustia, (Mateo 13:39),  |
+| JUSTIFICACIÓN TENTATIVA | ; L3; “Por tanto, hermanos, os ruego” son (Ro. 12:1),  | ; L3; “Por tanto, hermanos, os ruego” son (Romanos 12:1),  |
+| LADRÓN | El Día del Señor viene como, (1 Tes. 5:4),  | El Día del Señor viene como, (1 Tesalonicenses 5:4),  |
+| LADRÓN |  ; amo de casa, sin saber a qué hora, llega (Mat. 24:42),  |  ; amo de casa, sin saber a qué hora, llega (Mateo 24:42),  |
+| PENSAMIENTOS | Por encima del hombre (Isa. 55:8-9),  | Por encima del hombre (Isaías 55:8-9),  |
+| TIEMPOS | ; “En aquellos días” (Jer. 31:39-34),  | ; “En aquellos días” (Jeremías 31:39-34),  |
+| DIEZMOS | ; Leví pagó a Melquisedec (Heb. 7:9-10),  | ; Leví pagó a Melquisedec (Hebreos 7:9-10),  |
+| TRADUCCIONES | De 1 Jn. 5:7,  | De 1 Juan 5:7,  |
+| TRADUCCIONES | De Fil. 2:6 examinado,  | De Filipenses 2:6 examinado,  |
+| ÁRBOLES | ; Memoria de sólo lectura. 11:17, 24,  | ; Romanos 11:17, 24,  |
+| ÁRBOLES | ; Antiguo Testamento y Nuevo Testamento (Zac. 4:3),  | ; Antiguo Testamento y Nuevo Testamento (Zacarías 4:3),  |
+| ÁRBOLES | ; como cae, así será (Ecl. 11:3),  | ; como cae, así será (Eclesiastés 11:3),  |
+| ÁRBOLES |  - 604:1; bahía verde (Sal. 37:35),  |  - 604:1; bahía verde (Salmos 37:35),  |
+| TRINIDAD | ; ese Espíritu santo no puede ser una persona como se muestra en Ef. 5:18-20,  | ; ese Espíritu santo no puede ser una persona como se muestra en Efesios 5:18-20,  |
+| TROMPETA | SÉPTIMO: Mat. 24:31,  | SÉPTIMO: Mateo 24:31,  |
+| TIRO | ; los fuertes de la tierra, Sal. 45:12-17,  | ; los fuertes de la tierra, Salmos 45:12-17,  |
+| TIRO | DIOS: Los ha encerrado a todos en, Rom. 11:32,  | DIOS: Los ha encerrado a todos en, Romanos 11:32,  |
+| UNIVERSAL | ; aplica mal el apoyo a 1 Tim. 2:4,  | ; aplica mal el apoyo a 1 Timoteo 2:4,  |
+| Venganza | ; Zac. 14:6-7, confundido con  | ; Zacarías 14:6-7, confundido con  |
+| VELAR | ; Bienaventurados siervos a quienes el Señor encuentre, (Lc. 12:37),  | ; Bienaventurados siervos a quienes el Señor encuentre, (Lucas 12:37),  |
+| VELAR | ; cuando llegue el tiempo, lo sabrán (Mc. 13:32-33),  | ; cuando llegue el tiempo, lo sabrán (Marcos 13:32-33),  |
+| PALABRA | : Como ocurre en Jn. 1:1 significa “una palabra”,  | : Como ocurre en Juan 1:1 significa “una palabra”,  |
+| OBRAS | ; maravilloso, del diablo (Mat. 7:22-23),  | ; maravilloso, del diablo (Mateo 7:22-23),  |
+
+Contextos asociados corregidos: **95**. Detalle en `reporte_contextos_biblicos.csv`.
