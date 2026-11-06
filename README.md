@@ -115,15 +115,20 @@ publica con HTTPS en la raíz del dominio. El servicio systemd es
 La biblioteca se revisó a fondo para que el investigador encuentre términos,
 referencias y párrafos exactos:
 
-- 38.229 referencias bíblicas validadas contra el texto bíblico, sin citas fuera
+- 40.316 referencias bíblicas validadas contra el texto bíblico, sin citas fuera
   de capítulo o versículo.
 - 849 marcas originales **Q5–Q853** conservadas y buscables, y 1.408 preguntas
   con numeración **Q5:1, Q5:2…** sin duplicados.
 - Corrección de términos y erratas en los textos, el índice temático y las
   tablas de contexto: por ejemplo, «colalso» → «colirio», «Dignoes» → «Dignos»,
   «miesca» → «mies», «dócilidad» → «docilidad», «ENIMIDAD» → «ENEMISTAD».
-- Normalización de nombres bíblicos, referencias de libros de un solo capítulo
-  y expresiones que habían quedado en inglés.
+- Normalización de nombres bíblicos en 2.433 ocurrencias: «mascotas» → «Pedro»,
+  «Galón» → «Gálatas», «Memoria de sólo lectura» → «Romanos», «Trabajo» → «Job»,
+  «Bruja» → «Hageo», «Columna» → «Colosenses», entre otros. La lista completa de
+  ubicaciones está en `biblioteca-espanola/auditoria-nombres-biblicos.csv` y
+  `biblioteca-espanola/auditoria-nombres-biblicos.md`.
+- Normalización de referencias de libros de un solo capítulo y expresiones que
+  habían quedado en inglés.
 
 ## Créditos
 
