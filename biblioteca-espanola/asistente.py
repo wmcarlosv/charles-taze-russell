@@ -15,6 +15,8 @@ HOST = os.environ.get('HOST', '0.0.0.0')
 # Voces masculinas de edge-tts, en orden de preferencia (Jorge primero).
 VOCES_EDGE = ['es-MX-JorgeNeural', 'es-ES-AlvaroNeural', 'es-AR-TomasNeural',
               'es-CO-GonzaloNeural', 'es-US-AlonsoNeural', 'es-VE-SebastianNeural']
+TASAS_TTS = {'-20%', '-18%', '-15%', '-12%', '-10%', '-8%', '-5%', '0%'}
+TONOS_TTS = {'-15Hz', '-10Hz', '-5Hz', '0Hz'}
 TTS_CACHE = os.path.join(DATOS, 'tts-cache')
 SCAN_CACHE = os.path.join(DATOS, 'scan-cache')
 PDF_VOLUMES = {
@@ -960,13 +962,15 @@ def _tts_limpiar_cache(maximo=1024 * 1024 * 1024, archivos=1200):
         pass
 
 
-def _tts_archivo(texto, voz):
+def _tts_archivo(texto, voz, rate='-10%', pitch='-10Hz'):
     """Genera (o reutiliza) el MP3 de edge-tts. Devuelve None si no está disponible."""
     try:
         import edge_tts
     except Exception:
         return None
-    clave = hashlib.sha256((voz + '|r-10|p-10|' + texto).encode('utf-8')).hexdigest()
+    if rate not in TASAS_TTS: rate = '-10%'
+    if pitch not in TONOS_TTS: pitch = '-10Hz'
+    clave = hashlib.sha256((voz + '|r' + rate + '|p' + pitch + '|' + texto).encode('utf-8')).hexdigest()
     try:
         os.makedirs(TTS_CACHE, exist_ok=True)
     except Exception:
@@ -979,7 +983,7 @@ def _tts_archivo(texto, voz):
     async def sintetizar():
         with open(tmp, 'wb') as f:
             for trozo in _tts_trozos(texto):
-                c = edge_tts.Communicate(trozo, voz, rate='-10%', pitch='-10Hz')
+                c = edge_tts.Communicate(trozo, voz, rate=rate, pitch=pitch)
                 async for chunk in c.stream():
                     if chunk.get('type') == 'audio':
                         f.write(chunk['data'])
@@ -1202,7 +1206,13 @@ class Manejador(BaseHTTPRequestHandler):
             voz = str(datos.get('voz') or VOCES_EDGE[0])
             if voz not in VOCES_EDGE:
                 voz = VOCES_EDGE[0]
-            ruta_mp3 = _tts_archivo(texto, voz)
+            rate = str(datos.get('rate') or '-10%')
+            if rate not in TASAS_TTS:
+                rate = '-10%'
+            pitch = str(datos.get('pitch') or '-10Hz')
+            if pitch not in TONOS_TTS:
+                pitch = '-10Hz'
+            ruta_mp3 = _tts_archivo(texto, voz, rate, pitch)
             if not ruta_mp3:
                 return self._json({'error': 'texto a voz no disponible: instala edge-tts y revisa la conexión'}, 503)
             return self._audio(ruta_mp3, 'audio/mpeg')

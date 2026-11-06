@@ -4905,10 +4905,10 @@ function dividirParaVoz(texto, max, primerMax){
   return partes.filter(Boolean);
 }
 
-async function pedirTTS(texto){
+async function pedirTTS(texto, rate){
   try{
     const r = await fetch('/api/tts', {method:'POST', headers:{'Content-Type':'application/json'},
-      body: JSON.stringify({texto})});
+      body: JSON.stringify({texto, rate: rate || '-10%'})});
     if(!r.ok) return null;
     return await r.blob();
   }catch(e){ return null; }
@@ -5040,7 +5040,7 @@ async function ttsIr(i, seek){
   let blob = null;
   try{
     if(e.pref && e.pref.i === i){ blob = await e.pref.p; e.pref = null; }
-    else blob = await pedirTTS(e.partes[i]);
+    else blob = await pedirTTS(e.partes[i], i === 0 ? '-20%' : '-10%');
   }catch(err){ blob = null; }
   if(!e || e.tok !== ttsToken) return;
   if(!blob){
@@ -5049,7 +5049,7 @@ async function ttsIr(i, seek){
     return hablarNavegador(e.partes.slice(i).join(' '), e.btn, e.etiqueta);
   }
   if(i + 1 < e.partes.length){
-    e.pref = {i: i + 1, p: pedirTTS(e.partes[i + 1])};
+    e.pref = {i: i + 1, p: pedirTTS(e.partes[i + 1], '-10%')};
   }
   if(e.audio){ try{ e.audio.pause(); }catch(err){} }
   if(ttsUrl){ try{ URL.revokeObjectURL(ttsUrl); }catch(err){} ttsUrl = null; }
@@ -5123,7 +5123,7 @@ async function escucharTexto(texto, btn, etiqueta){
   texto = textoParaVoz(limpiarTextoVoz(texto));
   if(!texto) return;
   const et = etiqueta || 'Escuchar';
-  const partes = dividirParaVoz(texto, 3200, 400);
+  const partes = dividirParaVoz(texto, 3200, 600);
   const tok = ++ttsToken;
   ttsEstado = {partes: partes, i: 0, tok: tok, btn: btn, etiqueta: et,
                pausado: false, audio: null, pref: null};
