@@ -4876,32 +4876,37 @@ function limpiarTextoVoz(texto){
     .replace(/\[[A-Za-z]{1,3}\d+\]/g, ' ')
     .replace(/^#{1,6}\s*/gm, '')
     .replace(/[*_`]/g, '')
-    .replace(/\s+/g, ' ')
+    .replace(/\r\n/g, '\n')
+    .replace(/[ \t]+/g, ' ')
+    .replace(/\n{3,}/g, '\n\n')
     .trim();
 }
 
 function dividirParaVoz(texto, max, primerMax){
   max = max || 3200;
   primerMax = Math.min(max, primerMax || max);
-  if(texto.length <= primerMax) return [texto];
   const partes = [];
-  let resto = texto;
-  let limite = primerMax;
-  while(resto.length > limite){
-    const trozo = resto.slice(0, limite);
-    let corte = -1;
-    const re = /[.!?…](?=\s|$)/g;
-    let m;
-    while((m = re.exec(trozo))) corte = m.index + 1;
-    if(corte < limite * 0.35){
-      const sp = trozo.lastIndexOf(' ');
-      corte = sp > 0 ? sp : limite;
+  const parrafos = String(texto || '').split(/\n{2,}/).map(x=>x.trim()).filter(Boolean);
+  const bloques = parrafos.length ? parrafos : [String(texto || '').trim()].filter(Boolean);
+  for(const bloque of bloques){
+    let resto = bloque;
+    let limite = partes.length === 0 ? primerMax : max;
+    while(resto.length > limite){
+      const trozo = resto.slice(0, limite);
+      let corte = -1;
+      const re = /[.!?…](?=\s|$)/g;
+      let m;
+      while((m = re.exec(trozo))) corte = m.index + 1;
+      if(corte < limite * 0.35){
+        const sp = trozo.lastIndexOf(' ');
+        corte = sp > 0 ? sp : limite;
+      }
+      partes.push(resto.slice(0, corte).trim());
+      resto = resto.slice(corte).trim();
+      limite = max;
     }
-    partes.push(resto.slice(0, corte).trim());
-    resto = resto.slice(corte).trim();
-    limite = max;
+    if(resto) partes.push(resto);
   }
-  if(resto) partes.push(resto);
   return partes.filter(Boolean);
 }
 
@@ -5069,9 +5074,13 @@ async function ttsIr(i, seek){
     const pid = window._paginaActualData && window._paginaActualData.id;
     if(pid && Math.floor(audio.currentTime) % 5 === 0) guardarAudioPos(pid, e.i, audio.currentTime);
   };
-  audio.onended = ()=>{ if(e.tok === ttsToken) ttsIr(i + 1); };
+  audio.onended = ()=>{ if(e.tok === ttsToken) setTimeout(()=>{ if(e.tok === ttsToken) ttsIr(i + 1); }, 380); };
   audio.onerror = ()=>{ if(e.tok === ttsToken) ttsIr(i + 1); };
   reanudarAudioCtx();
+  if(i === 0 && !seek){
+    await new Promise(r=>setTimeout(r, 320));
+    if(!e || e.tok !== ttsToken) return;
+  }
   try{ await audio.play(); }catch(err){}
   ttsPintar();
 }
