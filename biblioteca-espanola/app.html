@@ -4880,23 +4880,26 @@ function limpiarTextoVoz(texto){
     .trim();
 }
 
-function dividirParaVoz(texto, max){
+function dividirParaVoz(texto, max, primerMax){
   max = max || 3200;
-  if(texto.length <= max) return [texto];
+  primerMax = Math.min(max, primerMax || max);
+  if(texto.length <= primerMax) return [texto];
   const partes = [];
   let resto = texto;
-  while(resto.length > max){
-    const trozo = resto.slice(0, max);
+  let limite = primerMax;
+  while(resto.length > limite){
+    const trozo = resto.slice(0, limite);
     let corte = -1;
     const re = /[.!?…](?=\s|$)/g;
     let m;
     while((m = re.exec(trozo))) corte = m.index + 1;
-    if(corte < max * 0.35){
+    if(corte < limite * 0.35){
       const sp = trozo.lastIndexOf(' ');
-      corte = sp > 0 ? sp : max;
+      corte = sp > 0 ? sp : limite;
     }
     partes.push(resto.slice(0, corte).trim());
     resto = resto.slice(corte).trim();
+    limite = max;
   }
   if(resto) partes.push(resto);
   return partes.filter(Boolean);
@@ -5120,7 +5123,7 @@ async function escucharTexto(texto, btn, etiqueta){
   texto = textoParaVoz(limpiarTextoVoz(texto));
   if(!texto) return;
   const et = etiqueta || 'Escuchar';
-  const partes = dividirParaVoz(texto, 3200);
+  const partes = dividirParaVoz(texto, 3200, 400);
   const tok = ++ttsToken;
   ttsEstado = {partes: partes, i: 0, tok: tok, btn: btn, etiqueta: et,
                pausado: false, audio: null, pref: null};

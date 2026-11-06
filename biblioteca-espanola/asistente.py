@@ -944,7 +944,7 @@ def _tts_trozos(texto, maximo=1800):
     return out or [texto[:maximo]]
 
 
-def _tts_limpiar_cache(maximo=350 * 1024 * 1024, archivos=400):
+def _tts_limpiar_cache(maximo=1024 * 1024 * 1024, archivos=1200):
     try:
         fs = [os.path.join(TTS_CACHE, f) for f in os.listdir(TTS_CACHE) if f.endswith('.mp3')]
         fs.sort(key=os.path.getmtime)
