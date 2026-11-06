@@ -135,10 +135,13 @@ referencias y párrafos exactos:
 - 2.198 tramos de voces bíblicas: palabras de Jesús en rojo y palabras de Pablo
   en azul en Hechos. El detalle está en `biblioteca-espanola/voces-biblicas.csv`
   y `biblioteca-espanola/auditoria-voces-biblicas.md`.
-- 253 subtítulos editoriales con referencias cruzadas eliminados del Nuevo
-  Testamento para que la lectura sea corrida. El detalle está en
-  `biblioteca-espanola/subtitulos-nt.csv` y
-  `biblioteca-espanola/auditoria-subtitulos-nt.md`.
+- 384 subtítulos editoriales con referencias cruzadas eliminados de toda la
+  Biblia (253 del Nuevo Testamento y 131 del Antiguo Testamento) para que la
+  lectura sea corrida. El detalle está en
+  `biblioteca-espanola/subtitulos-biblia.csv`,
+  `biblioteca-espanola/auditoria-subtitulos-biblia.md`,
+  `biblioteca-espanola/subtitulos-at.csv` y
+  `biblioteca-espanola/auditoria-subtitulos-at.md`.
 
 ## Créditos
 
