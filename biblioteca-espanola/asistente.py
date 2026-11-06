@@ -321,7 +321,40 @@ def _singularizar(q):
     return ' '.join(out)
 
 
+def buscar_qid(qpage, qnum):
+    """Busca una pregunta por su numeración original Q<página>:<número>."""
+    qid = 'Q%d:%d' % (qpage, qnum)
+    con = conectar()
+    filas = con.execute(
+        "SELECT id,titulo_obra,volumen,pagina,titulo,texto FROM paginas "
+        "WHERE titulo_obra='Lo que dijo el pastor Russell' AND texto LIKE ? LIMIT 8",
+        ('%' + qid + '%',)).fetchall()
+    res = []
+    for f in filas:
+        texto = f['texto'] or ''
+        i = texto.find(qid)
+        if i < 0:
+            continue
+        ini = texto.rfind('\n\n', 0, i)
+        ini = 0 if ini < 0 else ini + 2
+        fin = texto.find('\n\n', i)
+        fin = len(texto) if fin < 0 else fin
+        extracto = re.sub(r'\s+', ' ', texto[ini:fin])[:360]
+        res.append({
+            'id': f['id'], 'obra': f['titulo_obra'], 'volumen': f['volumen'],
+            'pagina': f['pagina'], 'titulo': f['titulo'],
+            'extracto': extracto, 'marca': '', 'marca_ov': qid, 'pos': ini,
+        })
+    con.close()
+    return res
+
 def buscar(q, limite=40, offset=0, obra=None, orden='', anio=None, intentos=1):
+    m_qid = re.match(r'^\s*Q\s*(\d{1,3})\s*:\s*(\d{1,3})\s*$', q, re.I)
+    if m_qid:
+        res = buscar_qid(int(m_qid.group(1)), int(m_qid.group(2)))
+        if res:
+            return {'total': len(res), 'resultados': res,
+                    'distribucion': [{'titulo_obra': res[0]['obra'], 'n': len(res)}]}
     fq = fts_query(q)
     if not fq:
         return {'total': 0, 'resultados': []}

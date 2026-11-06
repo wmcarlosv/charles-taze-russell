@@ -1341,7 +1341,7 @@
       <span>Sintaxis: <b>«frase exacta»</b> · <b>palabra1 OR palabra2</b> · <b>-palabra</b> para excluir</span>
     </div>
     <div class="chips" id="busquedas-guardadas"></div>
-    <p class="pista">Busca en los seis tomos de <i>Estudios de las Escrituras</i>, en <i>Sombras del Tabernáculo</i>, en el <i>Foto-Drama de la Creación</i>, en <i>Overland Monthly</i>, en <i>Lo que dijo el pastor Russell</i> y en las revistas. También puedes buscar una marca de página o de reimpresión, por ejemplo <b>Q5</b> o <b>R2555</b>.</p>
+    <p class="pista">Busca en los seis tomos de <i>Estudios de las Escrituras</i>, en <i>Sombras del Tabernáculo</i>, en el <i>Foto-Drama de la Creación</i>, en <i>Overland Monthly</i>, en <i>Lo que dijo el pastor Russell</i> y en las revistas. También puedes buscar una marca de página o de reimpresión, por ejemplo <b>Q5</b>, <b>Q5:1</b> o <b>R2555</b>.</p>
     <div class="chips" id="chips-obras"></div>
     <p class="pista" style="margin:-6px 0 14px">O explora una obra por su índice:
       <select id="sel-obra" onchange="verIndice(this.value)" style="font:inherit;padding:4px 8px;border:1px solid var(--linea);border-radius:6px;background:#fff">
@@ -1384,6 +1384,7 @@
       <button class="accion" type="submit">Buscar</button>
     </form>
     <p class="pista" style="margin-top:0">Índice temático de <i>Estudios de las Escrituras</i> y otras ayudas, traducido al español. Cada referencia abre el párrafo correspondiente y resalta en amarillo la frase o palabra guía del índice (p. ej. «Cegado por falsas expectativas»), para localizar el pasaje exacto. Las T se enlazan por contenido con la edición española del Tabernáculo. Las referencias con subrayado punteado son aproximadas (la página exacta no tiene texto continuo). K y J remiten a obras no incluidas. Al final de cada voz se añaden los capítulos del <i>Foto-Drama de la Creación</i>, los artículos de <i>Escritos del pastor Russell para Overland Monthly</i>, los temas de <i>Lo que dijo el pastor Russell</i> y los de <i>La Torre del Vigía</i> donde aparece ese tema; en las revistas se indica la marca de reimpresión (R...). Puedes ver la voz original en inglés dentro de cada entrada.</p>
+    <p class="pista" style="margin:0 0 10px"><button class="chip" style="cursor:pointer" onclick="abrirObra('Lo que dijo el pastor Russell')">Ver el índice A–Z de «Lo que dijo el pastor Russell» (1.394 temas)</button></p>
     <div class="temas-riel"><div class="chips" id="temas-letras"></div></div>
     <div class="temas-caja">
       <aside id="temas-lista"><p class="cargando" style="padding:12px">Cargando…</p></aside>
@@ -2708,11 +2709,17 @@ function citaDeParrafo(el, d){
   d = d || window._paginaActualData;
   if(!d || !d.id || !el) return '';
   let extra = '';
-  const marca = el.querySelector('.pagina-ov');
-  const rm = el.querySelector('.marca-reprint-inline');
-  if(marca) extra = ' · ' + marca.textContent.trim();
-  else if(rm) extra = ' · ' + rm.textContent.trim().replace(/^\[|\]$/g, '');
-  const pag = d.obra === 'Lo que dijo el pastor Russell' ? 'Q' + d.pagina : d.pagina;
+  let pag = d.obra === 'Lo que dijo el pastor Russell' ? 'Q' + d.pagina : d.pagina;
+  const qid = ((el.textContent || '').match(/\bQ\d+:\d+\b/) || [])[0];
+  if(qid){
+    pag = qid.split(':')[0];
+    extra = ' · ' + qid;
+  } else {
+    const marca = el.querySelector('.pagina-ov');
+    const rm = el.querySelector('.marca-reprint-inline');
+    if(marca) extra = ' · ' + marca.textContent.trim();
+    else if(rm) extra = ' · ' + rm.textContent.trim().replace(/^\[|\]$/g, '');
+  }
   return `${d.obra}${d.volumen ? ' · Tomo ' + d.volumen : ''} — ${d.titulo || ''}, p. ${pag}${extra}`;
 }
 
@@ -3901,7 +3908,8 @@ async function abrirPagina(id, termino, conRef){
       };
     });
   }
-  const refPag = d.obra === 'Lo que dijo el pastor Russell' ? 'página Q' + d.pagina : 'p. ' + d.pagina;
+  const qidPrimera = (String(d.texto || '').match(/\bQ(\d+):\d+\b/) || [])[1];
+  const refPag = d.obra === 'Lo que dijo el pastor Russell' ? 'página Q' + (qidPrimera || d.pagina) : 'p. ' + d.pagina;
   const nota = [`Fuente: ${d.obra}${d.volumen?', vol. '+d.volumen:''}, ${refPag}.`];
   if(d.idioma==='en') nota.push('Texto original en inglés.');
   $('#lector-nota').textContent = nota.join(' ');
@@ -4363,7 +4371,10 @@ function bloque(texto, b, citas){
   html = html.replace(/\[(R\d+\s*:\s*page\s*\d+)\]/g, '<span class="marca-reprint-inline">[$1]</span>');
   const esWhatsaid = window._paginaActualData && window._paginaActualData.obra === 'Lo que dijo el pastor Russell';
   if(esWhatsaid && /^Pregunta\b/.test(crudo.trim())){
-    html = html.replace(/^(Pregunta(?:\s*\([^)]*\))?\.—\s*\d+\.)/, '<span class="etiqueta-preg">$1</span>');
+    html = html.replace(/^(Pregunta(?:\s+Q\d+:\d+)?(?:\s*\([^)]*\))?\.—\s*\d+\.)/, '<span class="etiqueta-preg">$1</span>');
+    if(!html.startsWith('<span class="etiqueta-preg">')){
+      html = html.replace(/^(Pregunta\s+Q\d+:\d+(?:\s*\([^)]*\))?\.—?)/, '<span class="etiqueta-preg">$1</span>');
+    }
     return '<p class="preg-russell">'+html+'</p>';
   }
   return '<p>'+html+'</p>';
