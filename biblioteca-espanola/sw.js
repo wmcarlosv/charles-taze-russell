@@ -1,4 +1,4 @@
-const CACHE = 'biblioteca-v61';
+const CACHE = 'biblioteca-v62';
 const SHELL = ['/', '/russell-icono.png', '/manifest.json'];
 
 self.addEventListener('install', e => {
