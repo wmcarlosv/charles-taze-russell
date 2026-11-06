@@ -40,6 +40,8 @@
   :root{
     --lec-font:Georgia,"Times New Roman",serif;
     --lec-scale:1;
+    --lec-line:1.62;
+    --lec-width:44em;
     --tinta:#1c2430; --papel:#fbf8f1; --papel2:#fffdf8; --linea:#ded5c3;
     --azul:#1d3a6b; --azul2:#2b5390; --oro:#946a1d; --rojo:#7d2f2f; --gris:#6b6459;
   }
@@ -717,7 +719,7 @@
     font-size:.92em;color:var(--azul);cursor:pointer}
   .cfg-pie .paso:hover{background:var(--azul);color:#fff;border-color:var(--azul)}
   .cfg-pie .paso.activo{background:var(--azul);color:#fff;border-color:var(--azul)}
-  #cfg-pct{min-width:50px;text-align:center;font-weight:700;color:var(--azul);font-variant-numeric:tabular-nums}
+  #cfg-pct,#cfg-linea,#cfg-ancho{min-width:50px;text-align:center;font-weight:700;color:var(--azul);font-variant-numeric:tabular-nums}
   #cfg-reset{margin-left:auto;border:0;background:none;color:var(--azul2);cursor:pointer;font:inherit;font-size:.82em;
     text-decoration:underline;text-underline-offset:2px;padding:4px 0}
   .cfg-nota{font-size:.72em;color:var(--gris);margin:8px 0 0}
@@ -890,6 +892,8 @@
   .lectura-texto > p:first-of-type,#lector-texto > p:first-of-type{font-size:1.06em;color:#2a3444;
     line-height:1.7;text-indent:0}
   .pagina p,.hoja p{margin:0 0 .95em}
+  .pagina p,.hoja p,#lector-texto>p,.lectura-texto>p{line-height:var(--lec-line,1.62)}
+  #pagina .lectura-texto,#lector-texto{max-width:var(--lec-width,44em);margin-left:auto;margin-right:auto}
   .pagina a.ref,#lector-texto a.ref{text-decoration-thickness:1px;text-underline-offset:2.5px;
     text-decoration-color:rgba(148,106,29,.55)}
   .pagina a.ref:hover,#lector-texto a.ref:hover{background:#f7edd4}
@@ -1061,6 +1065,18 @@
   .reporte-caja button{font:inherit;font-size:.86em;padding:7px 14px;border-radius:20px;border:1px solid var(--linea);background:#fff;color:var(--azul);cursor:pointer}
   .reporte-caja button.principal{background:var(--azul);color:#fff;border-color:var(--azul)}
   .reporte-caja button:disabled{opacity:.55;cursor:wait}
+  #reportes-modal{position:fixed;inset:0;z-index:131;background:rgba(12,24,44,.58);display:flex;align-items:center;justify-content:center;padding:18px}
+  #reportes-modal[hidden]{display:none}
+  .reportes-caja{width:min(760px,96vw);max-height:86vh;overflow:auto;background:var(--papel);color:var(--tinta);border:1px solid var(--linea);border-radius:14px;box-shadow:0 24px 60px -20px rgba(0,0,0,.6);padding:18px 20px 14px}
+  .reportes-caja h3{margin:0 0 6px;color:var(--azul)}
+  .reportes-caja .reporte-acciones{display:flex;justify-content:flex-end;margin-top:10px}
+  .reportes-caja button{font:inherit;font-size:.84em;padding:6px 12px;border-radius:18px;border:1px solid var(--linea);background:#fff;color:var(--azul);cursor:pointer}
+  .reporte-item{border:1px solid var(--linea);border-radius:10px;padding:10px 12px;margin:0 0 10px;background:#fffdf7}
+  .reporte-item.resuelto{opacity:.62}
+  .reporte-item .meta{margin:0 0 4px;font-size:.78em;color:var(--gris);letter-spacing:.02em}
+  .reporte-item .comentario{margin:0 0 5px;font-size:.92em;color:var(--tinta)}
+  .reporte-item .pista{margin:0 0 6px;font-size:.8em}
+  .reporte-item .acciones{display:flex;gap:8px;flex-wrap:wrap}
   @media(max-width:520px){.tts-barra{bottom:8px;padding:8px 10px 6px}.tts-botones button{width:42px;height:38px}.reporte-caja{padding:14px}}
 </style>
 </head>
@@ -1216,6 +1232,8 @@
             <span class="n">Rutas</span><span class="t">Rutas de estudio</span></button>
           <button class="hoy-libro hoy-tool" type="button" onclick="abrirTutorial()">
             <span class="n">Guía</span><span class="t">Cómo usar la biblioteca</span></button>
+          <button class="hoy-libro hoy-tool" type="button" onclick="abrirReportes()">
+            <span class="n">Revisar</span><span class="t">Reportes de errores</span></button>
         </div>
       </aside>
 
@@ -1281,6 +1299,7 @@
       </select>
       <span>Sintaxis: <b>«frase exacta»</b> · <b>palabra1 OR palabra2</b> · <b>-palabra</b> para excluir</span>
     </div>
+    <div class="chips" id="busquedas-guardadas"></div>
     <p class="pista">Busca en los seis tomos de <i>Estudios de las Escrituras</i>, en <i>Sombras del Tabernáculo</i>, en el <i>Foto-Drama de la Creación</i>, en <i>Overland Monthly</i> y en las revistas. También puedes buscar una marca de reimpresión, por ejemplo <b>R2555</b>.</p>
     <div class="chips" id="chips-obras"></div>
     <p class="pista" style="margin:-6px 0 14px">O explora una obra por su índice:
@@ -1449,6 +1468,18 @@
     <output id="cfg-pct" aria-live="polite">100%</output>
     <button class="paso" type="button" data-paso="5" aria-label="Aumentar el tamaño">A+</button>
     <button id="cfg-reset" type="button">Restablecer</button>
+  </div>
+  <div class="cfg-pie" style="border-top:none;padding-top:0;margin-top:4px">
+    <span class="cfg-et">Interlineado</span>
+    <button class="paso" type="button" data-linea="-0.05" aria-label="Reducir interlineado">−</button>
+    <output id="cfg-linea" aria-live="polite">1,62</output>
+    <button class="paso" type="button" data-linea="0.05" aria-label="Aumentar interlineado">+</button>
+  </div>
+  <div class="cfg-pie" style="border-top:none;padding-top:0;margin-top:4px">
+    <span class="cfg-et">Ancho</span>
+    <button class="paso" type="button" data-ancho="-2" aria-label="Reducir ancho">−</button>
+    <output id="cfg-ancho" aria-live="polite">44</output>
+    <button class="paso" type="button" data-ancho="2" aria-label="Aumentar ancho">+</button>
   </div>
   <div class="cfg-pie" style="border-top:none;padding-top:0;margin-top:4px">
     <span class="cfg-et">Tema</span>
@@ -2022,6 +2053,34 @@ function botonMas(){
     <button class="accion" onclick="cargarMas()">Ver más resultados (${b.total - b.n})</button></p>`;
 }
 
+const BUSQ_KEY = 'bib_busquedas_v1';
+function leerBusquedas(){
+  try{ const a=JSON.parse(localStorage.getItem(BUSQ_KEY)||'[]'); return Array.isArray(a)?a:[]; }catch(e){ return []; }
+}
+function guardarBusqueda(q){
+  q=(q||'').trim(); if(!q) return;
+  const a=leerBusquedas();
+  const nuevo=[q,...a.filter(x=>x!==q)].slice(0,10);
+  try{ localStorage.setItem(BUSQ_KEY, JSON.stringify(nuevo)); }catch(e){}
+  pintarBusquedas();
+}
+function borrarBusqueda(q){
+  const a=leerBusquedas().filter(x=>x!==q);
+  try{ localStorage.setItem(BUSQ_KEY, JSON.stringify(a)); }catch(e){}
+  pintarBusquedas();
+}
+function limpiarBusquedas(){
+  try{ localStorage.removeItem(BUSQ_KEY); }catch(e){}
+  pintarBusquedas();
+}
+function pintarBusquedas(){
+  const c=document.getElementById('busquedas-guardadas'); if(!c) return;
+  const a=leerBusquedas();
+  c.innerHTML = a.length ? '<span class="cfg-et" style="align-self:center">Guardadas:</span> ' +
+    a.map(q=>`<button class="chip" type="button" onclick="buscarPalabra('${esc(q).replace(/'/g,"\\'")}')">${esc(q)}</button>`).join('') +
+    ' <button class="chip" type="button" onclick="limpiarBusquedas()">Limpiar</button>' : '';
+}
+
 async function buscarPalabra(q, obra){
   q=(q||'').trim(); const c=$('#res-palabra');
   if(!q){ c.innerHTML=''; busqActual=null; return; }
@@ -2045,7 +2104,8 @@ async function buscarPalabra(q, obra){
   const chips = (d.distribucion||[]).map(x=>`<button class="chip" style="cursor:pointer" onclick="buscarPalabra('${esc(q).replace(/'/g,"\\'")}','${esc(x.titulo_obra).replace(/'/g,"\\'")}')">${esc(x.titulo_obra)}: ${x.n}</button>`).join('');
   const todas = obra ? `<button class="chip" style="cursor:pointer" onclick="buscarPalabra('${esc(q).replace(/'/g,"\\'")}')">Ver todos los volúmenes</button>` : '';
   c.innerHTML = `<p class="resumen"><b>${d.total}</b> páginas con «${esc(q)}»${obra?' en '+esc(obra):''}
-    <button class="link" style="margin-left:8px" onclick="exportarBusqueda()">Exportar resultados</button></p>
+    <button class="link" style="margin-left:8px" onclick="exportarBusqueda()">Exportar resultados</button>
+    <button class="link" style="margin-left:8px" onclick="guardarBusqueda(${JSON.stringify(q).replace(/"/g,'&quot;')})">Guardar búsqueda</button></p>
     <div class="chips">${todas}${chips}</div>
     <div id="lista-resultados">` + d.resultados.map(r=>tarjeta(r,terminos,q)).join('') + `</div>
     <div id="mana-busqueda"></div>
@@ -2555,6 +2615,50 @@ function copiarCita(btn){
   if(navigator.clipboard && navigator.clipboard.writeText){
     navigator.clipboard.writeText(cita).then(listo).catch(()=>prompt('Copia esta cita:', cita));
   } else prompt('Copia esta cita:', cita);
+}
+
+async function abrirReportes(){
+  const m = document.getElementById('reportes-modal');
+  if(m) m.hidden = false;
+  const c = document.getElementById('reportes-lista');
+  const r = document.getElementById('reportes-resumen');
+  if(c) c.innerHTML = '<p class="cargando">Cargando reportes…</p>';
+  try{
+    const d = await (await fetch('/api/reportes')).json();
+    if(!Array.isArray(d)) throw new Error('respuesta no válida');
+    const pend = d.filter(x=>!x.resuelto).length;
+    if(r) r.textContent = d.length ? `${d.length} reportes · ${pend} pendientes` : 'No hay reportes guardados.';
+    if(c){
+      c.innerHTML = d.length ? d.map(x=>{
+        const fecha = (x.creado || '').replace(' ', ' · ');
+        return `<article class="reporte-item ${x.resuelto ? 'resuelto' : ''}">
+          <p class="meta"><b>${esc(x.obra || '')}</b> · ${esc(x.titulo || '')} · p. ${esc(String(x.pagina || ''))} · ${esc(fecha)}</p>
+          <p class="comentario">${esc(x.comentario || '')}</p>
+          ${x.seleccion ? `<p class="pista">Selección: «${esc(x.seleccion.slice(0, 180))}»</p>` : ''}
+          <div class="acciones">
+            <button type="button" onclick="cerrarReportes();abrirPagina(${parseInt(x.pid,10) || 0})">Abrir página</button>
+            <button type="button" onclick="accionReporte(${x.id},'${x.resuelto ? 'reabrir' : 'resolver'}')">${x.resuelto ? 'Reabrir' : 'Marcar resuelto'}</button>
+            <button type="button" onclick="accionReporte(${x.id},'borrar')">Borrar</button>
+          </div>
+        </article>`;
+      }).join('') : '<p class="pista">No hay reportes guardados.</p>';
+    }
+  }catch(e){
+    if(c) c.innerHTML = '<p class="vacio">No se pudieron cargar los reportes.</p>';
+  }
+}
+
+function cerrarReportes(){
+  const m = document.getElementById('reportes-modal');
+  if(m) m.hidden = true;
+}
+
+async function accionReporte(id, accion){
+  try{
+    await fetch('/api/reporte_estado', {method:'POST', headers:{'Content-Type':'application/json'},
+      body: JSON.stringify({id, accion})});
+  }catch(e){}
+  abrirReportes();
 }
 
 function abrirReporte(){
@@ -5176,12 +5280,16 @@ const FUENTES_LECTURA = [
 const FUENTE_ORIGINAL = {id:'original', n:'Original', p:'Georgia, "Times New Roman", serif', d:'La del principio'};
 const MUESTRA = 'En el principio creó Dios los cielos y la tierra.';
 
-let fuenteLec = 'original', escalaLec = 1;
+let fuenteLec = 'original', escalaLec = 1, lineaLec = 1.62, anchoLec = 44;
 try{
   const f = localStorage.getItem('bib_fuente_v1');
   const e = parseFloat(localStorage.getItem('bib_escala_v1'));
+  const li = parseFloat(localStorage.getItem('bib_linea_v1'));
+  const an = parseFloat(localStorage.getItem('bib_ancho_v1'));
   if(f && (f === 'original' || FUENTES_LECTURA.some(x=>x.id===f))) fuenteLec = f;
   if(e && e >= 0.8 && e <= 1.8) escalaLec = e;
+  if(li && li >= 1.35 && li <= 2.0) lineaLec = li;
+  if(an && an >= 30 && an <= 60) anchoLec = an;
 }catch(err){}
 
 function pilaFuente(id){
@@ -5203,8 +5311,14 @@ function aplicarTipografia(){
   const r = document.documentElement;
   r.style.setProperty('--lec-font', pilaFuente(fuenteLec));
   r.style.setProperty('--lec-scale', String(escalaLec));
+  r.style.setProperty('--lec-line', String(lineaLec));
+  r.style.setProperty('--lec-width', anchoLec + 'em');
   const pct = document.getElementById('cfg-pct');
   if(pct) pct.textContent = Math.round(escalaLec * 100) + '%';
+  const lin = document.getElementById('cfg-linea');
+  if(lin) lin.textContent = lineaLec.toFixed(2).replace('.', ',');
+  const anc = document.getElementById('cfg-ancho');
+  if(anc) anc.textContent = String(anchoLec);
   document.querySelectorAll('#cfg-fuentes .cfg-f').forEach(b=>{
     b.classList.toggle('activo', b.dataset.f === fuenteLec);
     b.setAttribute('aria-pressed', b.dataset.f === fuenteLec ? 'true' : 'false');
@@ -5212,6 +5326,8 @@ function aplicarTipografia(){
   try{
     localStorage.setItem('bib_fuente_v1', fuenteLec);
     localStorage.setItem('bib_escala_v1', String(escalaLec));
+    localStorage.setItem('bib_linea_v1', String(lineaLec));
+    localStorage.setItem('bib_ancho_v1', String(anchoLec));
   }catch(err){}
 }
 
@@ -5277,12 +5393,17 @@ document.addEventListener('DOMContentLoaded', ()=>{
   pintarFuentes();
   aplicarTipografia();
   pintarContinuar();
+  pintarBusquedas();
   const rc = document.getElementById('reporte-cancelar');
   if(rc) rc.onclick = cerrarReporte;
   const re = document.getElementById('reporte-enviar');
   if(re) re.onclick = enviarReporte;
   const rm = document.getElementById('reporte-modal');
   if(rm) rm.addEventListener('click', e=>{ if(e.target === rm) cerrarReporte(); });
+  const rc2 = document.getElementById('reportes-cerrar');
+  if(rc2) rc2.onclick = cerrarReportes;
+  const rm2 = document.getElementById('reportes-modal');
+  if(rm2) rm2.addEventListener('click', e=>{ if(e.target === rm2) cerrarReportes(); });
   const b1 = document.getElementById('btn-aa');
   const b2 = document.getElementById('lector-aa');
   const bv = document.getElementById('btn-vol');
@@ -5296,15 +5417,27 @@ document.addEventListener('DOMContentLoaded', ()=>{
   const panel = document.getElementById('cfg-texto');
   if(panel){
     panel.querySelector('.cfg-x').onclick = cerrarCfg;
-    panel.querySelectorAll('.paso').forEach(b=>{
+    panel.querySelectorAll('.paso[data-paso]').forEach(b=>{
       b.onclick = ()=>{
         const paso = parseInt(b.dataset.paso,10) / 100;
         escalaLec = Math.min(1.8, Math.max(0.8, Math.round((escalaLec + paso) * 100) / 100));
         aplicarTipografia();
       };
     });
+    panel.querySelectorAll('.paso[data-linea]').forEach(b=>{
+      b.onclick = ()=>{
+        lineaLec = Math.min(2.0, Math.max(1.35, Math.round((lineaLec + parseFloat(b.dataset.linea)) * 100) / 100));
+        aplicarTipografia();
+      };
+    });
+    panel.querySelectorAll('.paso[data-ancho]').forEach(b=>{
+      b.onclick = ()=>{
+        anchoLec = Math.min(60, Math.max(30, anchoLec + parseInt(b.dataset.ancho,10)));
+        aplicarTipografia();
+      };
+    });
     const rst = document.getElementById('cfg-reset');
-    if(rst) rst.onclick = ()=>{ fuenteLec = 'original'; escalaLec = 1; aplicarTipografia(); };
+    if(rst) rst.onclick = ()=>{ fuenteLec = 'original'; escalaLec = 1; lineaLec = 1.62; anchoLec = 44; aplicarTipografia(); };
     const vol = document.getElementById('cfg-vol');
     if(vol){
       vol.value = Math.round(gananciaAudio() * 100);
@@ -5347,6 +5480,14 @@ if(location.hash==='#testclose'){
   },900);
 }
 </script>
+<div id="reportes-modal" hidden role="dialog" aria-modal="true" aria-labelledby="reportes-titulo">
+  <div class="reportes-caja">
+    <h3 id="reportes-titulo">Reportes de errores</h3>
+    <p class="pista" id="reportes-resumen"></p>
+    <div id="reportes-lista"></div>
+    <div class="reporte-acciones"><button type="button" id="reportes-cerrar">Cerrar</button></div>
+  </div>
+</div>
 <div id="reporte-modal" hidden role="dialog" aria-modal="true" aria-labelledby="reporte-titulo">
   <div class="reporte-caja">
     <h3 id="reporte-titulo">Reportar un error</h3>

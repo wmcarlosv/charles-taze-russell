@@ -1077,9 +1077,19 @@ class Manejador(BaseHTTPRequestHandler):
         except Exception:
             return False
 
+    def _asegurar_reportes(self, con):
+        con.execute('''CREATE TABLE IF NOT EXISTS reportes(
+            id INTEGER PRIMARY KEY AUTOINCREMENT, pid INTEGER, obra TEXT, titulo TEXT,
+            pagina INTEGER, seleccion TEXT, texto TEXT, comentario TEXT, creado TEXT,
+            resuelto INTEGER DEFAULT 0)''')
+        try:
+            con.execute('ALTER TABLE reportes ADD COLUMN resuelto INTEGER DEFAULT 0')
+        except sqlite3.OperationalError:
+            pass
+
     def do_POST(self):
         ruta = urllib.parse.urlparse(self.path).path
-        if ruta not in ('/api/tts', '/api/reportar'):
+        if ruta not in ('/api/tts', '/api/reportar', '/api/reporte_estado'):
             self.send_error(404); return
         try:
             largo = int(self.headers.get('Content-Length') or 0)
@@ -1094,15 +1104,26 @@ class Manejador(BaseHTTPRequestHandler):
                 if not comentario:
                     return self._json({'error': 'escribe una descripción del error'}, 400)
                 con = conectar()
-                con.execute('''CREATE TABLE IF NOT EXISTS reportes(
-                    id INTEGER PRIMARY KEY AUTOINCREMENT, pid INTEGER, obra TEXT, titulo TEXT,
-                    pagina INTEGER, seleccion TEXT, texto TEXT, comentario TEXT, creado TEXT)''')
+                self._asegurar_reportes(con)
                 fila = con.execute('SELECT obra,titulo,pagina FROM paginas WHERE id=?', (pid,)).fetchone()
                 con.execute('INSERT INTO reportes(pid,obra,titulo,pagina,seleccion,texto,comentario,creado) '
                             'VALUES (?,?,?,?,?,?,?,?)',
                             (pid, (fila['obra'] if fila else ''), (fila['titulo'] if fila else ''),
                              (fila['pagina'] if fila else 0), seleccion, texto, comentario,
                              time.strftime('%Y-%m-%d %H:%M:%S')))
+                con.commit(); con.close()
+                return self._json({'ok': True})
+            if ruta == '/api/reporte_estado':
+                rid = int(datos.get('id') or 0)
+                accion = str(datos.get('accion') or '')
+                con = conectar()
+                self._asegurar_reportes(con)
+                if accion == 'borrar':
+                    con.execute('DELETE FROM reportes WHERE id=?', (rid,))
+                elif accion == 'resolver':
+                    con.execute('UPDATE reportes SET resuelto=1 WHERE id=?', (rid,))
+                elif accion == 'reabrir':
+                    con.execute('UPDATE reportes SET resuelto=0 WHERE id=?', (rid,))
                 con.commit(); con.close()
                 return self._json({'ok': True})
             texto = _tts_limpiar(str(datos.get('texto') or ''))
@@ -1305,6 +1326,13 @@ class Manejador(BaseHTTPRequestHandler):
                 return self._json({'id': f['id'], 'termino': f['termino'], 'termino_es': f['termino_es'] or f['termino'],
                                    'nrefs': f['nrefs'], 'lineas': lineas_es, 'lineas_en': lineas, 'refs': refs,
                                    'foto': foto, 'obras': obras})
+            if ruta == '/api/reportes':
+                con = conectar()
+                self._asegurar_reportes(con)
+                filas = con.execute('SELECT id,pid,obra,titulo,pagina,seleccion,texto,comentario,creado,resuelto '
+                                    'FROM reportes ORDER BY resuelto, id DESC').fetchall()
+                con.close()
+                return self._json([dict(f) for f in filas])
             if ruta == '/api/estado':
                 con = conectar()
                 n = con.execute('SELECT count(*) FROM biblia').fetchone()[0]

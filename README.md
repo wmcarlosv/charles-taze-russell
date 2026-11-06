@@ -14,9 +14,12 @@ Sitio público: <https://charlestazerussell.online/>
 
 ## Herramientas de lectura
 
-- **Reportar error** desde el lector: guarda obra, artículo, página, párrafo y comentario para su corrección.
+- **Reportar error** desde el lector: guarda obra, artículo, página, párrafo y comentario.
+- **Panel de reportes** para revisar, marcar como resueltos o borrar los errores enviados.
 - **Copiar enlace** al párrafo exacto y **copiar cita** con obra, artículo y página.
 - **Continuar donde lo dejé**: recupera el último capítulo y la posición de lectura.
+- **Controles de lectura**: fuente, tamaño, interlineado y ancho de columna.
+- **Búsquedas guardadas** para repetir consultas frecuentes.
 - **Audio** con velocidad ajustable (0,8×–1,5×) y temporizador para dormir.
 
 ## Estructura
