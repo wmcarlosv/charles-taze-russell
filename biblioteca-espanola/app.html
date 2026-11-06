@@ -300,6 +300,10 @@
   html[data-tema="noche"] .bvers.comentado .bnum{background:#3a3320;color:var(--oro);border-color:var(--oro)}
   html[data-tema="noche"] .bvers.comentado:hover .bnum{background:var(--oro);color:#171b21}
   .bvers.destacado{background:#fff3a8;box-shadow:0 0 0 3px #fff3a8;border-radius:4px}
+  .voz-jesus{color:#c62828}
+  .voz-pablo{color:#1565c0}
+  html[data-tema="noche"] .voz-jesus{color:#ff8a80}
+  html[data-tema="noche"] .voz-pablo{color:#82b1ff}
   .biblia-foco{display:flex;flex-wrap:wrap;gap:8px;align-items:center;background:#fff8dc;border:1px solid #e8d79a;
     border-left:4px solid var(--oro);border-radius:8px;padding:8px 12px;margin:0 0 14px;font-size:.92em;
     position:sticky;top:calc(var(--alto-cab,124px) + var(--alto-tabs,100px));z-index:15;box-shadow:0 3px 10px rgba(0,0,0,.05)}
@@ -1586,6 +1590,16 @@
 <script>
 const $ = s => document.querySelector(s);
 const esc = s => s.replace(/[&<>"]/g, c => ({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;'}[c]));
+const htmlVerso = v => {
+  if(!v) return '';
+  if(!v.partes) return esc(v.texto || '');
+  return v.partes.map(p => {
+    const txt = esc(p.texto || '');
+    if(p.voz === 'jesus') return `<span class="voz-jesus">${txt}</span>`;
+    if(p.voz === 'pablo') return `<span class="voz-pablo">${txt}</span>`;
+    return txt;
+  }).join('');
+};
 
 let ultimaLectura = null;   // {tipo:'inline'|'lector'|'hoy', id, scroll, titulo, obra, pagina}
 let capituloInline = null;  // capítulo que se está mostrando en la pestaña Leer
@@ -2187,7 +2201,7 @@ async function buscarTexto(ref){
   let html = `<div class="card" style="border-left-color:var(--azul)">
     <p class="meta"><b>${esc(d.ref)}</b> · Reina-Valera 1960</p>`;
   if(d.disponible){
-    html += d.versiculos.map(v=>`<p class="extracto versiculo"><span class="num">${v.versiculo}</span>${esc(v.texto)}</p>`).join('');
+    html += d.versiculos.map(v=>`<p class="extracto versiculo"><span class="num">${v.versiculo}</span>${htmlVerso(v)}</p>`).join('');
   } else {
     html += `<p class="extracto" style="color:var(--gris)">Texto RVR1960 aún no disponible para este pasaje (descarga en curso).</p>`;
   }
@@ -3602,7 +3616,7 @@ async function bibliaCargar(libro, cap, verso, versoFin){
         <button class="chip" id="biblia-sig" ${cap>=info.capitulos?'disabled':''}>Siguiente →</button>
       </div>
     </div>` + leyenda +
-    d.versiculos.map(v=>`<p class="bvers${v.comentado?' comentado':''}" data-v="${v.versiculo}"${v.comentado?' title="Comentado en la biblioteca"':''}><span class="bnum">${v.versiculo}</span>${esc(v.texto)}</p>`).join('');
+    d.versiculos.map(v=>`<p class="bvers${v.comentado?' comentado':''}" data-v="${v.versiculo}"${v.comentado?' title="Comentado en la biblioteca"':''}><span class="bnum">${v.versiculo}</span>${htmlVerso(v)}</p>`).join('');
   document.getElementById('biblia-cap').onchange = e => bibliaCargar(libro, parseInt(e.target.value,10));
   document.getElementById('biblia-ant').onclick = () => { if(cap>1) bibliaCargar(libro, cap-1); };
   document.getElementById('biblia-sig').onclick = () => { if(cap<info.capitulos) bibliaCargar(libro, cap+1); };
@@ -4448,7 +4462,7 @@ async function abrirCita(ref){
   };
   const bg = $('#btn-guardar-cita');
   if(bg) bg.onclick = () => guardarVersiculoEnCuaderno(d, bg);
-  $('#cita-texto').innerHTML = d.versiculos.map(v=>`<p><span class="num" style="font-size:.72em;font-weight:700;color:#b8892b;vertical-align:super;margin-right:3px">${v.versiculo}</span>${esc(v.texto)}</p>`).join('');
+  $('#cita-texto').innerHTML = d.versiculos.map(v=>`<p><span class="num" style="font-size:.72em;font-weight:700;color:#b8892b;vertical-align:super;margin-right:3px">${v.versiculo}</span>${htmlVerso(v)}</p>`).join('');
 }
 
 
@@ -4656,7 +4670,7 @@ async function pintarVersiculoDiario(){
     const d = await traerJSON('/api/versiculo?ref=' + encodeURIComponent(ref) + '&simple=1');
     if(!d || d.error || !d.versiculos || !d.versiculos.length) return;
     const v = d.versiculos[0];
-    txt.innerHTML = '“' + esc(v.texto) + '” <b>— ' + esc(d.ref) + '</b>';
+    txt.innerHTML = '“' + htmlVerso(v) + '” <b>— ' + esc(d.ref) + '</b>';
     btn.onclick = () => abrirBiblia(d.libro, d.capitulo, v.versiculo);
     caja.hidden = false;
     versiculoDiaCargado = true;
@@ -5556,7 +5570,7 @@ async function tipTexto(ref){
     const vistos = vs.slice(0, 8);
     const html = d.error ? '<p class="v">' + esc(d.error) + '</p>'
       : vistos.length
-        ? vistos.map(v=>`<p class="v"><span class="n">${v.versiculo}</span>${esc(v.texto)}</p>`).join('')
+        ? vistos.map(v=>`<p class="v"><span class="n">${v.versiculo}</span>${htmlVerso(v)}</p>`).join('')
           + (vs.length > vistos.length ? `<p class="v" style="color:#6b6453">… ${vs.length - vistos.length} versículos más</p>` : '')
         : '<p class="v">Texto no disponible.</p>';
     const obj = {ref: d.ref || ref, html};

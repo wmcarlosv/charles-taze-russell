@@ -18,6 +18,7 @@ Sitio público: <https://charlestazerussell.online/>
 - **Reportar error** desde el lector: guarda obra, artículo, página, párrafo y comentario.
 - **Panel de reportes** para revisar, marcar como resueltos o borrar los errores enviados.
 - **Copiar enlace** al párrafo exacto (el enlace abre el lector y resalta ese párrafo), **copiar cita** con obra, artículo, página y marca Q cuando existe, y **compartir** con el móvil.
+- **Palabras de Jesús en rojo** en los Evangelios, Hechos y Apocalipsis, y **palabras de Pablo en azul** solo en Hechos, siguiendo la edición RVR1960 con palabras de Cristo en rojo.
 - **Ver original**: página escaneada de Overland Monthly y PDF de revistas y tomos.
 - **Continuar donde lo dejé**: recupera el último capítulo y la posición de lectura.
 - **Etiquetas y filtro** en los marcadores del cuaderno.
@@ -131,6 +132,9 @@ referencias y párrafos exactos:
   `biblioteca-espanola/auditoria-nombres-biblicos.md`.
 - Normalización de referencias de libros de un solo capítulo y expresiones que
   habían quedado en inglés.
+- 2.198 tramos de voces bíblicas: palabras de Jesús en rojo y palabras de Pablo
+  en azul en Hechos. El detalle está en `biblioteca-espanola/voces-biblicas.csv`
+  y `biblioteca-espanola/auditoria-voces-biblicas.md`.
 
 ## Créditos
 

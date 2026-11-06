@@ -228,10 +228,50 @@ def biblia_indice():
             'versiculos': sum(x['versiculos'] for x in libros),
             'capitulos': sum(x['capitulos'] for x in libros)}
 
+def _rangos_voces(con, libro, cap):
+    out = {}
+    for r in con.execute('SELECT versiculo, voz, inicio, fin FROM biblia_voces '
+                         'WHERE libro=? AND capitulo=? ORDER BY versiculo, inicio',
+                         (libro, cap)):
+        out.setdefault(r['versiculo'], []).append((r['voz'], r['inicio'], r['fin']))
+    return out
+
+
+def _partes_verso(texto, rangos):
+    """Divide un versículo en tramos normales, rojos (Jesús) o azules (Pablo)."""
+    if not rangos:
+        return None
+    texto = texto or ''
+    n = len(texto)
+    puntos = {0, n}
+    for voz, a, b in rangos:
+        a = max(0, min(n, int(a)))
+        b = max(0, min(n, int(b)))
+        if a < b:
+            puntos.add(a); puntos.add(b)
+    puntos = sorted(puntos)
+    partes = []
+    for a, b in zip(puntos, puntos[1:]):
+        if a >= b:
+            continue
+        voz = None
+        # Prioridad: palabras de Jesús sobre las de Pablo.
+        for v in ('jesus', 'pablo'):
+            if any(rv == v and ra <= a and b <= rb for rv, ra, rb in rangos):
+                voz = v
+                break
+        if partes and partes[-1]['voz'] == voz:
+            partes[-1]['texto'] += texto[a:b]
+        else:
+            partes.append({'texto': texto[a:b], 'voz': voz})
+    return partes
+
+
 def biblia_capitulo(libro, cap):
     con = conectar()
     filas = con.execute('SELECT versiculo, texto FROM biblia WHERE libro=? AND capitulo=? ORDER BY versiculo',
                         (libro, cap)).fetchall()
+    voces = _rangos_voces(con, libro, cap)
     comentado = set()
     try:
         for v_ini, v_fin in con.execute(
@@ -244,8 +284,14 @@ def biblia_capitulo(libro, cap):
     except Exception:
         pass
     con.close()
-    return {'libro': libro, 'capitulo': cap,
-            'versiculos': [dict(f, comentado=f['versiculo'] in comentado) for f in filas]}
+    versiculos = []
+    for f in filas:
+        d = dict(f, comentado=f['versiculo'] in comentado)
+        partes = _partes_verso(f['texto'], voces.get(f['versiculo']))
+        if partes:
+            d['partes'] = partes
+        versiculos.append(d)
+    return {'libro': libro, 'capitulo': cap, 'versiculos': versiculos}
 
 def biblia_comentarios(libro, cap, verso):
     con = conectar()
@@ -578,6 +624,7 @@ def versiculo(ref, simple=False):
     else:
         filas = con.execute('SELECT versiculo, texto FROM biblia WHERE libro=? AND capitulo=? AND versiculo BETWEEN ? AND ? ORDER BY versiculo',
                             (r['libro'], r['capitulo'], r['v_ini'], r['v_fin'])).fetchall()
+    voces = _rangos_voces(con, r['libro'], r['capitulo'])
     paginas = []
     if not simple:
         if r['v_ini'] is None:
@@ -596,9 +643,16 @@ def versiculo(ref, simple=False):
     etiqueta = '%s %d' % (r['libro'], r['capitulo'])
     if r['v_ini']:
         etiqueta += ':%d' % r['v_ini'] if r['v_ini'] == r['v_fin'] else ':%d-%d' % (r['v_ini'], r['v_fin'])
+    versiculos = []
+    for x in filas:
+        d = dict(x)
+        partes = _partes_verso(x['texto'], voces.get(x['versiculo']))
+        if partes:
+            d['partes'] = partes
+        versiculos.append(d)
     return {'ref': etiqueta, 'libro': r['libro'], 'capitulo': r['capitulo'],
             'v_ini': r['v_ini'], 'v_fin': r['v_fin'],
-            'versiculos': [dict(x) for x in filas], 'paginas': paginas,
+            'versiculos': versiculos, 'paginas': paginas,
             'disponible': bool(filas)}
 
 VACIAS = set('''de la el los las un una unos unas y o u que qué como cómo cuando cuál cuáles quien quién
