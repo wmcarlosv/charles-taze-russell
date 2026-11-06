@@ -1,6 +1,6 @@
 #!/usr/bin/env python3
 # Biblioteca de investigación — Estudiantes de la Biblia
-import base64, gzip, hashlib, json, os, re, sqlite3, sys, tarfile, threading, time, unicodedata, urllib.parse, urllib.request, mimetypes, asyncio
+import base64, gzip, hashlib, json, os, re, sqlite3, subprocess, sys, tarfile, threading, time, unicodedata, urllib.parse, urllib.request, mimetypes, asyncio
 from http.server import BaseHTTPRequestHandler, ThreadingHTTPServer
 
 BASE = os.path.dirname(os.path.abspath(__file__))
@@ -16,6 +16,19 @@ HOST = os.environ.get('HOST', '0.0.0.0')
 VOCES_EDGE = ['es-MX-JorgeNeural', 'es-ES-AlvaroNeural', 'es-AR-TomasNeural',
               'es-CO-GonzaloNeural', 'es-US-AlonsoNeural', 'es-VE-SebastianNeural']
 TTS_CACHE = os.path.join(DATOS, 'tts-cache')
+SCAN_CACHE = os.path.join(DATOS, 'scan-cache')
+PDF_VOLUMES = {
+    'El Plan Divino de las Edades': 'VOLUME1.PDF',
+    'El Tiempo Está a la Mano': 'VOLUME2.PDF',
+    'Venga Tu Reino': 'VOLUME3.PDF',
+    'La Batalla de Armagedón': 'VOLUME4.PDF',
+    'La Expiación entre Dios y el Hombre': 'VOLUME5.PDF',
+    'La Nueva Creación': 'VOLUME6.PDF',
+    'Sombras del Tabernáculo': 'SHADOWS.PDF',
+}
+PDF_BASE = '/home/carlos/Imágenes/Documentos compartidos/Pictures/Imágenes/Bible Study Library/Library/Library/Russell'
+MESES_ARCHIVO = {'enero':'JAN','febrero':'FEB','marzo':'MAR','abril':'APR','mayo':'MAY','junio':'JUN',
+                 'julio':'JUL','agosto':'AUG','septiembre':'SEP','octubre':'OCT','noviembre':'NOV','diciembre':'DEC'}
 
 LIBROS = {
  'genesis':'Génesis','gen':'Génesis','gn':'Génesis','exodo':'Éxodo','ex':'Éxodo','levitico':'Levítico','lev':'Levítico',
@@ -288,7 +301,25 @@ def biblia_buscar(q, libro=None, limite=40, offset=0):
             'resultados': [{'libro': f['libro'], 'capitulo': f['capitulo'], 'versiculo': f['versiculo'],
                             'texto': f['texto'], 'extracto': contexto(f['texto'], terminos, 190)} for f in filas]}
 
-def buscar(q, limite=40, offset=0, obra=None, orden='', anio=None):
+def _singularizar(q):
+    if '"' in q or ' OR ' in q or q.strip().startswith('-'):
+        return ''
+    especiales = {'hombres': 'hombre', 'mujeres': 'mujer', 'luces': 'luz', 'voces': 'voz',
+                  'veces': 'vez', 'países': 'país', 'raíces': 'raíz', 'análisis': 'análisis'}
+    out = []
+    for w in re.findall(r"[A-Za-zÁÉÍÓÚÜÑáéíóúüñ]+", q):
+        lw = w.lower()
+        if lw in especiales:
+            w = especiales[lw]
+        elif len(w) > 4 and lw.endswith('es'):
+            w = w[:-2]
+        elif len(w) > 3 and lw.endswith('s'):
+            w = w[:-1]
+        out.append(w)
+    return ' '.join(out)
+
+
+def buscar(q, limite=40, offset=0, obra=None, orden='', anio=None, intentos=1):
     fq = fts_query(q)
     if not fq:
         return {'total': 0, 'resultados': []}
@@ -304,6 +335,11 @@ def buscar(q, limite=40, offset=0, obra=None, orden='', anio=None):
     total = con.execute(
         'SELECT count(*) FROM busqueda b JOIN paginas p ON p.id=b.rowid WHERE busqueda MATCH ?' + filtro,
         params).fetchone()[0]
+    if total == 0 and intentos > 0:
+        q2 = _singularizar(q)
+        if q2 and q2 != q:
+            con.close()
+            return buscar(q2, limite, offset, obra, orden, anio, intentos - 1)
     orden_sql = 'p.volumen, p.pagina' if orden == 'pagina' else 'r'
     filas = con.execute(
         'SELECT p.id, p.titulo_obra, p.volumen, p.pagina, p.titulo, p.texto, bm25(busqueda) AS r '
@@ -1090,6 +1126,37 @@ class Manejador(BaseHTTPRequestHandler):
         except sqlite3.OperationalError:
             pass
 
+    def _pdf_original(self, obra, titulo, pagina):
+        if obra == 'Escritos del pastor Russell para Overland Monthly':
+            return ('imagen', '/home/carlos/Desktop/OVM.PDF', int(pagina) + 5)
+        if obra == 'La Torre del Vigía':
+            m = re.search(r'—\s*([a-záéíóúñ]+)\s+de\s+(\d{4})', titulo or '', re.I)
+            if not m:
+                return None
+            mes = MESES_ARCHIVO.get(m.group(1).lower())
+            if not mes:
+                return None
+            anio = int(m.group(2))
+            yy = str(anio)[2:]
+            archivo = (f'Z{yy}{mes}.PDF' if anio < 1900 else f'WT{mes}{yy}.PDF')
+            ruta = os.path.join(PDF_BASE, 'TOWERS', f'ZWT{anio}', archivo)
+            return ('pdf', ruta, None) if os.path.isfile(ruta) else None
+        archivo = PDF_VOLUMES.get(obra)
+        if archivo:
+            ruta = os.path.join(PDF_BASE, 'VOLUMES', archivo)
+            return ('pdf', ruta, None) if os.path.isfile(ruta) else None
+        return None
+
+    def _scan_overland(self, pagina):
+        os.makedirs(SCAN_CACHE, exist_ok=True)
+        n = int(pagina) + 5
+        salida = os.path.join(SCAN_CACHE, 'ovm-%03d.png' % n)
+        if not os.path.isfile(salida):
+            pref = salida[:-4]
+            subprocess.run(['pdftoppm','-f',str(n),'-l',str(n),'-png','-r','110','-singlefile',
+                            '/home/carlos/Desktop/OVM.PDF', pref], check=True, timeout=90)
+        return salida
+
     def do_POST(self):
         ruta = urllib.parse.urlparse(self.path).path
         if ruta not in ('/api/tts', '/api/reportar', '/api/reporte_estado'):
@@ -1330,6 +1397,36 @@ class Manejador(BaseHTTPRequestHandler):
                 return self._json({'id': f['id'], 'termino': f['termino'], 'termino_es': f['termino_es'] or f['termino'],
                                    'nrefs': f['nrefs'], 'lineas': lineas_es, 'lineas_en': lineas, 'refs': refs,
                                    'foto': foto, 'obras': obras})
+            if ruta == '/api/original':
+                pid = entero(q, 'pid')
+                con = conectar(); f = con.execute('SELECT obra,titulo,pagina FROM paginas WHERE id=?', (pid,)).fetchone(); con.close()
+                if not f:
+                    return self._json({'error': 'no encontrada'}, 404)
+                orig = self._pdf_original(f['obra'], f['titulo'], f['pagina'])
+                if not orig:
+                    return self._json({'error': 'sin original'}, 404)
+                tipo, _, _ = orig
+                url = ('/api/scan?pid=%d' % pid) if tipo == 'imagen' else ('/api/pdf?pid=%d' % pid)
+                return self._json({'tipo': tipo, 'url': url, 'pagina': f['pagina']})
+            if ruta == '/api/scan':
+                pid = entero(q, 'pid')
+                con = conectar(); f = con.execute('SELECT obra,pagina FROM paginas WHERE id=?', (pid,)).fetchone(); con.close()
+                if not f or f['obra'] != 'Escritos del pastor Russell para Overland Monthly':
+                    return self._json({'error': 'sin imagen'}, 404)
+                try:
+                    out = self._scan_overland(f['pagina'])
+                except Exception as e:
+                    return self._json({'error': str(e)}, 500)
+                return self._archivo(out, 'image/png', cache=True, max_age=86400)
+            if ruta == '/api/pdf':
+                pid = entero(q, 'pid')
+                con = conectar(); f = con.execute('SELECT obra,titulo,pagina FROM paginas WHERE id=?', (pid,)).fetchone(); con.close()
+                if not f:
+                    return self._json({'error': 'no encontrada'}, 404)
+                orig = self._pdf_original(f['obra'], f['titulo'], f['pagina'])
+                if not orig or orig[0] != 'pdf':
+                    return self._json({'error': 'sin PDF'}, 404)
+                return self._archivo(orig[1], 'application/pdf', cache=True, max_age=86400)
             if ruta == '/api/progreso':
                 con = conectar()
                 obras = con.execute(

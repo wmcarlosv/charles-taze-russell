@@ -1085,6 +1085,12 @@
   .reporte-item .comentario{margin:0 0 5px;font-size:.92em;color:var(--tinta)}
   .reporte-item .pista{margin:0 0 6px;font-size:.8em}
   .reporte-item .acciones{display:flex;gap:8px;flex-wrap:wrap}
+  #original-modal{position:fixed;inset:0;z-index:133;background:rgba(12,24,44,.72);display:flex;align-items:center;justify-content:center;padding:14px}
+  #original-modal[hidden]{display:none}
+  .original-caja{width:min(1000px,98vw);height:min(92vh,1000px);background:#fff;border-radius:10px;position:relative;overflow:hidden;box-shadow:0 24px 60px -20px rgba(0,0,0,.7)}
+  .original-caja img{width:100%;height:100%;object-fit:contain;background:#eee;display:block}
+  .original-caja iframe{width:100%;height:100%;border:0;display:block}
+  .original-cerrar{position:absolute;right:8px;top:8px;z-index:2;border:0;border-radius:50%;width:34px;height:34px;background:rgba(20,36,63,.85);color:#fff;font-size:1.3em;cursor:pointer}
   #progreso-modal{position:fixed;inset:0;z-index:132;background:rgba(12,24,44,.58);display:flex;align-items:center;justify-content:center;padding:18px}
   #progreso-modal[hidden]{display:none}
   .prog-item{display:grid;grid-template-columns:1fr auto;gap:4px 14px;align-items:center;padding:7px 0;border-bottom:1px solid var(--linea)}
@@ -2687,6 +2693,32 @@ function copiarCita(btn){
   } else prompt('Copia esta cita:', cita);
 }
 
+async function abrirOriginal(){
+  const d = window._paginaActualData;
+  if(!d || !d.id) return;
+  const m = document.getElementById('original-modal');
+  const c = document.getElementById('original-contenido');
+  if(!m || !c) return;
+  c.innerHTML = '<p class="cargando" style="padding:20px">Buscando la página original…</p>';
+  m.hidden = false;
+  try{
+    const r = await fetch('/api/original?pid=' + d.id);
+    const j = await r.json().catch(()=>({}));
+    if(!r.ok) throw new Error(j.error || 'No hay original disponible');
+    c.innerHTML = j.tipo === 'imagen'
+      ? `<img src="${esc(j.url)}" alt="Página original de ${esc(d.titulo || '')}">`
+      : `<iframe src="${esc(j.url)}" title="PDF original de ${esc(d.titulo || '')}"></iframe>`;
+  }catch(e){
+    c.innerHTML = `<p class="vacio" style="padding:20px">${esc(e.message || 'No se pudo abrir el original.')}</p>`;
+  }
+}
+function cerrarOriginal(){
+  const m = document.getElementById('original-modal');
+  const c = document.getElementById('original-contenido');
+  if(m) m.hidden = true;
+  if(c) c.innerHTML = '';
+}
+
 async function abrirProgreso(){
   const m = document.getElementById('progreso-modal');
   if(m) m.hidden = false;
@@ -2894,6 +2926,7 @@ async function abrirCapitulo(id, restaurar){
       <button class="link" type="button" onclick="copiarEnlace(this)">Copiar enlace</button>
       <button class="link" type="button" onclick="copiarCita(this)">Copiar cita Markdown</button>
       <button class="link" type="button" onclick="compartirParrafo(this)">Compartir</button>
+      <button class="link" type="button" onclick="abrirOriginal()">Ver original</button>
       <button class="link" type="button" onclick="abrirReporte()">Reportar error</button></p>
   </div>`;
   if(d.resumen && d.resumen.length){
@@ -3789,6 +3822,7 @@ async function abrirPagina(id, termino, conRef){
   const acc = $('#lector-acciones');
   acc.innerHTML = `<button class="link" id="btn-copiar">Copiar cita</button>` +
     `<button class="link" id="btn-enlace">Copiar enlace</button>` +
+    `<button class="link" id="btn-original">Ver original</button>` +
     `<button class="link" id="btn-reporte">Reportar error</button>` +
     `<button class="link" id="btn-cuaderno">Guardar en el cuaderno</button>` +
     `<button class="link btn-audio" id="btn-escuchar" data-etiqueta="Escuchar capítulo"><svg class="ico-audio" viewBox="0 0 24 24" aria-hidden="true" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M3 14v-2a9 9 0 0 1 18 0v2"/><path d="M3 14a2 2 0 0 1 2-2h1v6H5a2 2 0 0 1-2-2z"/><path d="M21 14a2 2 0 0 0-2-2h-1v6h1a2 2 0 0 0 2-2z"/></svg> Escuchar capítulo</button>` +
@@ -3807,6 +3841,8 @@ async function abrirPagina(id, termino, conRef){
   $('#btn-enlace').onclick = () => copiarEnlace($('#btn-enlace'));
   const bc = $('#btn-compartir');
   if(bc) bc.onclick = () => compartirParrafo(bc);
+  const bor = $('#btn-original');
+  if(bor) bor.onclick = () => abrirOriginal();
   $('#btn-reporte').onclick = () => abrirReporte();
   $('#btn-cuaderno').onclick = () => guardarMarcador();
   const be = document.getElementById('btn-escuchar');
@@ -5632,6 +5668,10 @@ document.addEventListener('DOMContentLoaded', ()=>{
   if(rc2) rc2.onclick = cerrarReportes;
   const rm2 = document.getElementById('reportes-modal');
   if(rm2) rm2.addEventListener('click', e=>{ if(e.target === rm2) cerrarReportes(); });
+  const oc = document.getElementById('original-cerrar');
+  if(oc) oc.onclick = cerrarOriginal;
+  const om = document.getElementById('original-modal');
+  if(om) om.addEventListener('click', e=>{ if(e.target === om) cerrarOriginal(); });
   const pc = document.getElementById('progreso-cerrar');
   if(pc) pc.onclick = cerrarProgreso;
   const pm = document.getElementById('progreso-modal');
@@ -5716,6 +5756,12 @@ if(location.hash==='#testclose'){
   <span id="aviso-texto"></span>
   <button type="button" id="aviso-accion" hidden></button>
   <button type="button" id="aviso-cerrar" aria-label="Cerrar aviso">×</button>
+</div>
+<div id="original-modal" hidden role="dialog" aria-modal="true" aria-label="Página original">
+  <div class="original-caja">
+    <button class="original-cerrar" type="button" id="original-cerrar" aria-label="Cerrar">×</button>
+    <div id="original-contenido" style="width:100%;height:100%"></div>
+  </div>
 </div>
 <div id="progreso-modal" hidden role="dialog" aria-modal="true" aria-labelledby="progreso-titulo">
   <div class="reportes-caja">

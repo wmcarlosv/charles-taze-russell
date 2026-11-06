@@ -16,8 +16,10 @@ Sitio público: <https://charlestazerussell.online/>
 
 - **Reportar error** desde el lector: guarda obra, artículo, página, párrafo y comentario.
 - **Panel de reportes** para revisar, marcar como resueltos o borrar los errores enviados.
-- **Copiar enlace** al párrafo exacto y **copiar cita** con obra, artículo y página.
+- **Copiar enlace** al párrafo exacto, **copiar cita Markdown** y **compartir** con el móvil.
+- **Ver original**: página escaneada de Overland Monthly y PDF de revistas y tomos.
 - **Continuar donde lo dejé**: recupera el último capítulo y la posición de lectura.
+- **Etiquetas y filtro** en los marcadores del cuaderno.
 - **Controles de lectura**: fuente, tamaño, interlineado y ancho de columna.
 - **Búsquedas guardadas** y filtro por año para repetir consultas frecuentes.
 - **Panel de progreso** con páginas, citas y temas por obra.
