@@ -6,7 +6,7 @@
 <link rel="icon" type="image/png" href="/icono.png">
 <link rel="manifest" href="/manifest.json">
 <meta name="theme-color" content="#1d3a6b">
-<meta name="description" content="Biblioteca digital de Estudios de las Escrituras de C. T. Russell: seis tomos, Sombras del Tabernáculo, Foto-Drama de la Creación, Overland Monthly, Lo que dijo el pastor Russell, Maná Diario, Biblia RVR1960, índice temático y Mapa de las Edades.">
+<meta name="description" content="Biblioteca digital de Estudios de las Escrituras de C. T. Russell: seis tomos, Sombras del Tabernáculo, Foto-Drama de la Creación, Overland Monthly, Lo que dijo el pastor Russell, la biografía de C. T. Russell, Maná Diario, Biblia RVR1960, índice temático y Mapa de las Edades.">
 <meta name="apple-mobile-web-app-capable" content="yes">
 <title>Estudios de las Escrituras de C. T. Russell</title>
 <style>
@@ -1254,6 +1254,8 @@
             <span class="n">Libro</span><span class="t">Overland Monthly</span></button>
           <button class="hoy-libro" type="button" onclick="abrirObra('Lo que dijo el pastor Russell')">
             <span class="n">Libro</span><span class="t">Lo que dijo el pastor Russell</span></button>
+          <button class="hoy-libro" type="button" onclick="abrirObra('Charles Taze Russell: Mensajero de la esperanza milenaria')">
+            <span class="n">Biografía</span><span class="t">Mensajero de la esperanza milenaria</span></button>
           <button class="hoy-libro" type="button" onclick="abrirObra('La Torre del Vigía')">
             <span class="n">Revistas</span><span class="t">Torre del Vigía 1879-1916</span></button>
         </div>
@@ -1345,7 +1347,7 @@
       <span>Sintaxis: <b>«frase exacta»</b> · <b>palabra1 OR palabra2</b> · <b>-palabra</b> para excluir</span>
     </div>
     <div class="chips" id="busquedas-guardadas"></div>
-    <p class="pista">Busca en los seis tomos de <i>Estudios de las Escrituras</i>, en <i>Sombras del Tabernáculo</i>, en el <i>Foto-Drama de la Creación</i>, en <i>Overland Monthly</i>, en <i>Lo que dijo el pastor Russell</i> y en las revistas. También puedes buscar una marca de página o de reimpresión, por ejemplo <b>Q5</b>, <b>Q5:1</b> o <b>R2555</b>.</p>
+    <p class="pista">Busca en los seis tomos de <i>Estudios de las Escrituras</i>, en <i>Sombras del Tabernáculo</i>, en el <i>Foto-Drama de la Creación</i>, en <i>Overland Monthly</i>, en <i>Lo que dijo el pastor Russell</i>, en la biografía <i>Charles Taze Russell: Mensajero de la esperanza milenaria</i> y en las revistas. También puedes buscar una marca de página o de reimpresión, por ejemplo <b>Q5</b>, <b>Q5:1</b> o <b>R2555</b>.</p>
     <div class="chips" id="chips-obras"></div>
     <p class="pista" style="margin:-6px 0 14px">O explora una obra por su índice:
       <select id="sel-obra" onchange="verIndice(this.value)" style="font:inherit;padding:4px 8px;border:1px solid var(--linea);border-radius:6px;background:#fff">
@@ -1563,7 +1565,7 @@
   <div class="texto" id="cv-texto"></div>
   <h4 style="margin:14px 0 0;color:var(--azul);font-size:.9em">Comentado en la biblioteca</h4>
   <div id="cv-lista"></div>
-  <div class="pie"><span>Estudios de las Escrituras · Sombras del Tabernáculo · Foto-Drama · Lo que dijo el pastor Russell</span>
+  <div class="pie"><span>Estudios de las Escrituras · Sombras del Tabernáculo · Foto-Drama · Lo que dijo el pastor Russell · Mensajero de la esperanza milenaria</span>
     <span style="display:flex;gap:10px">
       <button class="link" id="cv-guardar" style="font-size:1em">Guardar versículo</button>
       <button class="accion" style="padding:6px 14px" onclick="cerrarComentariosVerso()">Cerrar</button>
@@ -2247,7 +2249,7 @@ function tarjetaTemas(){
     <div class="obra-cuerpo">
       <span class="num">Índice</span>
       <h3>Índice temático</h3>
-      <p class="pags">1.339 voces · traducido al español</p>
+      <p class="pags">1.371 voces · traducido al español</p>
       <div class="btn"><button onclick="abrirTematico()">Abrir índice</button></div>
     </div>
   </article>`;
@@ -2578,12 +2580,16 @@ document.addEventListener('click', e=>{
 });
 
 function tarjetaObra(x){
+  const OBRA_MESSENGER = 'Charles Taze Russell: Mensajero de la esperanza milenaria';
   const esTomo = x.volumen >= 1 && x.volumen <= 6;
   const esTorre = x.titulo_obra === 'La Torre del Vigía';
+  const esMessenger = x.titulo_obra === OBRA_MESSENGER;
   const esLibro = x.titulo_obra === 'Sombras del Tabernáculo' || x.titulo_obra === 'Foto-Drama de la Creación' || x.titulo_obra === 'Escritos del pastor Russell para Overland Monthly' || x.titulo_obra === 'Lo que dijo el pastor Russell';
-  const num = esTomo ? 'Tomo '+x.volumen : (esTorre ? 'Revistas 1879–1916' : (esLibro ? 'Libro' : 'Obra'));
+  const num = esTomo ? 'Tomo '+x.volumen : (esTorre ? 'Revistas 1879–1916' : (esMessenger ? 'Biografía' : (esLibro ? 'Libro' : 'Obra')));
   const esFoto = x.titulo_obra === 'Foto-Drama de la Creación';
-  const portada = esFoto
+  const portada = esMessenger
+    ? `<div class="obra-portada portada-foto"><img src="/img/messenger-portada.jpg" alt="Portada de ${esc(x.titulo_obra)}" loading="lazy"><span class="pc-badge">Biografía</span></div>`
+    : esFoto
     ? `<div class="obra-portada portada-foto"><img src="/img/fotodrama-001-1.png" alt="Portada de ${esc(x.titulo_obra)}" loading="lazy"><span class="pc-badge">${x.n} capítulos</span></div>`
     : `<div class="obra-portada portada-css ${esLibro?'portada-libro':''}"><span class="pc-sello">✦</span><span class="pc-vol">${num}</span><span class="pc-titulo">${esc(x.titulo_obra)}</span><span class="pc-linea"></span></div>`;
   return `<article class="obra-card${esFoto?' destacada':''}">${portada}
@@ -3018,7 +3024,7 @@ async function abrirCapitulo(id, restaurar){
       <button class="link" type="button" onclick="copiarEnlace(this)" title="Copia el enlace del párrafo que estás viendo">Copiar enlace</button>
       <button class="link" type="button" onclick="copiarCita(this)" title="Copia la cita con obra, artículo, página y marca Q">Copiar cita</button>
       <button class="link" type="button" onclick="compartirParrafo(this)">Compartir</button>
-      ${d.obra==='Lo que dijo el pastor Russell' ? '' : '<button class="link" type="button" onclick="abrirOriginal()">Ver original</button>'}
+      ${(d.obra==='Lo que dijo el pastor Russell' || d.obra==='Charles Taze Russell: Mensajero de la esperanza milenaria') ? '' : '<button class="link" type="button" onclick="abrirOriginal()">Ver original</button>'}
       <button class="link" type="button" onclick="abrirReporte()">Reportar error</button></p>
   </div>`;
   if(d.resumen && d.resumen.length){
@@ -5485,7 +5491,7 @@ $('#lector').querySelector('.cerrar').onclick = cerrarLector;
     const po = document.getElementById('preg-obra');
     if(po) po.innerHTML = '<option value="">Toda la biblioteca</option>' +
       o.filter(x=>x.n>0).map(x=>`<option value="${esc(x.titulo_obra)}">${esc(x.titulo_obra)}</option>`).join('');
-    const orden = x => (x.volumen>=1 && x.volumen<=6) ? x.volumen : 100 + ['Sombras del Tabernáculo','Foto-Drama de la Creación','Escritos del pastor Russell para Overland Monthly','Lo que dijo el pastor Russell','De Adán a Sion','Maná','Cánticos del Alba','El Mapa de las Edades','La Torre del Vigía (1879-1916)'].indexOf(x.titulo_obra);
+    const orden = x => (x.volumen>=1 && x.volumen<=6) ? x.volumen : 100 + ['Sombras del Tabernáculo','Foto-Drama de la Creación','Escritos del pastor Russell para Overland Monthly','Lo que dijo el pastor Russell','Charles Taze Russell: Mensajero de la esperanza milenaria','De Adán a Sion','Maná','Cánticos del Alba','El Mapa de las Edades','La Torre del Vigía (1879-1916)'].indexOf(x.titulo_obra);
     $('#rejilla-obras').innerHTML = o.filter(x=>x.n>0).sort((a,b)=>orden(a)-orden(b)).map(tarjetaObra).join('') + tarjetaBiblia() + tarjetaMapa() + tarjetaTemas() + tarjetaGaleria();
     const e = await (await fetch('/api/estado')).json();
     $('#estado').textContent = ` · ${e.paginas} páginas indexadas · ${e.citas} citas bíblicas · ${e.versiculos} versículos RVR1960 · ${e.temas||0} voces del índice temático`;

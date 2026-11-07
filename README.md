@@ -7,6 +7,7 @@ Biblioteca digital en español de las obras de Charles Taze Russell:
 - **Foto-Drama de la Creación**: 102 capítulos y 378 láminas.
 - **Escritos del pastor Russell para Overland Monthly**: 98 artículos (1909-1916), con la numeración original **OV1–OV449** visible en el texto, buscable e integrado en el índice temático.
 - **Lo que dijo el pastor Russell**: 1.394 temas en orden alfabético, con preguntas y respuestas de 1905–1916, las marcas originales **Q5–Q853** y la numeración de preguntas **Q5:1, Q5:2…** visibles y buscables, referencias bíblicas enlazadas, presencia en el índice temático y audio bajo demanda.
+- **Charles Taze Russell: Mensajero de la esperanza milenaria**: biografía de Charles F. Redeker, con 12 capítulos, 5 partes, introducción, apéndices, referencias y las fotografías originales intercaladas en el texto.
 - **Biblia Reina-Valera 1960** con referencias y comentarios.
 - **Maná diario** y **Devociones Matutinas**.
 - **Audio narrado** de la Biblia: 1.189 capítulos.
@@ -116,7 +117,7 @@ publica con HTTPS en la raíz del dominio. El servicio systemd es
 La biblioteca se revisó a fondo para que el investigador encuentre términos,
 referencias y párrafos exactos:
 
-- 40.316 referencias bíblicas validadas contra el texto bíblico, sin citas fuera
+- 40.676 referencias bíblicas validadas contra el texto bíblico, sin citas fuera
   de capítulo o versículo.
 - 849 marcas originales **Q5–Q853** conservadas y buscables, y 1.408 preguntas
   con numeración **Q5:1, Q5:2…** sin duplicados.
