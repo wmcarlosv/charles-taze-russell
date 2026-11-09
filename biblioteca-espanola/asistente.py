@@ -18,6 +18,7 @@ VOCES_EDGE = ['es-MX-JorgeNeural', 'es-ES-AlvaroNeural', 'es-AR-TomasNeural',
 TASAS_TTS = {'-20%', '-18%', '-15%', '-12%', '-10%', '-8%', '-5%', '0%'}
 TONOS_TTS = {'-15Hz', '-10Hz', '-5Hz', '0Hz'}
 TTS_CACHE = os.path.join(DATOS, 'tts-cache')
+TTS_PAUSAS = os.path.join(BASE, 'tts-pausas')
 SCAN_CACHE = os.path.join(DATOS, 'scan-cache')
 PDF_VOLUMES = {
     'El Plan Divino de las Edades': 'VOLUME1.PDF',
@@ -1067,29 +1068,140 @@ def _tts_referencias(texto):
     return texto
 
 
+_UNIDADES = ['cero', 'uno', 'dos', 'tres', 'cuatro', 'cinco', 'seis', 'siete', 'ocho',
+             'nueve', 'diez', 'once', 'doce', 'trece', 'catorce', 'quince', 'dieciséis',
+             'diecisiete', 'dieciocho', 'diecinueve', 'veinte', 'veintiuno', 'veintidós',
+             'veintitrés', 'veinticuatro', 'veinticinco', 'veintiséis', 'veintisiete',
+             'veintiocho', 'veintinueve']
+_DECENAS = ['', '', '', 'treinta', 'cuarenta', 'cincuenta', 'sesenta', 'setenta', 'ochenta', 'noventa']
+_CENTENAS = ['', 'ciento', 'doscientos', 'trescientos', 'cuatrocientos', 'quinientos',
+             'seiscientos', 'setecientos', 'ochocientos', 'novecientos']
+
+_ABREVIATURAS = [
+    (r'\bEE\.\s*UU\.', 'Estados Unidos'),
+    (r'\bSrta\.', 'señorita'),
+    (r'\bSra\.', 'señora'),
+    (r'\bSr\.', 'señor'),
+    (r'\bDra\.', 'doctora'),
+    (r'\bDr\.', 'doctor'),
+    (r'\bProf\.', 'profesor'),
+    (r'\bpágs\.', 'páginas'),
+    (r'\bpág\.', 'página'),
+    (r'\bn\.\s*[ºo]', 'número'),
+    (r'\bN\.\s*[ºo]', 'número'),
+    (r'\baprox\.', 'aproximadamente'),
+    (r'\ba\.\s*C\.', 'antes de Cristo'),
+    (r'\bd\.\s*C\.', 'después de Cristo'),
+]
+
+
+def _num_es(n):
+    """Número entero a palabras en español."""
+    if n < 0:
+        return 'menos ' + _num_es(-n)
+    if n < 30:
+        return _UNIDADES[n]
+    if n < 100:
+        d, u = divmod(n, 10)
+        return _DECENAS[d] + (' y ' + _UNIDADES[u] if u else '')
+    if n < 1000:
+        c, r = divmod(n, 100)
+        if n == 100:
+            return 'cien'
+        return _CENTENAS[c] + (' ' + _num_es(r) if r else '')
+    if n < 1000000:
+        m, r = divmod(n, 1000)
+        base = 'mil' if m == 1 else _num_es(m) + ' mil'
+        return base + (' ' + _num_es(r) if r else '')
+    return str(n)
+
+
+def _tts_normalizar(t):
+    """Prepara el texto para que la voz lea cifras y abreviaturas en español."""
+    t = re.sub(r'(\d{1,6})\s*%', lambda m: _num_es(int(m.group(1))) + ' por ciento', t)
+    for pat, rep in _ABREVIATURAS:
+        t = re.sub(pat, rep, t)
+    t = t.replace('&', ' y ')
+    t = re.sub(r'(?<![\d.,])(\d{1,6})(?![\d.,])', lambda m: _num_es(int(m.group(1))), t)
+    t = re.sub(r'\s+([,;:.!?])', r'\1', t)
+    t = re.sub(r'([,;:!?])(?=[A-Za-zÁÉÍÓÚÑáéíóúñ¿¡«"“])', r'\1 ', t)
+    t = re.sub(r'\.(?=[A-Za-zÁÉÍÓÚÑáéíóúñ¿¡«"“])', '. ', t)
+    return t
+
+
 def _tts_limpiar(texto):
     t = re.sub(r'\[\[img:[^\]]*\]\]', ' ', texto or '')
+    t = re.sub(r'\[\[[^\]]*\]\]', ' ', t)
     t = re.sub(r'\[[A-Z]\d+\]', ' ', t)
-    t = re.sub(r'(?m)^\s*##\s*', '', t)
-    t = re.sub(r'\s+', ' ', t).strip()
+    t = re.sub(r'\[R\d+\s*:\s*page\s*\d+\]', ' ', t)
+    t = re.sub(r'(?m)^\s*#{1,6}\s*', '', t)
+    t = re.sub(r'[ \t]+', ' ', t)
+    t = re.sub(r' *\n *', '\n', t)
+    t = re.sub(r'\n{3,}', '\n\n', t).strip()
     t = _tts_referencias(t)
+    t = _tts_normalizar(t)
+    t = re.sub(r'[ \t]{2,}', ' ', t)
     return t[:12000]
 
 
-def _tts_trozos(texto, maximo=1800):
-    partes = re.split(r'(?<=[.!?;:])\s+', texto)
+FRAME_MP3 = 144      # trama MPEG-2 Layer III, 24 kHz, 48 kbps
+BYTES_SEG = 6000     # 48 kbps = 6000 bytes por segundo
+TRIM_COLA = 1.34     # silencio final que añade edge-tts a cada petición
+
+
+def _recortar_cola(datos):
+    """Quita el silencio final de edge-tts para que la pausa la marque la puntuación."""
+    corte = int(TRIM_COLA * BYTES_SEG)
+    corte -= corte % FRAME_MP3
+    if len(datos) > corte + 2 * FRAME_MP3:
+        return datos[:-corte]
+    return datos
+
+
+def _pausa_de(frase):
+    c = frase.rstrip()[-1:] or '.'
+    if c == ',':
+        return 120
+    if c in ';:':
+        return 250
+    return 400
+
+
+def _partir_clausulas(frase, maximo=140):
+    """Parte frases largas en las comas para que se oiga la pausa."""
+    if len(frase) <= maximo:
+        return [frase]
+    partes = re.split(r'(?<=[,;:])\s+', frase)
     out, buf = [], ''
     for p in partes:
         p = p.strip()
         if not p:
             continue
         if buf and len(buf) + 1 + len(p) > maximo:
-            out.append(buf); buf = p
+            out.append(buf)
+            buf = p
         else:
             buf = (buf + ' ' + p).strip()
     if buf:
         out.append(buf)
-    return out or [texto[:maximo]]
+    return out or [frase]
+
+
+def _tts_segmentar(texto):
+    """Devuelve [(frase, pausa_ms)] con pausa según la puntuación final."""
+    salida = []
+    parrafos = [p.strip() for p in re.split(r'\n\s*\n', texto) if p.strip()]
+    for i, parrafo in enumerate(parrafos):
+        parrafo = re.sub(r'\s+', ' ', parrafo).strip()
+        for frase in re.split(r'(?<=[.!?…])\s+', parrafo):
+            frase = frase.strip()
+            if not frase:
+                continue
+            for trozo in _partir_clausulas(frase):
+                salida.append((trozo, _pausa_de(trozo)))
+        if salida and i < len(parrafos) - 1:
+            salida[-1] = (salida[-1][0], 750)
+    return salida or [(texto, 400)]
 
 
 def _tts_limpiar_cache(maximo=1024 * 1024 * 1024, archivos=1200):
@@ -1116,7 +1228,7 @@ def _tts_archivo(texto, voz, rate='-10%', pitch='-10Hz'):
         return None
     if rate not in TASAS_TTS: rate = '-10%'
     if pitch not in TONOS_TTS: pitch = '-10Hz'
-    clave = hashlib.sha256((voz + '|r' + rate + '|p' + pitch + '|' + texto).encode('utf-8')).hexdigest()
+    clave = hashlib.sha256(('v2|' + voz + '|r' + rate + '|p' + pitch + '|' + texto).encode('utf-8')).hexdigest()
     try:
         os.makedirs(TTS_CACHE, exist_ok=True)
     except Exception:
@@ -1126,17 +1238,32 @@ def _tts_archivo(texto, voz, rate='-10%', pitch='-10Hz'):
         return destino
     tmp = destino + '.part'
 
+    silencios = {}
+
+    def silencio(ms):
+        if ms not in silencios:
+            ruta = os.path.join(TTS_PAUSAS, 'pausa-%03d.mp3' % ms)
+            try:
+                with open(ruta, 'rb') as sf:
+                    silencios[ms] = sf.read()
+            except OSError:
+                silencios[ms] = b''
+        return silencios[ms]
+
     async def sintetizar():
         with open(tmp, 'wb') as f:
-            for trozo in _tts_trozos(texto):
+            for trozo, pausa in _tts_segmentar(texto):
                 c = edge_tts.Communicate(trozo, voz, rate=rate, pitch=pitch)
+                buf = bytearray()
                 async for chunk in c.stream():
                     if chunk.get('type') == 'audio':
-                        f.write(chunk['data'])
+                        buf += chunk['data']
+                f.write(_recortar_cola(bytes(buf)))
+                f.write(silencio(pausa))
 
     for intento in range(3):
         try:
-            asyncio.run(asyncio.wait_for(sintetizar(), 90))
+            asyncio.run(asyncio.wait_for(sintetizar(), 240))
             if os.path.getsize(tmp) > 1000:
                 os.replace(tmp, destino)
                 _tts_limpiar_cache()
