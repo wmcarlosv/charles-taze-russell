@@ -29,7 +29,9 @@ PDF_VOLUMES = {
     'La Nueva Creación': 'VOLUME6.PDF',
     'Sombras del Tabernáculo': 'SHADOWS.PDF',
 }
-PDF_BASE = '/home/carlos/Imágenes/Documentos compartidos/Pictures/Imágenes/Bible Study Library/Library/Library/Russell'
+PDF_BASE = (os.environ.get('PDF_BASE') or
+            '/home/carlos/Imágenes/Documentos compartidos/Pictures/Imágenes/Bible Study Library/Library/Library/Russell')
+OVM_PDF = os.environ.get('OVM_PDF') or '/home/carlos/Desktop/OVM.PDF'
 MESES_ARCHIVO = {'enero':'JAN','febrero':'FEB','marzo':'MAR','abril':'APR','mayo':'MAY','junio':'JUN',
                  'julio':'JUL','agosto':'AUG','septiembre':'SEP','octubre':'OCT','noviembre':'NOV','diciembre':'DEC'}
 
@@ -1532,7 +1534,9 @@ class Manejador(BaseHTTPRequestHandler):
 
     def _pdf_original(self, obra, titulo, pagina):
         if obra == 'Escritos del pastor Russell para Overland Monthly':
-            return ('imagen', '/home/carlos/Desktop/OVM.PDF', int(pagina) + 5)
+            if not os.path.isfile(OVM_PDF):
+                return None
+            return ('imagen', OVM_PDF, int(pagina) + 5)
         if obra == 'La Torre del Vigía':
             m = re.search(r'—\s*([a-záéíóúñ]+)\s+de\s+(\d{4})', titulo or '', re.I)
             if not m:
@@ -1552,13 +1556,15 @@ class Manejador(BaseHTTPRequestHandler):
         return None
 
     def _scan_overland(self, pagina):
+        if not os.path.isfile(OVM_PDF):
+            return None
         os.makedirs(SCAN_CACHE, exist_ok=True)
         n = int(pagina) + 5
         salida = os.path.join(SCAN_CACHE, 'ovm-%03d.png' % n)
         if not os.path.isfile(salida):
             pref = salida[:-4]
             subprocess.run(['pdftoppm','-f',str(n),'-l',str(n),'-png','-r','110','-singlefile',
-                            '/home/carlos/Desktop/OVM.PDF', pref], check=True, timeout=90)
+                            OVM_PDF, pref], check=True, timeout=90)
         return salida
 
     def do_POST(self):
@@ -1832,6 +1838,8 @@ class Manejador(BaseHTTPRequestHandler):
                     out = self._scan_overland(f['pagina'])
                 except Exception as e:
                     return self._json({'error': str(e)}, 500)
+                if not out:
+                    return self._json({'error': 'sin original'}, 404)
                 return self._archivo(out, 'image/png', cache=True, max_age=86400)
             if ruta == '/api/pdf':
                 pid = entero(q, 'pid')
