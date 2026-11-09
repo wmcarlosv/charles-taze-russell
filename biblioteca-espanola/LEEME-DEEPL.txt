@@ -1,0 +1,45 @@
+TRADUCCIÓN DEL INGLÉS AL ESPAÑOL
+================================
+
+La biblioteca traduce al español el texto original en inglés de las obras
+(por ejemplo, los tomos de Estudios de las Escrituras) cuando el lector
+pulsa «Traducir al español».
+
+MOTOR POR DEFECTO
+-----------------
+Usa Google Translate, sin clave ni configuración. No necesita cuenta.
+
+MEJOR CALIDAD CON DEEPL (OPCIONAL)
+----------------------------------
+DeepL produce traducciones más naturales. Para activarlo:
+
+1. Crea una cuenta en https://www.deepl.com/pro-api
+2. Copia tu clave de API (las gratuitas terminan en «:fx»).
+3. Crea un archivo llamado «deepl.key» en esta misma carpeta
+   (junto a asistente.py).
+4. Pega la clave dentro, sola, sin espacios ni saltos de línea.
+5. Cierra y vuelve a abrir la biblioteca.
+
+Si DeepL falla o se agota la cuota, la biblioteca vuelve automáticamente
+a Google Translate. La clave no se muestra en la página ni se envía al
+navegador: solo la usa el servidor local.
+
+QUÉ HACE EL TRADUCTOR
+---------------------
+- Respeta los párrafos y la estructura del original.
+- Convierte las citas bíblicas al nombre español del libro:
+  «Matthew 24:14» pasa a «Mateo 24:14»; «1 Corinthians 13:4-7» a
+  «1 Corintios 13:4-7».
+- Mantiene intactos los enlaces y las marcas internas.
+- Aplica la terminología de la biblioteca: «Watch Tower» se traduce como
+  «La Torre del Vigía», «Zion» como «Sion» y «Millennial Hope» como
+  «esperanza milenaria».
+- Corrige espaciado, puntuación y mayúsculas después de traducir.
+- Guarda cada traducción en la base de datos (tabla «traducciones»), así
+  que la segunda vez se muestra al instante y sin conexión.
+
+LÍMITE
+------
+El texto se envía por partes de unas 1700 letras para que el servicio no
+corte la respuesta. Un capítulo largo puede tardar unos segundos la
+primera vez; después queda en caché.

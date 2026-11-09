@@ -3970,7 +3970,7 @@ async function abrirPagina(id, termino, conRef){
   const bt = $('#btn-traducir');
   if(bt) bt.onclick = async () => {
     bt.textContent = 'Traduciendo…'; bt.disabled = true;
-    const tr = await (await fetch('/api/traducir?texto='+encodeURIComponent(d.texto))).json();
+    const tr = await (await fetch('/api/traducir', { method:'POST', headers:{'Content-Type':'application/json'}, body: JSON.stringify({ texto: d.texto }) })).json();
     if(tr.texto){
       $('#lector-texto').innerHTML = tr.texto.split(/\n\s*\n|(?<=\.)\s{2,}/).filter(x=>x.trim()).map(x=>'<p>'+esc(x.trim())+'</p>').join('');
       $('#lector-nota').textContent = nota.join(' ') + ' Traducción automática.';

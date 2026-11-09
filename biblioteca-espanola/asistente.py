@@ -910,6 +910,107 @@ def _trozos(texto, limite=1700):
     return partes
 
 
+TRAD_VERSION = 'v8'
+
+# Libros de la Biblia: inglés -> español (para que las citas queden bien)
+_LIBROS_EN = {
+    'Genesis': 'Génesis', 'Exodus': 'Éxodo', 'Leviticus': 'Levítico', 'Numbers': 'Números',
+    'Deuteronomy': 'Deuteronomio', 'Joshua': 'Josué', 'Judges': 'Jueces', 'Ruth': 'Rut',
+    '1 Samuel': '1 Samuel', '2 Samuel': '2 Samuel', '1 Kings': '1 Reyes', '2 Kings': '2 Reyes',
+    '1 Chronicles': '1 Crónicas', '2 Chronicles': '2 Crónicas', 'Ezra': 'Esdras',
+    'Nehemiah': 'Nehemías', 'Esther': 'Ester', 'Job': 'Job', 'Psalm': 'Salmos',
+    'Psalms': 'Salmos', 'Proverbs': 'Proverbios', 'Ecclesiastes': 'Eclesiastés',
+    'Song of Solomon': 'Cantares', 'Isaiah': 'Isaías', 'Jeremiah': 'Jeremías',
+    'Lamentations': 'Lamentaciones', 'Ezekiel': 'Ezequiel', 'Daniel': 'Daniel',
+    'Hosea': 'Oseas', 'Joel': 'Joel', 'Amos': 'Amós', 'Obadiah': 'Abdías',
+    'Jonah': 'Jonás', 'Micah': 'Miqueas', 'Nahum': 'Nahum', 'Habakkuk': 'Habacuc',
+    'Zephaniah': 'Sofonías', 'Haggai': 'Ageo', 'Zechariah': 'Zacarías',
+    'Malachi': 'Malaquías', 'Matthew': 'Mateo', 'Mark': 'Marcos', 'Luke': 'Lucas',
+    'John': 'Juan', 'Acts': 'Hechos', 'Romans': 'Romanos', '1 Corinthians': '1 Corintios',
+    '2 Corinthians': '2 Corintios', 'Galatians': 'Gálatas', 'Ephesians': 'Efesios',
+    'Philippians': 'Filipenses', 'Colossians': 'Colosenses',
+    '1 Thessalonians': '1 Tesalonicenses', '2 Thessalonians': '2 Tesalonicenses',
+    '1 Timothy': '1 Timoteo', '2 Timothy': '2 Timoteo', 'Titus': 'Tito',
+    'Philemon': 'Filemón', 'Hebrews': 'Hebreos', 'James': 'Santiago',
+    '1 Peter': '1 Pedro', '2 Peter': '2 Pedro', '1 John': '1 Juan',
+    '2 John': '2 Juan', '3 John': '3 Juan', 'Jude': 'Judas', 'Revelation': 'Apocalipsis',
+}
+_BASES_EN = sorted({b.split(' ', 1)[1] if b[0].isdigit() else b for b in _LIBROS_EN},
+                   key=len, reverse=True)
+_RE_REF_EN = re.compile(
+    r'\b([123]\s+)?(' + '|'.join(re.escape(b) for b in _BASES_EN) +
+    r')\s+(\d{1,3}):(\d{1,3}(?:\s*[-–,]\s*\d{1,3})*)')
+
+_GLOSARIO_EN = [
+    (r"\bZion'?s\s+Watch\s*Tower\b", 'La Torre del Vigía de Sion'),
+    (r"\b[Tt]he\s+Watch\s*Tower\b", 'La Torre del Vigía'),
+    (r'\bWatch\s*Tower\b', 'La Torre del Vigía'),
+    (r'\bWatchtower\b', 'La Torre del Vigía'),
+    (r'\bZion\b', 'Sion'),
+]
+
+
+def _proteger(texto):
+    """Sustituye citas, enlaces y nombres por marcas que el traductor no toca."""
+    tok = []
+
+    def guardar(valor):
+        k = 'XQZ%dXQZ' % len(tok)
+        tok.append((k, valor))
+        return ' ' + k + ' '
+
+    texto = re.sub(r'\[\[[^\]]*\]\]', ' ', texto)
+    texto = re.sub(r'\[R\d+\s*:\s*page\s*\d+\]', ' ', texto)
+    texto = re.sub(r'https?://\S+', lambda m: guardar(m.group(0)), texto)
+
+    def ref(m):
+        num = (m.group(1) or '').strip()
+        base = m.group(2)
+        libro = _LIBROS_EN.get((num + ' ' + base) if num else base) or base
+        return guardar(libro + ' ' + m.group(3) + ':' + m.group(4))
+
+    texto = _RE_REF_EN.sub(ref, texto)
+    for pat, val in _GLOSARIO_EN:
+        texto = re.sub(pat, lambda m, v=val: guardar(v), texto)
+    return texto, tok
+
+
+def _restaurar(texto, tok):
+    for k, v in tok:
+        texto = texto.replace(k, v).replace(k.lower(), v).replace(k.capitalize(), v)
+    return texto
+
+
+def _posprocesar(t):
+    """Arregla espaciado, puntuación y mayúsculas del texto traducido."""
+    t = re.sub(r'(?m)^\s*#{1,6}\s*', '', t)
+    t = re.sub(r'[ \t]+', ' ', t)
+    t = re.sub(r'\s+([,;:.!?])', r'\1', t)
+    t = re.sub(r'([,;:])(?=[^\s\d/])', r'\1 ', t)
+    t = re.sub(r'\.{3,}', '…', t)
+    t = re.sub(r'([.!?]\s+)([a-záéíóúüñ])', lambda m: m.group(1) + m.group(2).upper(), t)
+    # concordancias y términos propios de la biblioteca
+    t = re.sub(r'\b(la|una|de la|en la)\s+Esperanza Milenaria\b', r'\1 esperanza milenaria', t)
+    t = re.sub(r'\bEsperanza Milenial\b', 'esperanza milenaria', t)
+    t = re.sub(r'\besperanza milenial\b', 'esperanza milenaria', t)
+    t = re.sub(r'\bTorre de Vigilancia\b', 'Torre del Vigía', t)
+    t = re.sub(r'\btorre de vigilancia\b', 'torre del Vigía', t)
+    t = re.sub(r'\b(?:los|el)\s+esperanza milenaria\b', 'la esperanza milenaria', t)
+    t = re.sub(r'\b(?:el|la)\s+Estudiantes de la Biblia\b', 'los Estudiantes de la Biblia', t)
+    t = re.sub(r'\bla\s+pastor Russell\b', 'el pastor Russell', t)
+    t = re.sub(r'[ \t]{2,}', ' ', t)
+    return t.strip()
+
+
+def _clave_deepl():
+    try:
+        with open(os.path.join(BASE, 'deepl.key'), encoding='utf-8') as f:
+            k = f.read().strip()
+        return k or None
+    except OSError:
+        return None
+
+
 def _traduce_trozo(t):
     u = ('https://clients5.google.com/translate_a/t?client=dict-chrome-ex&sl=en&tl=es&q=' +
          urllib.parse.quote(t))
@@ -920,27 +1021,53 @@ def _traduce_trozo(t):
     return str(d)
 
 
+def _traduce_deepl(t, clave):
+    base = ('https://api-free.deepl.com/v2/translate' if clave.endswith(':fx')
+            else 'https://api.deepl.com/v2/translate')
+    datos = urllib.parse.urlencode({
+        'text': t, 'source_lang': 'EN', 'target_lang': 'ES',
+        'preserve_formatting': '1',
+    }).encode('utf-8')
+    req = urllib.request.Request(base, data=datos,
+                                 headers={'Authorization': 'DeepL-Auth-Key ' + clave})
+    with urllib.request.urlopen(req, timeout=45) as r:
+        d = json.loads(r.read().decode('utf-8', 'replace'))
+    return d['translations'][0]['text']
+
+
 def traducir(texto):
+    """Traduce inglés -> español neutro conservando párrafos, citas y enlaces."""
     if not texto or not texto.strip():
         return ''
-    h = hashlib.sha1(texto.encode('utf-8')).hexdigest()
+    clave = _clave_deepl()
+    motor = 'deepl' if clave else 'google'
+    h = hashlib.sha1((TRAD_VERSION + '|' + motor + '|' + texto).encode('utf-8')).hexdigest()
     con = conectar()
     f = con.execute('SELECT texto FROM traducciones WHERE hash=?', (h,)).fetchone()
     if f:
         con.close()
         return f['texto']
     con.close()
-    partes = []
-    for t in _trozos(texto):
-        for intento in range(3):
-            try:
-                partes.append(_traduce_trozo(t))
-                break
-            except Exception:
-                time.sleep(2 + intento * 3)
-        else:
-            return None
-    es = ' '.join(partes).strip()
+
+    protegido, tok = _proteger(texto)
+    salida = []
+    for parrafo in re.split(r'\n\s*\n', protegido):
+        parrafo = parrafo.strip()
+        if not parrafo:
+            continue
+        partes = []
+        for t in _trozos(parrafo):
+            for intento in range(3):
+                try:
+                    r = _traduce_deepl(t, clave) if clave else _traduce_trozo(t)
+                    partes.append(r)
+                    break
+                except Exception:
+                    time.sleep(2 + intento * 3)
+            else:
+                return None
+        salida.append(_posprocesar(_restaurar(' '.join(partes), tok)))
+    es = '\n\n'.join(salida).strip()
     if es:
         con = conectar()
         con.execute('INSERT OR REPLACE INTO traducciones (hash,texto) VALUES (?,?)', (h, es))
@@ -1436,7 +1563,7 @@ class Manejador(BaseHTTPRequestHandler):
 
     def do_POST(self):
         ruta = urllib.parse.urlparse(self.path).path
-        if ruta not in ('/api/tts', '/api/reportar', '/api/reporte_estado'):
+        if ruta not in ('/api/tts', '/api/traducir', '/api/reportar', '/api/reporte_estado'):
             self.send_error(404); return
         try:
             largo = int(self.headers.get('Content-Length') or 0)
@@ -1473,6 +1600,8 @@ class Manejador(BaseHTTPRequestHandler):
                     con.execute('UPDATE reportes SET resuelto=0 WHERE id=?', (rid,))
                 con.commit(); con.close()
                 return self._json({'ok': True})
+            if ruta == '/api/traducir':
+                return self._json({'texto': traducir(str(datos.get('texto') or ''))})
             texto = _tts_limpiar(str(datos.get('texto') or ''))
             if not texto:
                 return self._json({'error': 'texto vacío'}, 400)
