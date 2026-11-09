@@ -14,6 +14,16 @@ escucha solo en `127.0.0.1:8099`.
 **Icono:** el acceso del escritorio usa el retrato del pastor Russell, el mismo
 icono del instalador.
 
+**Versión 1.2.9:** añade la biografía **Charles Taze Russell: Mensajero de la
+esperanza milenaria**, de Charles F. Redeker (30 capítulos, con la portada, las
+fotografías originales y las referencias bíblicas enlazadas). Su tarjeta
+aparece en «Obras» con la etiqueta **Biografía** y la portada del libro.
+Incorpora además *Escritos del pastor Russell para Overland Monthly* (98
+artículos, 1909–1916), *Lo que dijo el pastor Russell* (1.394 temas en orden
+alfabético, con marcas Q y audio bajo demanda) y *La Torre del Vigía*
+(1879–1916, 432 páginas). Los cuatro títulos se integran en el buscador, el
+índice temático y «Preguntar a la biblioteca».
+
 **Versión 1.2.8:** incluye el **Foto-Drama de la Creación** con sus 102
 capítulos y 378 ilustraciones, además de los versículos comentados. Sus citas
 están enlazadas con la RVR1960, sus versículos aparecen con círculo en la
