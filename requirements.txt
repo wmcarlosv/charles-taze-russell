@@ -2,3 +2,6 @@
 # El servidor y las dos interfaces usan sólo la biblioteca estándar,
 # salvo la narración, que necesita edge-tts.
 edge-tts>=7.0
+# attrs es dependencia de la narración (edge-tts / edge-playback). Se fija
+# explícitamente para que el instalador no empaquete una copia incompleta.
+attrs>=24.0
