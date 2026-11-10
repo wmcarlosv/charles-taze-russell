@@ -5260,7 +5260,6 @@ async function ttsIr(i, seek){
     ttsDetener(true); return;
   }
   e.i = i; e.pausado = false; ttsPintar();
-  if(!ttsIrAParrafo(i) && e.acum) ttsSeguir(e.acum[i] / e.total);
   let blob = null;
   try{
     if(e.pref && e.pref.i === i){ blob = await e.pref.p; e.pref = null; }
@@ -5290,10 +5289,6 @@ async function ttsIr(i, seek){
   }
   audio.ontimeupdate = ()=>{
     ttsPintar();
-    if(!ttsIrAParrafo(e.i) && e.acum && audio.duration){
-      const frac = Math.min(1, audio.currentTime / audio.duration);
-      ttsSeguir((e.acum[e.i] + frac * (e.partes[e.i] || '').length) / e.total);
-    }
     const pid = window._paginaActualData && window._paginaActualData.id;
     if(pid && Math.floor(audio.currentTime) % 5 === 0) guardarAudioPos(pid, e.i, audio.currentTime);
   };
