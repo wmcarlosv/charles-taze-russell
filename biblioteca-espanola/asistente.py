@@ -1287,6 +1287,24 @@ def _recortar_cola(datos):
     return datos
 
 
+def _tts_frases(texto, maximo=1700):
+    """Divide en bloques grandes por frase, sin recortar el audio."""
+    partes = re.split(r'(?<=[.!?…])\s+', texto)
+    out, buf = [], ''
+    for p in partes:
+        p = p.strip()
+        if not p:
+            continue
+        if buf and len(buf) + 1 + len(p) > maximo:
+            out.append(buf)
+            buf = p
+        else:
+            buf = (buf + ' ' + p).strip()
+    if buf:
+        out.append(buf)
+    return out or [texto[:maximo]]
+
+
 def _pausa_de(frase):
     c = frase.rstrip()[-1:] or '.'
     if c == ',':
@@ -1357,7 +1375,7 @@ def _tts_archivo(texto, voz, rate='-10%', pitch='-10Hz'):
         return None
     if rate not in TASAS_TTS: rate = '-10%'
     if pitch not in TONOS_TTS: pitch = '-10Hz'
-    clave = hashlib.sha256(('v2|' + voz + '|r' + rate + '|p' + pitch + '|' + texto).encode('utf-8')).hexdigest()
+    clave = hashlib.sha256(('v3|' + voz + '|r' + rate + '|p' + pitch + '|' + texto).encode('utf-8')).hexdigest()
     try:
         os.makedirs(TTS_CACHE, exist_ok=True)
     except Exception:
@@ -1381,14 +1399,11 @@ def _tts_archivo(texto, voz, rate='-10%', pitch='-10Hz'):
 
     async def sintetizar():
         with open(tmp, 'wb') as f:
-            for trozo, pausa in _tts_segmentar(texto):
+            for trozo in _tts_frases(texto):
                 c = edge_tts.Communicate(trozo, voz, rate=rate, pitch=pitch)
-                buf = bytearray()
                 async for chunk in c.stream():
                     if chunk.get('type') == 'audio':
-                        buf += chunk['data']
-                f.write(_recortar_cola(bytes(buf)))
-                f.write(silencio(pausa))
+                        f.write(chunk['data'])
 
     for intento in range(3):
         try:
