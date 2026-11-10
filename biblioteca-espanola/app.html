@@ -5015,10 +5015,10 @@ function limpiarTextoVoz(texto){
 function dividirParaVoz(texto, max, primerMax){
   max = max || 3200;
   primerMax = Math.min(max, primerMax || max);
-  const partes = [];
+  const partes = [], indices = [];
   const parrafos = String(texto || '').split(/\n{2,}/).map(x=>x.trim()).filter(Boolean);
   const bloques = parrafos.length ? parrafos : [String(texto || '').trim()].filter(Boolean);
-  for(const bloque of bloques){
+  bloques.forEach((bloque, bi)=>{
     let resto = bloque;
     let limite = partes.length === 0 ? primerMax : max;
     while(resto.length > limite){
@@ -5031,13 +5031,15 @@ function dividirParaVoz(texto, max, primerMax){
         const sp = trozo.lastIndexOf(' ');
         corte = sp > 0 ? sp : limite;
       }
-      partes.push(resto.slice(0, corte).trim());
+      const p = resto.slice(0, corte).trim();
+      if(p){ partes.push(p); indices.push(bi); }
       resto = resto.slice(corte).trim();
       limite = max;
     }
-    if(resto) partes.push(resto);
-  }
-  return partes.filter(Boolean);
+    const p = resto.trim();
+    if(p){ partes.push(p); indices.push(bi); }
+  });
+  return {partes: partes, indices: indices};
 }
 
 async function pedirTTS(texto, rate){
@@ -5194,6 +5196,59 @@ function ttsScrollParar(){
   if(ttsScrollRaf){ cancelAnimationFrame(ttsScrollRaf); ttsScrollRaf = 0; }
 }
 
+function ttsNorm(t){
+  return String(t || '').toLowerCase().normalize('NFD')
+    .replace(/[\u0300-\u036f]/g, '')
+    .replace(/[^a-z0-9]+/g, ' ').trim();
+}
+
+function ttsParrafos(){
+  const l = document.getElementById('lector');
+  const cont = (l && l.classList.contains('abierto'))
+    ? document.getElementById('lector-texto')
+    : document.querySelector('.lectura-texto');
+  if(!cont) return [];
+  return [...cont.querySelectorAll(':scope > p, :scope > h4')];
+}
+
+function ttsMapear(textoLimpio){
+  const els = ttsParrafos();
+  const bloques = String(textoLimpio || '').split(/\n{2,}/).map(x=>ttsNorm(x)).filter(Boolean);
+  const mapa = [];
+  let j = 0;
+  for(let i = 0; i < bloques.length; i++){
+    const b = bloques[i].slice(0, 28);
+    let hallado = -1;
+    for(let k = j; k < Math.min(els.length, j + 4); k++){
+      const e = ttsNorm(els[k].textContent).slice(0, 28);
+      if(!e || !b) continue;
+      if(e === b || e.startsWith(b.slice(0, 16)) || b.startsWith(e.slice(0, 16))){ hallado = k; break; }
+    }
+    if(hallado >= 0){ mapa[i] = els[hallado]; j = hallado + 1; }
+  }
+  return mapa;
+}
+
+function ttsIrAParrafo(i){
+  const e = ttsEstado;
+  if(!e || e.pausado) return false;
+  const bi = e.indices ? e.indices[i] : -1;
+  const el = e.elementos ? e.elementos[bi] : null;
+  if(!el) return false;
+  const c = ttsContenedor();
+  const esVentana = (c === document.scrollingElement || c === document.documentElement);
+  const margen = esVentana ? 160 : 70;
+  const top = esVentana
+    ? el.getBoundingClientRect().top + window.scrollY - margen
+    : el.getBoundingClientRect().top - c.getBoundingClientRect().top + c.scrollTop - margen;
+  const max = Math.max(0, (c.scrollHeight || 0) - (c.clientHeight || 0));
+  const destino = Math.max(0, Math.min(max, top));
+  if(Math.abs(destino - (c.scrollTop || 0)) < 40) return true;
+  ttsScrollDestino = destino;
+  if(!ttsScrollRaf) ttsScrollRaf = requestAnimationFrame(ttsScrollAnim);
+  return true;
+}
+
 async function ttsIr(i, seek){
   const e = ttsEstado;
   if(!e) return;
@@ -5205,7 +5260,7 @@ async function ttsIr(i, seek){
     ttsDetener(true); return;
   }
   e.i = i; e.pausado = false; ttsPintar();
-  if(e.acum) ttsSeguir(e.acum[i] / e.total);
+  if(!ttsIrAParrafo(i) && e.acum) ttsSeguir(e.acum[i] / e.total);
   let blob = null;
   try{
     if(e.pref && e.pref.i === i){ blob = await e.pref.p; e.pref = null; }
@@ -5235,7 +5290,7 @@ async function ttsIr(i, seek){
   }
   audio.ontimeupdate = ()=>{
     ttsPintar();
-    if(e.acum && audio.duration){
+    if(!ttsIrAParrafo(e.i) && e.acum && audio.duration){
       const frac = Math.min(1, audio.currentTime / audio.duration);
       ttsSeguir((e.acum[e.i] + frac * (e.partes[e.i] || '').length) / e.total);
     }
@@ -5298,14 +5353,17 @@ function ttsDetener(sinGuardar){
 async function escucharTexto(texto, btn, etiqueta){
   if(ttsEstado && btn && ttsEstado.btn === btn){ ttsDetener(); return; }
   ttsDetener();
-  texto = textoParaVoz(limpiarTextoVoz(texto));
+  const limpio = limpiarTextoVoz(texto);
+  texto = textoParaVoz(limpio);
   if(!texto) return;
   const et = etiqueta || 'Escuchar';
-  const partes = dividirParaVoz(texto, 3200, 600);
+  const dv = dividirParaVoz(texto, 3200, 600);
+  const partes = dv.partes, indices = dv.indices;
   const acum = []; let total = 0;
   partes.forEach(p=>{ acum.push(total); total += p.length; });
   const tok = ++ttsToken;
-  ttsEstado = {partes: partes, acum: acum, total: total || 1, i: 0, tok: tok, btn: btn, etiqueta: et,
+  ttsEstado = {partes: partes, indices: indices, acum: acum, total: total || 1,
+               elementos: ttsMapear(limpio), i: 0, tok: tok, btn: btn, etiqueta: et,
                pausado: false, audio: null, pref: null};
   if(btn){
     btn.dataset.leyendo = '1';
