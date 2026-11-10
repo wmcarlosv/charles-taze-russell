@@ -5161,6 +5161,39 @@ function ttsPintar(){
   }
 }
 
+let ttsScrollDestino = 0, ttsScrollRaf = 0;
+
+function ttsContenedor(){
+  const l = document.getElementById('lector');
+  if(l && l.classList.contains('abierto')) return l;
+  return document.scrollingElement || document.documentElement;
+}
+
+function ttsScrollAnim(){
+  const c = ttsContenedor();
+  const actual = c.scrollTop || 0;
+  const dif = ttsScrollDestino - actual;
+  if(Math.abs(dif) < 1.5){
+    try{ c.scrollTop = ttsScrollDestino; }catch(err){}
+    ttsScrollRaf = 0;
+    return;
+  }
+  try{ c.scrollTop = actual + dif * 0.14; }catch(err){}
+  ttsScrollRaf = requestAnimationFrame(ttsScrollAnim);
+}
+
+function ttsSeguir(prog){
+  if(!ttsEstado || ttsEstado.pausado) return;
+  const c = ttsContenedor();
+  const max = Math.max(0, (c.scrollHeight || 0) - (c.clientHeight || 0));
+  ttsScrollDestino = Math.max(0, Math.min(1, prog || 0)) * max;
+  if(!ttsScrollRaf) ttsScrollRaf = requestAnimationFrame(ttsScrollAnim);
+}
+
+function ttsScrollParar(){
+  if(ttsScrollRaf){ cancelAnimationFrame(ttsScrollRaf); ttsScrollRaf = 0; }
+}
+
 async function ttsIr(i, seek){
   const e = ttsEstado;
   if(!e) return;
@@ -5172,6 +5205,7 @@ async function ttsIr(i, seek){
     ttsDetener(true); return;
   }
   e.i = i; e.pausado = false; ttsPintar();
+  if(e.acum) ttsSeguir(e.acum[i] / e.total);
   let blob = null;
   try{
     if(e.pref && e.pref.i === i){ blob = await e.pref.p; e.pref = null; }
@@ -5201,6 +5235,10 @@ async function ttsIr(i, seek){
   }
   audio.ontimeupdate = ()=>{
     ttsPintar();
+    if(e.acum && audio.duration){
+      const frac = Math.min(1, audio.currentTime / audio.duration);
+      ttsSeguir((e.acum[e.i] + frac * (e.partes[e.i] || '').length) / e.total);
+    }
     const pid = window._paginaActualData && window._paginaActualData.id;
     if(pid && Math.floor(audio.currentTime) % 5 === 0) guardarAudioPos(pid, e.i, audio.currentTime);
   };
@@ -5234,7 +5272,7 @@ function ttsPausa(){
   if(!e || !e.audio) return;
   if(e.audio.paused){ e.audio.play().catch(()=>{}); e.pausado = false; }
   else {
-    e.audio.pause(); e.pausado = true;
+    e.audio.pause(); e.pausado = true; ttsScrollParar();
     const pid = window._paginaActualData && window._paginaActualData.id;
     if(pid) guardarAudioPos(pid, e.i, e.audio.currentTime);
   }
@@ -5242,6 +5280,7 @@ function ttsPausa(){
 }
 
 function ttsDetener(sinGuardar){
+  ttsScrollParar();
   const e = ttsEstado;
   if(!sinGuardar && e && e.audio){
     const pid = window._paginaActualData && window._paginaActualData.id;
@@ -5263,8 +5302,10 @@ async function escucharTexto(texto, btn, etiqueta){
   if(!texto) return;
   const et = etiqueta || 'Escuchar';
   const partes = dividirParaVoz(texto, 3200, 600);
+  const acum = []; let total = 0;
+  partes.forEach(p=>{ acum.push(total); total += p.length; });
   const tok = ++ttsToken;
-  ttsEstado = {partes: partes, i: 0, tok: tok, btn: btn, etiqueta: et,
+  ttsEstado = {partes: partes, acum: acum, total: total || 1, i: 0, tok: tok, btn: btn, etiqueta: et,
                pausado: false, audio: null, pref: null};
   if(btn){
     btn.dataset.leyendo = '1';
